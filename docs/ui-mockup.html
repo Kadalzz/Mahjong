@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mahjong Club — High-Fidelity Mockup</title>
+<style>
+:root{
+  --gold:#c9a84c; --gold-light:#e8c97a;
+  --bg:#0f0f1a; --bg-alt:#0d0d1f;
+  --card:#1a1a2e; --card-alt:#16213e; --card-alt2:#0f3460;
+  --border:#2a2a45;
+  --text:#e6e6f0; --text-mute:#8888aa; --text-faint:#63637f;
+  --ok:#1abc9c; --ok-bg:#16a08520; --ok-bd:#16a08550;
+  --danger:#e74c3c; --danger-bg:#c0392b20; --danger-bd:#c0392b50;
+  --warn:#f1c40f; --warn-bg:#f39c1220; --warn-bd:#f39c1250;
+  --info:#3498db; --info-bg:#2980b920; --info-bd:#2980b950;
+  --font: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Roboto Mono", monospace;
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;} }
+
+*{box-sizing:border-box;}
+body{margin:0; background:var(--bg); color:var(--text); font-family:var(--font); line-height:1.5;}
+.icon{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+::selection{background:rgba(201,168,76,.35);}
+:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+
+.page{max-width:1180px; margin:0 auto; padding:0 clamp(1rem,3vw,2.25rem) 5rem;}
+
+/* masthead */
+.masthead{padding:3rem 0 1.6rem; border-bottom:1px solid var(--border);}
+.kicker{font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.14em; font-size:.7rem; color:var(--gold); font-weight:700;}
+.masthead h1{font-size:clamp(1.5rem,3vw,2.15rem); margin:.5rem 0 .6rem; text-wrap:balance;}
+.masthead p{color:var(--text-mute); max-width:66ch; font-size:.95rem;}
+.masthead .note{margin-top:1rem; font-size:.78rem; color:var(--text-faint); border-left:2px solid var(--border); padding-left:.8rem; max-width:66ch;}
+
+/* toc */
+.toc-wrap{position:sticky; top:0; z-index:5; background:var(--bg); padding:.75rem 0; border-bottom:1px solid var(--border); margin-bottom:2.5rem;}
+.toc{display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;}
+.toc .lane-tag{font-family:var(--font-mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-right:.15rem;}
+.toc a{font-size:.76rem; padding:.35rem .65rem; border:1px solid var(--border); border-radius:20px; white-space:nowrap; color:var(--text-mute); text-decoration:none; transition:border-color .15s, color .15s;}
+.toc a:hover, .toc a:focus-visible{border-color:var(--gold); color:var(--gold);}
+.toc .sep{width:1px; align-self:stretch; background:var(--border); margin:0 .3rem;}
+
+.group-heading{display:flex; align-items:baseline; gap:.6rem; margin:2.5rem 0 1.4rem;}
+.group-heading h2{font-size:1.05rem; margin:0;}
+.group-heading span{font-size:.78rem; color:var(--text-faint);}
+
+/* frame */
+.frame{border:1px solid var(--border); border-radius:10px; background:var(--card); margin-bottom:2.75rem; overflow:hidden; scroll-margin-top:4.5rem;}
+.frame-chrome{display:flex; align-items:center; gap:.6rem; padding:.55rem .8rem; border-bottom:1px solid var(--border); background:var(--bg-alt);}
+.frame-dots{display:flex; gap:.3rem;}
+.frame-dots span{width:8px; height:8px; border-radius:50%; background:var(--text-faint); opacity:.45;}
+.frame-url{font-family:var(--font-mono); font-size:.7rem; color:var(--text-mute); background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:.15rem .7rem; max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.frame-title{margin-left:auto; font-family:var(--font-mono); font-size:.66rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap;}
+.frame-body{background:var(--bg);}
+.frame-caption{padding:.7rem 1.2rem; border-top:1px solid var(--border); font-size:.78rem; color:var(--text-faint); background:var(--card);}
+
+/* buttons */
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:.4rem; border-radius:8px; padding:.5rem 1.1rem; font-size:.82rem; font-weight:600; text-decoration:none; border:1px solid transparent; cursor:default;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#1a1200;}
+.btn-outline{border-color:var(--border); color:var(--text-mute); background:transparent;}
+
+/* badges */
+.badge{display:inline-flex; align-items:center; gap:.35rem; font-size:.72rem; font-weight:600; padding:.28em .8em; border-radius:20px;}
+.badge.ok{background:var(--ok-bg); color:var(--ok); border:1px solid var(--ok-bd);}
+.badge.danger{background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger-bd);}
+.badge.warn{background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn-bd);}
+.badge.info{background:var(--info-bg); color:var(--info); border:1px solid var(--info-bd);}
+
+/* generic cards */
+.card-dark{background:var(--card); border:1px solid var(--border); border-radius:16px;}
+.card-head{padding:1.1rem 1.4rem; border-bottom:1px solid var(--border); font-weight:600; display:flex; align-items:center; justify-content:space-between; gap:.5rem;}
+.card-body{padding:1.4rem;}
+.text-gold{color:var(--gold);}
+.text-mute{color:var(--text-mute);}
+.text-faint{color:var(--text-faint);}
+
+/* form fields */
+.field{display:flex; flex-direction:column; gap:.35rem;}
+.field label{font-size:.74rem; color:var(--text-mute);}
+.input{background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:.55rem .8rem; font-size:.84rem; color:var(--text);}
+
+/* ============ SCREEN 1: HOME ============ */
+.hero{background:linear-gradient(135deg,#0f0f1a 0%,#1a1035 50%,#0f0f1a 100%); padding:2.75rem 1.6rem; position:relative; overflow:hidden;}
+.hero::before{content:''; position:absolute; inset:-50%; background:radial-gradient(ellipse at center, rgba(201,168,76,.08) 0%, transparent 60%); pointer-events:none;}
+.hero-inner{position:relative; display:flex; justify-content:space-between; align-items:center; gap:1.5rem; flex-wrap:wrap;}
+.hero h3{font-size:1.6rem; margin:0 0 .5rem;}
+.hero p{color:var(--text-mute); max-width:44ch; margin:0 0 1rem;}
+.home-body{padding:1.4rem 1.6rem 1.8rem;}
+.filter-bar{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1rem 1.4rem; margin-bottom:1.4rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.8rem;}
+.legend-row{display:flex; gap:1rem; font-size:.76rem; flex-wrap:wrap;}
+.tables-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1.1rem;}
+@media (max-width:900px){.tables-grid{grid-template-columns:repeat(2,1fr);}}
+.table-card{background:var(--card); border:1px solid var(--border); border-radius:18px; overflow:hidden;}
+.table-card.dim{opacity:.5;}
+.table-head{padding:1.2rem; background:linear-gradient(135deg,var(--card-alt),var(--card-alt2)); text-align:center;}
+.table-num{font-size:2.4rem; line-height:1;}
+.table-foot{padding:1.1rem 1.3rem;}
+.table-price{color:var(--gold); font-weight:700; font-size:1.1rem;}
+.table-price small{font-size:.7rem; font-weight:400; color:var(--text-faint);}
+
+/* ============ SCREEN 2: BOOKING ============ */
+.booking-body{padding:1.5rem; display:grid; grid-template-columns:2fr 1fr; gap:1.4rem; align-items:start;}
+@media (max-width:820px){.booking-body{grid-template-columns:1fr;}}
+.step-card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.2rem 1.3rem; margin-bottom:1.1rem;}
+.step-title{display:flex; align-items:center; gap:.5rem; font-weight:600; margin-bottom:.9rem; font-size:.92rem;}
+.step-badge{width:24px; height:24px; border-radius:50%; background:rgba(201,168,76,.15); color:var(--gold); display:inline-flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:700;}
+.field-row{display:flex; gap:.8rem; flex-wrap:wrap;}
+.field-row .field{flex:1; min-width:110px;}
+.summary-card{background:linear-gradient(135deg,#1e1e3a,#16213e); border:1px solid rgba(201,168,76,.2); border-radius:16px; padding:1.4rem; position:sticky; top:4.5rem;}
+.summary-row{display:flex; justify-content:space-between; font-size:.82rem; padding:.4rem 0; color:var(--text-mute);}
+.summary-total{display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); margin-top:.4rem; padding-top:.7rem;}
+.summary-total b{font-size:1.4rem; color:var(--gold);}
+
+/* ============ SCREEN 3: CONFIRM ============ */
+.confirm-wrap{padding:2.5rem 1.5rem; display:flex; justify-content:center;}
+.confirm-card{max-width:460px; width:100%; background:var(--card); border:1px solid var(--border); border-radius:20px; overflow:hidden;}
+.confirm-head{padding:2rem 1.6rem; text-align:center; background:linear-gradient(135deg,#1e1e3a,#16213e); border-bottom:1px solid var(--border);}
+.confirm-icon{width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto .8rem; font-size:1.6rem;}
+.booking-code{font-family:var(--font-mono); font-size:1.3rem; font-weight:700; letter-spacing:2px; color:var(--gold); background:rgba(201,168,76,.1); padding:.4rem 1.2rem; border-radius:10px; border:1px solid rgba(201,168,76,.2); display:inline-block; margin-top:.5rem;}
+.confirm-body{padding:1.6rem;}
+.info-row{display:flex; justify-content:space-between; padding:.6rem 0; border-bottom:1px solid rgba(42,42,69,.5); font-size:.85rem;}
+.info-row:last-child{border-bottom:none;}
+.info-row.total b{color:var(--gold); font-size:1.15rem;}
+
+/* ============ SCREEN 4: SCHEDULE ============ */
+.sched-body{padding:1.5rem;}
+.date-nav{display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:.8rem 1.1rem; margin-bottom:1.3rem;}
+.sched-grid{display:grid; grid-template-columns:56px repeat(4,1fr); border:1px solid var(--border); border-radius:8px; overflow:hidden; min-width:480px;}
+.sched-grid .h{background:var(--bg-alt); font-size:.68rem; font-weight:600; text-align:center; padding:.5rem .3rem; border-bottom:1px solid var(--border); color:var(--gold);}
+.sched-grid .t{font-family:var(--font-mono); font-size:.66rem; color:var(--text-faint); text-align:center; padding:.5rem .3rem; border-bottom:1px solid var(--border); border-right:1px solid var(--border);}
+.sched-grid .c{min-height:38px; border-bottom:1px solid var(--border); border-right:1px solid var(--border); padding:3px;}
+.sched-grid .c:nth-child(5n){border-right:none;}
+.blk{height:100%; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:.62rem; font-weight:700;}
+.blk.ok{background:var(--ok-bg); color:var(--ok); border:1px solid var(--ok-bd);}
+.blk.warn{background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn-bd);}
+.blk.info{background:var(--info-bg); color:var(--info); border:1px solid var(--info-bd);}
+.wl-card{background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden;}
+.wl-head{padding:.9rem 1.3rem; border-bottom:1px solid var(--border); font-weight:600; font-size:.88rem;}
+.wl-row{display:flex; justify-content:space-between; align-items:center; padding:.85rem 1.3rem; border-bottom:1px solid rgba(42,42,69,.4); font-size:.82rem;}
+.wl-row:last-child{border-bottom:none;}
+.wl-num{width:24px; height:24px; border-radius:50%; background:var(--info-bg); color:var(--info); display:inline-flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; margin-right:.7rem;}
+
+/* ============ ADMIN SHELL ============ */
+.admin-shell{display:grid; grid-template-columns:200px 1fr; min-height:520px;}
+@media (max-width:820px){.admin-shell{grid-template-columns:1fr;}}
+.a-sidebar{background:var(--bg-alt); border-right:1px solid var(--border); padding:1rem 0;}
+.a-brand{padding:0 1.2rem 1rem; font-weight:700; color:var(--gold); border-bottom:1px solid var(--border); margin-bottom:.8rem; font-size:.95rem;}
+.a-brand small{display:block; font-weight:400; color:var(--text-faint); font-size:.68rem; margin-top:2px;}
+.a-label{font-size:.63rem; text-transform:uppercase; letter-spacing:.08em; color:#444466; padding:.7rem 1.2rem .3rem;}
+.a-link{display:flex; align-items:center; gap:.6rem; padding:.55rem 1.2rem; color:var(--text-mute); font-size:.83rem; border-left:3px solid transparent;}
+.a-link.active{color:var(--gold); background:rgba(201,168,76,.1); border-left-color:var(--gold);}
+.a-user{margin-top:1.2rem; padding:1rem 1.2rem 0;}
+.a-main{padding:1.4rem;}
+.a-topbar{display:flex; justify-content:space-between; align-items:center; padding-bottom:1.2rem; margin-bottom:1.2rem; border-bottom:1px solid var(--border);}
+.a-topbar h4{margin:0; font-size:1rem;}
+
+.tiles{display:grid; grid-template-columns:repeat(4,1fr); gap:.9rem; margin-bottom:1.3rem;}
+@media (max-width:700px){.tiles{grid-template-columns:repeat(2,1fr);}}
+.tile{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.1rem; display:flex; justify-content:space-between; align-items:flex-start; gap:.6rem;}
+.tile-label{font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint); margin-bottom:.4rem;}
+.tile-value{font-size:1.35rem; font-weight:700;}
+.tile-ic{width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0;}
+
+.grid2{display:grid; grid-template-columns:1.5fr 1fr; gap:1.2rem;}
+@media (max-width:820px){.grid2{grid-template-columns:1fr;}}
+
+/* bar chart (css) */
+.barchart{display:flex; align-items:flex-end; gap:.7rem; height:150px; padding-top:.5rem;}
+.barchart .col{flex:1; display:flex; flex-direction:column; align-items:center; gap:.4rem; height:100%; justify-content:flex-end;}
+.barchart .bar{width:100%; border-radius:6px 6px 0 0; background:linear-gradient(180deg, var(--gold-light), rgba(201,168,76,.35));}
+.barchart .lbl{font-size:.65rem; color:var(--text-faint);}
+
+/* grouped bar chart (occupancy) */
+.gbarchart{display:flex; align-items:flex-end; gap:.9rem; height:150px;}
+.gbarchart .cluster{flex:1; display:flex; align-items:flex-end; gap:3px; height:100%;}
+.gbarchart .bar{flex:1; border-radius:3px 3px 0 0;}
+.gbarchart .lbls{display:flex; gap:.9rem; margin-top:.4rem;}
+.gbarchart .lbls span{flex:1; text-align:center; font-size:.62rem; color:var(--text-faint);}
+.chart-legend{display:flex; gap:1rem; flex-wrap:wrap; margin-top:.9rem; font-size:.7rem; color:var(--text-mute);}
+.chart-legend .dot{width:8px; height:8px; border-radius:2px; display:inline-block; margin-right:.35rem;}
+
+/* line chart */
+.linechart svg{width:100%; height:130px; display:block;}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;}
+table.dtbl{width:100%; border-collapse:collapse; font-size:.82rem; min-width:560px;}
+table.dtbl th{text-align:left; font-size:.66rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-faint); padding:.75rem 1rem; border-bottom:1px solid var(--border); background:rgba(255,255,255,.02); white-space:nowrap;}
+table.dtbl td{padding:.7rem 1rem; border-bottom:1px solid var(--border); vertical-align:middle;}
+table.dtbl tr:last-child td{border-bottom:none;}
+code.code{color:var(--gold); font-family:var(--font-mono); font-size:.78rem;}
+
+/* pricing cards */
+.price-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1rem;}
+@media (max-width:820px){.price-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:560px){.price-grid{grid-template-columns:1fr;}}
+.price-card{background:var(--card); border:1px solid var(--border); border-radius:14px;}
+.price-card .card-head{font-size:.86rem;}
+.price-now{font-size:1.5rem; font-weight:700; color:var(--gold);}
+.price-now small{font-size:.75rem; font-weight:400; color:var(--text-faint);}
+
+footer.credits{margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--border); font-size:.78rem; color:var(--text-faint);}
+footer.credits ul{margin:.6rem 0 0; padding-left:1.1rem;}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></symbol>
+<symbol id="i-cross" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.5 21 20H3L12 3.5Z"/><path d="M12 10v4"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c0-3.3 2.5-5.5 5.5-5.5s5.5 2.2 5.5 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.3c2.4.4 4 2.3 4 5.2"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></symbol>
+<symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H4M10 6l-6 6 6 6"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+<symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.3c0-1 1-1.8 2.5-1.8s2.5.8 2.5 1.6c0 2.2-5 1.4-5 3.7 0 .9 1.1 1.7 2.5 1.7s2.5-.7 2.5-1.7M12 6.5v11"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M11 20V4M18 20v-7"/><path d="M2.5 20h19"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M11.5 3.5H5a1.5 1.5 0 0 0-1.5 1.5v6.5c0 .4.15.78.44 1.06l9 9a1.5 1.5 0 0 0 2.12 0l6.5-6.5a1.5 1.5 0 0 0 0-2.12l-9-9a1.5 1.5 0 0 0-1.06-.44Z"/><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6.5l1 1 2-2M4 12.5l1 1 2-2M4 18.5l1 1 2-2"/></symbol>
+<symbol id="i-speedo" viewBox="0 0 24 24"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5"/><circle cx="12" cy="16" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-power" viewBox="0 0 24 24"><path d="M12 4v7"/><path d="M6.5 7a8 8 0 1 0 11 0"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="8" r="0.75" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-plus-cal" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></symbol>
+</defs>
+</svg>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="kicker">High-Fidelity Mockup</div>
+    <h1>Sistem Booking Meja Mahjong &mdash; Tampilan Final</h1>
+    <p>Rekreasi 1:1 dari tampilan yang sudah diimplementasikan di kode (token warna, komponen, dan tata letak diambil langsung dari <code>layouts/app.blade.php</code> &amp; <code>layouts/dashboard.blade.php</code>) &mdash; bukan konsep baru. Berguna untuk ditinjau atau dipresentasikan tanpa perlu menjalankan server Laravel.</p>
+    <div class="note">Catatan teknis: font Inter &amp; Bootstrap Icons di kode asli dimuat lewat CDN eksternal, jadi di file offline ini diganti dengan font sistem &amp; ikon SVG inline yang setara secara visual. Grafik Chart.js direpresentasikan sebagai bar/line statis dengan proporsi &amp; warna yang sama.</div>
+  </header>
+
+  <nav class="toc-wrap">
+    <div class="toc">
+      <span class="lane-tag">Pelanggan</span>
+      <a href="#s-home">Pilih Meja</a>
+      <a href="#s-booking">Form Booking</a>
+      <a href="#s-confirm">Konfirmasi</a>
+      <a href="#s-schedule">Jadwal</a>
+      <span class="sep"></span>
+      <span class="lane-tag">Admin</span>
+      <a href="#s-dashboard">Dashboard</a>
+      <a href="#s-revenue">Revenue</a>
+      <a href="#s-occupancy">Occupancy</a>
+      <a href="#s-pricing">Pricing</a>
+      <a href="#s-bookings">Kelola Booking</a>
+    </div>
+  </nav>
+
+  <div class="group-heading"><h2>Alur Pelanggan</h2><span>publik &mdash; tanpa login</span></div>
+
+  <!-- SCREEN 1: HOME -->
+  <div class="frame" id="s-home">
+    <div class="frame-chrome"><div class="frame-dots"><span></span><span></span><span></span></div><div class="frame-url">mahjongclub.test /</div><div class="frame-title">Pilih Meja</div></div>
+    <div class="frame-body">
+      <div class="hero">
+        <div class="hero-inner">
+          <div>
+            <h3>Selamat Datang di <span class="text-gold">Mahjong Club</span> &#x1F004;</h3>
+            <p>Pilih meja favorit Anda dan nikmati permainan Mahjong bersama. Reservasi mudah, cepat, dan aman.</p>
+            <span class="btn btn-outline"><svg class="icon"><use href="#i-calendar"/></svg>Lihat Jadwal</span>
+          </div>
+          <div style="font-size:4rem;opacity:.15">&#x1F004;</div>
+        </div>
+      </div>
+      <div class="home-body">
+        <div class="filter-bar">
+          <div>
+            <div style="font-weight:600;">Pilih Meja</div>
+            <div class="text-mute" style="font-size:.8rem;">3 meja tersedia dari 4 meja</div>
+          </div>
+          <div class="legend-row">
+            <span class="badge ok"><svg class="icon"><use href="#i-check"/></svg>Tersedia</span>
+            <span class="badge danger"><svg class="icon"><use href="#i-cross"/></svg>Penuh</span>
+            <span class="badge warn"><svg class="icon"><use href="#i-warn"/></svg>Maintenance</span>
+          </div>
+        </div>
+        <div class="tables-grid">
+          <div class="table-card">
+            <div class="table-head"><div class="table-num">&#x1F004;</div><span class="badge ok"><svg class="icon"><use href="#i-check"/></svg>Tersedia</span></div>
+            <div class="table-foot">
+              <div style="font-weight:600;">Meja A1</div>
+              <div class="table-price">Rp 50.000 <small>/ jam</small></div>
+              <div class="text-faint" style="font-size:.78rem;margin:.5rem 0 .8rem;"><svg class="icon"><use href="#i-people"/></svg> 4 pemain</div>
+              <span class="btn btn-gold" style="width:100%;"><svg class="icon"><use href="#i-plus-cal"/></svg>Pesan Sekarang</span>
+            </div>
+          </div>
+          <div class="table-card">
+            <div class="table-head"><div class="table-num">&#x1F004;</div><span class="badge ok"><svg class="icon"><use href="#i-check"/></svg>Tersedia</span></div>
+            <div class="table-foot">
+              <div style="font-weight:600;">Meja A2</div>
+              <div class="table-price">Rp 50.000 <small>/ jam</small></div>
+              <div class="text-faint" style="font-size:.78rem;margin:.5rem 0 .8rem;"><svg class="icon"><use href="#i-people"/></svg> 4 pemain</div>
+              <span class="btn btn-gold" style="width:100%;"><svg class="icon"><use href="#i-plus-cal"/></svg>Pesan Sekarang</span>
+            </div>
+          </div>
+          <div class="table-card dim">
+            <div class="table-head"><div class="table-num">&#x1F004;</div><span class="badge warn"><svg class="icon"><use href="#i-warn"/></svg>Maintenance</span></div>
+            <div class="table-foot">
+              <div style="font-weight:600;">Meja B1</div>
+              <div class="table-price">Rp 65.000 <small>/ jam</small></div>
+              <div class="text-faint" style="font-size:.78rem;margin:.5rem 0 .8rem;"><svg class="icon"><use href="#i-people"/></svg> 4 pemain</div>
+            </div>
+          </div>
+          <div class="table-card">
+            <div class="table-head"><div class="table-num">&#x1F004;</div><span class="badge ok"><svg class="icon"><use href="#i-check"/></svg>Tersedia</span></div>
+            <div class="table-foot">
+              <div style="font-weight:600;">Meja B2</div>
+              <div class="table-price">Rp 65.000 <small>/ jam</small></div>
+              <div class="text-faint" style="font-size:.78rem;margin:.5rem 0 .8rem;"><svg class="icon"><use href="#i-people"/></svg> 4 pemain</div>
+              <span class="btn btn-gold" style="width:100%;"><svg class="icon"><use href="#i-plus-cal"/></svg>Pesan Sekarang</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">Meja <em>maintenance</em> tampil redup tanpa tombol pesan.</div>
+  </div>
+
+  <!-- SCREEN 2: BOOKING FORM -->
+  <div class="frame" id="s-booking">
+    <div class="frame-chrome"><div class="frame-dots"><span></span><span></span><span></span></div><div class="frame-url">mahjongclub.test /booking/table/1</div><div class="frame-title">Form Booking</div></div>
+    <div class="frame-body">
+      <div class="booking-body">
+        <div>
+          <div class="step-card">
+            <div class="step-title"><span class="step-badge">1</span>Pilih Waktu</div>
+            <div class="field-row">
+              <div class="field"><label>Tanggal</label><div class="input">26 Jul 2026</div></div>
+              <div class="field"><label>Jam Mulai</label><div class="input">19:00</div></div>
+              <div class="field"><label>Durasi</label><div class="input">2 Jam</div></div>
+            </div>
+            <div style="margin-top:.8rem;"><span class="badge info"><svg class="icon"><use href="#i-clock"/></svg>Penuh &mdash; masuk Waiting List</span></div>
+          </div>
+          <div class="step-card">
+            <div class="step-title"><span class="step-badge">2</span>Data Pemesan</div>
+            <div class="field-row">
+              <div class="field"><label>Nama Lengkap</label><div class="input">&nbsp;</div></div>
+              <div class="field"><label>No. HP / WhatsApp</label><div class="input">+62 &nbsp;</div></div>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-title"><span class="step-badge">3</span>Pembayaran</div>
+            <div style="display:flex; align-items:center; gap:.7rem; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:.7rem 1rem; margin-bottom:1rem; font-size:.8rem; color:var(--text-faint);">
+              <svg class="icon" style="width:1.3em;height:1.3em;"><use href="#i-card"/></svg>
+              Dibayar via Midtrans &mdash; GoPay, OVO, DANA, Transfer Bank, Kartu Kredit
+            </div>
+            <span class="btn btn-gold" style="width:100%;">Lanjut ke Pembayaran</span>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div style="text-align:center; font-size:2.2rem; margin-bottom:.5rem;">&#x1F004;</div>
+          <div class="text-gold" style="text-align:center; font-weight:600; font-size:.85rem; margin-bottom:.6rem;">Ringkasan Reservasi</div>
+          <div class="summary-row"><span>Meja</span><span>A1</span></div>
+          <div class="summary-row"><span>Tanggal</span><span>26 Jul 2026</span></div>
+          <div class="summary-row"><span>Waktu</span><span>19:00&ndash;21:00</span></div>
+          <div class="summary-total"><span class="text-mute" style="font-size:.85rem;">Total</span><b>Rp 100rb</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">Badge ketersediaan &amp; total harga ter-update otomatis saat tanggal/jam/durasi berubah.</div>
+  </div>
+
+  <!-- SCREEN 3: CONFIRM -->
+  <div class="frame" id="s-confirm">
+    <div class="frame-chrome"><div class="frame-dots"><span></span><span></span><span></span></div><div class="frame-url">mahjongclub.test /booking/confirm/MJG-8F3C1A</div><div class="frame-title">Konfirmasi</div></div>
+    <div class="frame-body">
+      <div class="confirm-wrap">
+        <div class="confirm-card">
+          <div class="confirm-head">
+            <div class="confirm-icon" style="background:var(--ok-bg); border:2px solid var(--ok-bd); color:var(--ok);"><svg class="icon" style="width:1.6em;height:1.6em;"><use href="#i-check"/></svg></div>
+            <h4 style="margin:0 0 .3rem;">Booking Berhasil!</h4>
+            <p class="text-mute" style="font-size:.85rem; margin:0;">Silakan selesaikan pembayaran untuk mengkonfirmasi reservasi.</p>
+            <div class="booking-code">MJG-8F3C1A</div>
+          </div>
+          <div class="confirm-body">
+            <div class="info-row"><span class="text-mute">Meja</span><span>A1</span></div>
+            <div class="info-row"><span class="text-mute">Pemesan</span><span>Budi Santoso</span></div>
+            <div class="info-row"><span class="text-mute">Tanggal</span><span>Minggu, 26 Juli 2026</span></div>
+            <div class="info-row"><span class="text-mute">Waktu</span><span>19:00 &ndash; 21:00</span></div>
+            <div class="info-row"><span class="text-mute">Status</span><span class="badge warn">Menunggu Pembayaran</span></div>
+            <div class="info-row total"><span class="text-mute">Total Bayar</span><b>Rp 100.000</b></div>
+            <div style="display:flex; flex-direction:column; gap:.6rem; margin-top:1.2rem;">
+              <span class="btn btn-gold"><svg class="icon"><use href="#i-card"/></svg>Bayar Sekarang</span>
+              <span class="btn btn-outline"><svg class="icon"><use href="#i-arrow-left"/></svg>Kembali ke Beranda</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">Ikon &amp; salinan kartu berubah menurut status: sukses (hijau), waiting list (biru).</div>
+  </div>
+
+  <!-- SCREEN 4: SCHEDULE -->
+  <div class="frame" id="s-schedule">
+    <div class="frame-chrome"><div class="frame-dots"><span></span><span></span><span></span></div><div class="frame-url">mahjongclub.test /jadwal</div><div class="frame-title">Jadwal &amp; Waiting List</div></div>
+    <div class="frame-body">
+      <div class="sched-body">
+        <div class="date-nav">
+          <svg class="icon text-gold"><use href="#i-calendar"/></svg>
+          <div class="input" style="width:150px;">26 Jul 2026</div>
+          <span class="btn btn-gold" style="padding:.4rem .9rem;">Hari ini</span>
+          <span class="btn btn-outline" style="padding:.4rem .9rem;">Besok</span>
+        </div>
+        <div class="tbl-wrap" style="margin-bottom:1.1rem;">
+          <div class="sched-grid">
+            <div class="h"></div><div class="h">A1</div><div class="h">A2</div><div class="h">B1</div><div class="h">B2</div>
+            <div class="t">08:00</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+            <div class="t">10:00</div><div class="c"><div class="blk ok">&#x1F004; 2j</div></div><div class="c"></div><div class="c"></div><div class="c"></div>
+            <div class="t">19:00</div><div class="c"></div><div class="c"><div class="blk warn">&#x1F004; 1j</div></div><div class="c"></div><div class="c"><div class="blk info">&#9203; 2j</div></div>
+            <div class="t">21:00</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"><div class="blk info">&#9203; 2j</div></div>
+          </div>
+        </div>
+        <div class="legend-row" style="margin-bottom:1.1rem;">
+          <span class="badge ok">Aktif / Sudah Bayar</span>
+          <span class="badge warn">Menunggu Pembayaran</span>
+          <span class="badge info">Waiting List</span>
+        </div>
+        <div class="wl-card">
+          <div class="wl-head"><svg class="icon text-gold"><use href="#i-clock"/></svg> Waiting List &mdash; Meja B2 <span class="badge info" style="margin-left:.5rem;">2 antrian</span></div>
+          <div class="wl-row"><span><span class="wl-num">1</span>Rangga W. &middot; 19:00&ndash;21:00</span><code class="code">MJG-3B21C0</code></div>
+          <div class="wl-row"><span><span class="wl-num">2</span>Siti A. &middot; 19:00&ndash;21:00</span><code class="code">MJG-77AE42</code></div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">Halaman ini publik &mdash; siapa saja bisa memantau tanpa login.</div>
+  </div>
+
+  <div class="group-heading"><h2>Dashboard Admin</h2><span>internal &mdash; role: admin</span></div>
+
+  <!-- SCREEN 5: DASHBOARD -->
+  <div class="frame" id="s-dashboard">
+    <div class="frame-chrome"><div class="frame-dots"><span></span><span></span><span></span></div><div class="frame-url">mahjongclub.test /dashboard</div><div class="frame-title">Overview</div></div>
+    <div class="frame-body">
+      <div class="admin-shell">
+        <div class="a-sidebar">
+          <div class="a-brand">&#x1F004; Mahjong Club<small>Admin Dashboard</small></div>
+          <div class="a-label">Utama</div>
+          <div class="a-link active"><svg class="icon"><use href="#i-speedo"/></svg>Overview</div>
+          <div class="a-link"><svg class="icon"><use href="#i-chart"/></svg>Revenue</div>
+          <div class="a-link"><svg class="icon"><use href="#i-grid"/></svg>Occupancy</div>
+          <div class="a-label">Manajemen</div>
+          <div class="a-link"><svg class="icon"><use href="#i-list"/></svg>Booking</div>
+          <div class="a-link"><svg class="icon"><use href="#i-tag"/></svg>Harga</div>
+          <div class="a-user">
+            <div class="text-faint" style="font-size:.75rem;">Login sebagai</div>
+            <div class="text-gold" style="font-weight:600; font-size:.85rem; margin-bottom:.6rem;">Admin</div>
+            <span class="btn btn-outline" style="width:100%; padding:.4rem;"><svg class="icon"><use href="#i-power"/></svg>Logout</span>
+          </div>
+        </div>
+        <div class="a-main">
+          <div class="a-topbar"><h4>Overview</h4><span class="text-faint" style="font-size:.8rem;">Minggu, 26 Juli 2026</span></div>
+          <div class="tiles">
+            <div class="tile"><div><div class="tile-label">Revenue Hari Ini</div><div class="tile-value">Rp 850rb</div></div><div class="tile-ic" style="background:var(--ok-bg);color:var(--ok);"><svg class="icon"><use href="#i-coin"/></svg></div></div>
+            <div class="tile"><div><div class="tile-label">Revenue Bulan Ini</div><div class="tile-value">Rp 18,4jt</div></div><div class="tile-ic" style="background:rgba(201,168,76,.15);color:var(--gold);"><svg class="icon"><use href="#i-chart"/></svg></div></div>
+            <div class="tile"><div><div class="tile-label">Occupancy Rate</div><div class="tile-value">75%</div></div><div class="tile-ic" style="background:var(--info-bg);color:var(--info);"><svg class="icon"><use href="#i-grid"/></svg></div></div>
+            <div class="tile"><div><div class="tile-label">Waiting List</div><div class="tile-value">2</div></div><div class="tile-ic" style="background:var(--warn-bg);color:var(--warn);"><svg class="icon"><use href="#i-clock"/></svg></div></div>
+          </div>
+          <div class="grid2">
+            <div class="card-dark">
+              <div class="card-head"><span><svg class="icon text-gold"><use href="#i-chart"/></svg> Revenue 7 Hari Terakhir</span><span class="btn btn-outline" style="padding:.3rem .7rem;font-size:.72rem;">Detail</span></div>
+              <div class="card-body">
+                <div class="barchart">
+                  <div class="col"><div class="bar" style="height:55%"></div><span class="lbl">20/07</span></div>
+                  <div class="col"><div class="bar" style="height:38%"></div><span class="lbl">21/07</span></div>
+                  <div class="col"><div class="bar" style="height:62%"></div><span class="lbl">22/07</span></div>
+                  <div class="col"><div class="bar" style="height:80%"></div><span class="lbl">23/07</span></div>
+                  <div class="col"><div class="bar" style="height:45%"></div><span class="lbl">24/07</span></div>
+                  <div class="col"><div class="bar" style="height:70%"></div><span class="lbl">25/07</span></div>
+                  <div class="col"><div class="bar" style="height:95%"></div><span class="lbl">26/07</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="card-dark">
+              <div class="card-head"><span><svg class="icon text-gold"><use href="#i-list"/></svg> Booking Terbaru</span></div>
+              <div style="padding:.2rem 0;">
+                <div style="display:flex;justify-content:space-between;padding:.7rem 1.4rem;border-bottom:1px solid var(--border);font-size:.82rem;"><span>Budi S. &middot; A1</span><span class="badge ok">Aktif</span></div>
+                <div style="display:flex;justify-content:space-between;padding:.7rem 1.4rem;border-bottom:1px solid var(--border);font-size:.82rem;"><span>Rangga W. &middot; B2</span><span class="badge info">Waiting</span></div>
+                <div style="display:flex;justify-content:space-between;padding:.7rem 1.4rem;font-size:.82rem;"><span>Nadia P. &middot; A2</span><span class="badge ok">Aktif</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">Semua angka dihitung real-time dari tabel <code>bookings</code> &amp; <code>transactions</code>.</div>
+  </div>
+
+  <!-- SCREEN 6: REVENUE -->
+  <div class="frame" id="s-revenue">
+    <div class="frame-chrome"><div class="frame-dots"><span></span><span></span><span></span></div><div class="frame-url">mahjongclub.test /dashboard/revenue</div><div class="frame-title">Revenue</div></div>
+    <div class="frame-body">
+      <div class="admin-shell">
+        <div class="a-sidebar">
+          <div class="a-brand">&#x1F004; Mahjong Club<small>Admin Dashboard</small></div>
+          <div class="a-label">Utama</div>
+          <div class="a-link"><svg class="icon"><use href="#i-speedo"/></svg>Overview</div>
+          <div class="a-link active"><svg class="icon"><use href="#i-chart"/></svg>Revenue</div>
+          <div class="a-link"><svg class="icon"><use href="#i-grid"/></svg>Occupancy</div>
+          <div class="a-label">Manajemen</div>
+          <div class="a-link"><svg class="icon"><use href="#i-list"/></svg>Booking</div>
+          <div class="a-link"><svg class="icon"><use href="#i-tag"/></svg>Harga</div>
+        </div>
+        <div class="a-main">
+          <div class="a-topbar"><h4>Laporan Revenue</h4></div>
+          <div class="card-dark" style="margin-bottom:1.2rem;">
+            <div class="card-body" style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
+              <div class="field"><label>Dari Tanggal</label><div class="input">01 Jul 2026</div></div>
+              <div class="field"><label>Sampai Tanggal</label><div class="input">26 Jul 2026</div></div>
+              <span class="btn btn-gold"><svg class="icon"><use href="#i-search"/></svg>Filter</span>
+            </div>
+          </div>
+          <div class="tiles" style="grid-template-columns:repeat(3,1fr);">
+            <div class="tile"><div><div class="tile-label">Total Revenue</div><div class="tile-value text-gold">Rp 18,4jt</div></div></div>
+            <div class="tile"><div><div class="tile-label">Jumlah Transaksi</div><div class="tile-value">142</div></div></div>
+            <div class="tile"><div><div class="tile-label">Rata-rata</div><div class="tile-value">Rp 129rb</div></div></div>
+          </div>
+          <div class="card-dark" style="margin-bottom:1.2rem;">
+            <div class="card-head"><svg class="icon text-gold"><use href="#i-chart"/></svg> Revenue per Hari</div>
+            <div class="card-body linechart">
+              <svg viewBox="0 0 400 110" preserveAspectRatio="none">
+                <line x1="0" y1="90" x2="400" y2="90" stroke="var(--border)" stroke-width="1"/>
+                <line x1="0" y1="55" x2="400" y2="55" stroke="var(--border)" stroke-width="1"/>
+                <line x1="0" y1="20" x2="400" y2="20" stroke="var(--border)" stroke-width="1"/>
+                <path d="M0,80 L60,60 L120,68 L180,35 L240,50 L300,15 L360,28 L400,20 L400,110 L0,110 Z" fill="rgba(201,168,76,0.12)" stroke="none"/>
+                <polyline points="0,80 60,60 120,68 180,35 240,50 300,15 360,28 400,20" fill="none" stroke="var(--gold)" stroke-width="2.5"/>
+                <circle cx="400" cy="20" r="4" fill="var(--gold-light)"/>
+              </svg>
+            </div>
+          </div>
+          <div class="card-dark">
+            <div class="card-head"><svg class="icon text-gold"><use href="#i-card"/></svg> Detail Transaksi</div>
+            <div class="tbl-wrap">
+              <table class="dtbl">
+                <tr><th>Waktu</th><th>Kode</th><th>Pelanggan</th><th>Meja</th><th>Metode</th><th style="text-align:right;">Jumlah</th></tr>
+                <tr><td>26/07 &middot; 14:02</td><td><code class="code">MJG-8F3C1A</code></td><td>Budi S.</td><td>A1</td><td>GoPay</td><td style="text-align:right;color:var(--gold);font-weight:600;">Rp 100.000</td></tr>
+                <tr><td>25/07 &middot; 20:11</td><td><code class="code">MJG-91DA02</code></td><td>Nadia P.</td><td>B2</td><td>Transfer</td><td style="text-align:right;color:var(--gold);font-weight:600;">Rp 130.000</td></tr>
+                <tr><td>25/07 &middot; 09:30</td><td><code class="code">MJG-5CE710</code></td><td>Wawan K.</td><td>A2</td><td>Tunai (admin)</td><td style="text-align:right;color:var(--gold);font-weight:600;">Rp 50.000</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">Baris "Tunai (admin)" berasal dari booking yang diselesaikan manual tanpa transaksi Midtrans.</div>
+  </div>
+
+  <!-- SCREEN 7: OCCUPANCY -->
+  <div class="frame" id="s-occupancy">
+    <div class="frame-chrome"><div class="frame-dots"><span></span><span></span><span></span></div><div class="frame-url">mahjongclub.test /dashboard/occupancy</div><div class="frame-title">Occupancy</div></div>
+    <div class="frame-body">
+      <div class="admin-shell">
+        <div class="a-sidebar">
+          <div class="a-brand">&#x1F004; Mahjong Club<small>Admin Dashboard</small></div>
+          <div class="a-label">Utama</div>
+          <div class="a-link"><svg class="icon"><use href="#i-speedo"/></svg>Overview</div>
+          <div class="a-link"><svg class="icon"><use href="#i-chart"/></svg>Revenue</div>
+          <div class="a-link active"><svg class="icon"><use href="#i-grid"/></svg>Occupancy</div>
+          <div class="a-label">Manajemen</div>
+          <div class="a-link"><svg class="icon"><use href="#i-list"/></svg>Booking</div>
+          <div class="a-link"><svg class="icon"><use href="#i-tag"/></svg>Harga</div>
+        </div>
+        <div class="a-main">
+          <div class="a-topbar"><h4>Laporan Occupancy</h4></div>
+          <div class="card-dark" style="margin-bottom:1.2rem;">
+            <div class="card-head"><svg class="icon text-gold"><use href="#i-grid"/></svg> Jam Terpakai per Meja</div>
+            <div class="card-body">
+              <div class="gbarchart">
+                <div class="cluster"><div class="bar" style="height:60%;background:var(--gold);"></div><div class="bar" style="height:30%;background:#3498db;"></div><div class="bar" style="height:0%;background:#1abc9c;"></div><div class="bar" style="height:80%;background:#e74c3c;"></div></div>
+                <div class="cluster"><div class="bar" style="height:20%;background:var(--gold);"></div><div class="bar" style="height:30%;background:#3498db;"></div><div class="bar" style="height:0%;background:#1abc9c;"></div><div class="bar" style="height:60%;background:#e74c3c;"></div></div>
+                <div class="cluster"><div class="bar" style="height:70%;background:var(--gold);"></div><div class="bar" style="height:60%;background:#3498db;"></div><div class="bar" style="height:0%;background:#1abc9c;"></div><div class="bar" style="height:20%;background:#e74c3c;"></div></div>
+                <div class="cluster"><div class="bar" style="height:0%;background:var(--gold);"></div><div class="bar" style="height:10%;background:#3498db;"></div><div class="bar" style="height:0%;background:#1abc9c;"></div><div class="bar" style="height:50%;background:#e74c3c;"></div></div>
+                <div class="cluster"><div class="bar" style="height:50%;background:var(--gold);"></div><div class="bar" style="height:20%;background:#3498db;"></div><div class="bar" style="height:0%;background:#1abc9c;"></div><div class="bar" style="height:30%;background:#e74c3c;"></div></div>
+              </div>
+              <div class="gbarchart lbls"><span>20/07</span><span>21/07</span><span>22/07</span><span>23/07</span><span>24/07</span></div>
+              <div class="chart-legend">
+                <span><span class="dot" style="background:var(--gold);"></span>A1</span>
+                <span><span class="dot" style="background:#3498db;"></span>A2</span>
+                <span><span class="dot" style="background:#1abc9c;"></span>B1</span>
+                <span><span class="dot" style="background:#e74c3c;"></span>B2</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-dark">
+            <div class="card-head"><svg class="icon text-gold"><use href="#i-list"/></svg> Ringkasan per Meja</div>
+            <div class="tbl-wrap">
+              <table class="dtbl">
+                <tr><th>Meja</th><th>Total Booking</th><th>Total Jam</th><th>Occupancy</th></tr>
+                <tr><td>A1</td><td>9</td><td>20 jam</td><td style="min-width:160px;"><div style="background:var(--border);border-radius:6px;height:8px;"><div style="width:83%;height:100%;border-radius:6px;background:var(--gold);"></div></div></td></tr>
+                <tr><td>B2</td><td>11</td><td>24 jam</td><td><div style="background:var(--border);border-radius:6px;height:8px;"><div style="width:100%;height:100%;border-radius:6px;background:var(--gold);"></div></div></td></tr>
+                <tr><td>B1</td><td>0</td><td>0 jam <span class="badge warn" style="margin-left:.4rem;">maintenance</span></td><td><div style="background:var(--border);border-radius:6px;height:8px;"></div></td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">Intensitas warna mewakili jam terpakai, dihitung dari <code>SUM(duration_hours)</code> per meja per tanggal.</div>
+  </div>
+
+  <!-- SCREEN 8: PRICING -->
+  <div class="frame" id="s-pricing">
+    <div class="frame-chrome"><div class="frame-dots"><span></span><span></span><span></span></div><div class="frame-url">mahjongclub.test /dashboard/pricing</div><div class="frame-title">Pricing</div></div>
+    <div class="frame-body">
+      <div class="admin-shell">
+        <div class="a-sidebar">
+          <div class="a-brand">&#x1F004; Mahjong Club<small>Admin Dashboard</small></div>
+          <div class="a-label">Utama</div>
+          <div class="a-link"><svg class="icon"><use href="#i-speedo"/></svg>Overview</div>
+          <div class="a-link"><svg class="icon"><use href="#i-chart"/></svg>Revenue</div>
+          <div class="a-link"><svg class="icon"><use href="#i-grid"/></svg>Occupancy</div>
+          <div class="a-label">Manajemen</div>
+          <div class="a-link"><svg class="icon"><use href="#i-list"/></svg>Booking</div>
+          <div class="a-link active"><svg class="icon"><use href="#i-tag"/></svg>Harga</div>
+        </div>
+        <div class="a-main">
+          <div class="a-topbar"><h4>Kelola Harga Meja</h4></div>
+          <div class="price-grid">
+            <div class="price-card">
+              <div class="card-head">&#x1F004; Meja A1</div>
+              <div class="card-body">
+                <div class="text-faint" style="font-size:.72rem;">Harga Saat Ini</div>
+                <div class="price-now">Rp 50.000 <small>/ jam</small></div>
+                <div class="field" style="margin:1rem 0;"><label>Harga Baru (Rp)</label><div class="input">50000</div></div>
+                <span class="btn btn-gold" style="width:100%;">Simpan Harga</span>
+              </div>
+            </div>
+            <div class="price-card">
+              <div class="card-head">&#x1F004; Meja A2</div>
+              <div class="card-body">
+                <div class="text-faint" style="font-size:.72rem;">Harga Saat Ini</div>
+                <div class="price-now">Rp 50.000 <small>/ jam</small></div>
+                <div class="field" style="margin:1rem 0;"><label>Harga Baru (Rp)</label><div class="input">50000</div></div>
+                <span class="btn btn-gold" style="width:100%;">Simpan Harga</span>
+              </div>
+            </div>
+            <div class="price-card">
+              <div class="card-head">&#x1F004; Meja B2</div>
+              <div class="card-body">
+                <div class="text-faint" style="font-size:.72rem;">Harga Saat Ini</div>
+                <div class="price-now">Rp 65.000 <small>/ jam</small></div>
+                <div class="field" style="margin:1rem 0;"><label>Harga Baru (Rp)</label><div class="input">65000</div></div>
+                <span class="btn btn-gold" style="width:100%;">Simpan Harga</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">Simpan tidak mengubah harga lama &mdash; sistem membuat baris harga baru &amp; menonaktifkan yang lama (riwayat tetap tersimpan).</div>
+  </div>
+
+  <!-- SCREEN 9: BOOKING MANAGEMENT -->
+  <div class="frame" id="s-bookings">
+    <div class="frame-chrome"><div class="frame-dots"><span></span><span></span><span></span></div><div class="frame-url">mahjongclub.test /dashboard/bookings</div><div class="frame-title">Kelola Booking</div></div>
+    <div class="frame-body">
+      <div class="admin-shell">
+        <div class="a-sidebar">
+          <div class="a-brand">&#x1F004; Mahjong Club<small>Admin Dashboard</small></div>
+          <div class="a-label">Utama</div>
+          <div class="a-link"><svg class="icon"><use href="#i-speedo"/></svg>Overview</div>
+          <div class="a-link"><svg class="icon"><use href="#i-chart"/></svg>Revenue</div>
+          <div class="a-link"><svg class="icon"><use href="#i-grid"/></svg>Occupancy</div>
+          <div class="a-label">Manajemen</div>
+          <div class="a-link active"><svg class="icon"><use href="#i-list"/></svg>Booking</div>
+          <div class="a-link"><svg class="icon"><use href="#i-tag"/></svg>Harga</div>
+        </div>
+        <div class="a-main">
+          <div class="a-topbar"><h4>Kelola Booking</h4><span class="text-faint" style="font-size:.8rem;">37 booking</span></div>
+          <div class="card-dark" style="margin-bottom:1.2rem;">
+            <div class="card-body" style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
+              <div class="field" style="flex:1;min-width:160px;"><label>Cari</label><div class="input">Nama / No HP / Kode&hellip;</div></div>
+              <div class="field" style="min-width:150px;"><label>Status</label><div class="input">Semua Status</div></div>
+              <div class="field" style="min-width:140px;"><label>Tanggal</label><div class="input">26 Jul 2026</div></div>
+              <span class="btn btn-gold"><svg class="icon"><use href="#i-search"/></svg>Filter</span>
+            </div>
+          </div>
+          <div class="card-dark">
+            <div class="tbl-wrap">
+              <table class="dtbl">
+                <tr><th>Kode</th><th>Pelanggan</th><th>Meja</th><th>Tanggal &amp; Waktu</th><th>Total</th><th>Status</th><th>Aksi</th></tr>
+                <tr>
+                  <td><code class="code">MJG-8F3C1A</code></td>
+                  <td>Budi S.<br><span class="text-faint" style="font-size:.75rem;">0812xxxxxxx</span></td>
+                  <td>A1</td>
+                  <td>26/07/2026<br><span class="text-faint" style="font-size:.75rem;">19:00&ndash;21:00</span></td>
+                  <td class="text-gold" style="font-weight:600;">Rp 100.000</td>
+                  <td><span class="badge ok">Aktif</span></td>
+                  <td><span class="btn btn-outline" style="padding:.3rem .7rem;font-size:.72rem;">Ubah &#9662;</span></td>
+                </tr>
+                <tr>
+                  <td><code class="code">MJG-3B21C0</code></td>
+                  <td>Rangga W.<br><span class="text-faint" style="font-size:.75rem;">0813xxxxxxx</span></td>
+                  <td>B2</td>
+                  <td>26/07/2026<br><span class="text-faint" style="font-size:.75rem;">19:00&ndash;21:00</span></td>
+                  <td class="text-gold" style="font-weight:600;">Rp 130.000</td>
+                  <td><span class="badge info">Waiting</span></td>
+                  <td><span class="btn btn-outline" style="padding:.3rem .7rem;font-size:.72rem;">Ubah &#9662;</span></td>
+                </tr>
+                <tr>
+                  <td><code class="code">MJG-77AE42</code></td>
+                  <td>Siti A.<br><span class="text-faint" style="font-size:.75rem;">0857xxxxxxx</span></td>
+                  <td>B2</td>
+                  <td>25/07/2026<br><span class="text-faint" style="font-size:.75rem;">19:00&ndash;21:00</span></td>
+                  <td class="text-gold" style="font-weight:600;">Rp 130.000</td>
+                  <td><span class="badge danger">Dibatalkan</span></td>
+                  <td><span class="text-faint" style="font-size:.75rem;">&mdash;</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-caption">Membatalkan booking aktif memicu promosi otomatis antrian waiting list teratas ke <em>pending_payment</em>.</div>
+  </div>
+
+  <footer class="credits">
+    Dibuat berdasarkan implementasi nyata, bukan konsep lepas. Perbedaan dari kode asli:
+    <ul>
+      <li>Font Inter (Google Fonts CDN) &rarr; font sistem (Segoe UI / -apple-system)</li>
+      <li>Bootstrap Icons (CDN) &rarr; ikon SVG inline</li>
+      <li>Chart.js (canvas, interaktif) &rarr; bar/line statis dengan data contoh</li>
+    </ul>
+  </footer>
+
+</div>
+</body>
+</html>

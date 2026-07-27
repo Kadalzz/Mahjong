@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireframe — Booking Meja Mahjong</title>
+<style>
+:root{
+  --paper:#faf9f7;
+  --paper-raised:#ffffff;
+  --ink:#24262b;
+  --ink-mute:#6b7076;
+  --ink-faint:#9aa0a6;
+  --line:#d6d9dc;
+  --fill:#edeeef;
+  --grid:rgba(36,38,43,0.05);
+  --accent:#e14e2b;
+  --accent-soft:#fbe4dc;
+  --ok:#1f9d74; --ok-soft:#dcf3ea;
+  --warn:#b9791a; --warn-soft:#f7e7cd;
+  --info:#2e6fba; --info-soft:#dce8f7;
+  --danger:#c0392b; --danger-soft:#f8deda;
+  --font-mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, "Roboto Mono", monospace;
+  --font-sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#0d2846;
+    --paper-raised:#12314f;
+    --ink:#eaf3ff;
+    --ink-mute:#9fc1e0;
+    --ink-faint:#6d93bc;
+    --line:#2e537a;
+    --fill:#163a61;
+    --grid:rgba(234,243,255,0.06);
+    --accent:#ff8552;
+    --accent-soft:rgba(255,133,82,0.16);
+    --ok:#34d399; --ok-soft:rgba(52,211,153,0.15);
+    --warn:#f4b740; --warn-soft:rgba(244,183,64,0.15);
+    --info:#7cb4f0; --info-soft:rgba(124,180,240,0.15);
+    --danger:#f1685a; --danger-soft:rgba(241,104,90,0.15);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0d2846; --paper-raised:#12314f; --ink:#eaf3ff; --ink-mute:#9fc1e0; --ink-faint:#6d93bc;
+  --line:#2e537a; --fill:#163a61; --grid:rgba(234,243,255,0.06);
+  --accent:#ff8552; --accent-soft:rgba(255,133,82,0.16);
+  --ok:#34d399; --ok-soft:rgba(52,211,153,0.15);
+  --warn:#f4b740; --warn-soft:rgba(244,183,64,0.15);
+  --info:#7cb4f0; --info-soft:rgba(124,180,240,0.15);
+  --danger:#f1685a; --danger-soft:rgba(241,104,90,0.15);
+}
+:root[data-theme="light"]{
+  --paper:#faf9f7; --paper-raised:#ffffff; --ink:#24262b; --ink-mute:#6b7076; --ink-faint:#9aa0a6;
+  --line:#d6d9dc; --fill:#edeeef; --grid:rgba(36,38,43,0.05);
+  --accent:#e14e2b; --accent-soft:#fbe4dc;
+  --ok:#1f9d74; --ok-soft:#dcf3ea;
+  --warn:#b9791a; --warn-soft:#f7e7cd;
+  --info:#2e6fba; --info-soft:#dce8f7;
+  --danger:#c0392b; --danger-soft:#f8deda;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0/100% 28px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/28px 100%,
+    var(--paper);
+  color:var(--ink);
+  font-family:var(--font-sans);
+  line-height:1.5;
+}
+h1,h2,h3{text-wrap:balance; font-weight:700;}
+a{color:inherit;}
+::selection{background:var(--accent-soft); color:var(--ink);}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+.page{max-width:1180px; margin:0 auto; padding:0 clamp(1rem,3vw,2.25rem) 5rem;}
+
+/* ---------- masthead ---------- */
+.masthead{padding:3rem 0 1.75rem; border-bottom:1px solid var(--line);}
+.kicker{font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.14em; font-size:.7rem; color:var(--accent); font-weight:700;}
+.masthead h1{font-family:var(--font-mono); font-size:clamp(1.5rem,3vw,2.15rem); margin:.5rem 0 .6rem; letter-spacing:-.01em;}
+.masthead p{color:var(--ink-mute); max-width:62ch; font-size:.95rem;}
+.masthead .meta{margin-top:1rem; display:flex; gap:1.25rem; flex-wrap:wrap; font-family:var(--font-mono); font-size:.72rem; color:var(--ink-faint);}
+.masthead .meta b{color:var(--ink-mute); font-weight:600;}
+
+/* ---------- legend ---------- */
+.legend{display:flex; flex-wrap:wrap; gap:1.1rem 1.6rem; padding:1.1rem 0; border-bottom:1px solid var(--line); margin-bottom:2rem;}
+.legend-item{display:flex; align-items:center; gap:.5rem; font-size:.76rem; color:var(--ink-mute);}
+.legend-swatch{flex-shrink:0;}
+.legend .wf-line{width:26px;}
+.legend .wf-hatch-sample{width:22px; height:16px;}
+.legend .wf-box-sample{width:22px; height:16px; border-radius:3px;}
+.legend .wf-btn-sample{padding:.15rem .5rem; font-size:.62rem;}
+.legend .mark{margin-left:0;}
+
+/* ---------- sticky toc ---------- */
+.toc-wrap{position:sticky; top:0; z-index:5; background:var(--paper); padding:.75rem 0; border-bottom:1px solid var(--line); margin-bottom:2.5rem;}
+.toc{display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;}
+.toc .lane-tag{font-family:var(--font-mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); margin-right:.15rem;}
+.toc a{font-family:var(--font-mono); font-size:.72rem; padding:.35rem .65rem; border:1px solid var(--line); border-radius:3px; white-space:nowrap; color:var(--ink-mute); text-decoration:none; transition:border-color .15s, color .15s;}
+.toc a:hover, .toc a:focus-visible{border-color:var(--accent); color:var(--ink);}
+.toc .sep{width:1px; align-self:stretch; background:var(--line); margin:0 .3rem;}
+
+/* ---------- flow diagram ---------- */
+.flow{display:flex; flex-direction:column; gap:.9rem; margin-bottom:3rem;}
+.flow-lane{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;}
+.flow-lane .lane-label{font-family:var(--font-mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); width:84px; flex-shrink:0;}
+.flow-box{border:1px solid var(--ink); background:var(--paper-raised); padding:.45rem .8rem; font-size:.78rem; border-radius:3px; white-space:nowrap;}
+.flow-box.branch{border-style:dashed; color:var(--ink-mute);}
+.flow-arrow{color:var(--ink-faint); font-size:.95rem;}
+.flow-note{font-size:.76rem; color:var(--ink-faint); margin-left:84px;}
+
+/* ---------- section groups ---------- */
+.group-heading{display:flex; align-items:baseline; gap:.6rem; margin:0 0 1.4rem;}
+.group-heading h2{font-family:var(--font-mono); font-size:1.05rem; margin:0;}
+.group-heading span{font-size:.78rem; color:var(--ink-faint);}
+
+/* ---------- frame (screen) ---------- */
+.frame{border:1px solid var(--line); border-radius:7px; background:var(--paper-raised); margin-bottom:2.75rem; overflow:hidden; scroll-margin-top:4.5rem;}
+.frame-chrome{display:flex; align-items:center; gap:.6rem; padding:.55rem .8rem; border-bottom:1px solid var(--line); background:var(--fill);}
+.frame-dots{display:flex; gap:.3rem;}
+.frame-dots span{width:8px; height:8px; border-radius:50%; background:var(--ink-faint); opacity:.45;}
+.frame-url{font-family:var(--font-mono); font-size:.7rem; color:var(--ink-mute); background:var(--paper); border:1px solid var(--line); border-radius:3px; padding:.15rem .6rem; max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.frame-title{margin-left:auto; font-family:var(--font-mono); font-size:.66rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap;}
+.frame-body{padding:1.4rem;}
+
+/* wireframe primitives */
+.wf-line{height:8px; background:var(--fill); border-radius:2px;}
+.wf-hatch{background-image:repeating-linear-gradient(45deg, var(--line) 0 2px, transparent 2px 9px); border:1px solid var(--line); border-radius:3px; display:flex; align-items:center; justify-content:center; text-align:center; color:var(--ink-faint); font-family:var(--font-mono); font-size:.62rem; padding:.4rem;}
+.wf-box{border:1px dashed var(--ink-faint); border-radius:4px;}
+.wf-btn{display:inline-flex; align-items:center; justify-content:center; gap:.3rem; border:1.5px solid var(--ink); border-radius:3px; padding:.5rem 1.1rem; font-family:var(--font-mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ink); background:transparent;}
+.wf-btn.primary{background:var(--ink); color:var(--paper-raised); border-color:var(--ink);}
+.wf-field{display:flex; flex-direction:column; gap:.3rem;}
+.wf-field .cap{font-family:var(--font-mono); font-size:.63rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
+.wf-input{border:1px solid var(--line); border-radius:3px; padding:.55rem .7rem; font-size:.82rem; color:var(--ink-mute); background:var(--paper);}
+.badge{display:inline-flex; align-items:center; gap:.35rem; font-family:var(--font-mono); font-size:.65rem; padding:.22rem .6rem; border-radius:20px; font-weight:600;}
+.badge.ok{color:var(--ok); background:var(--ok-soft);}
+.badge.warn{color:var(--warn); background:var(--warn-soft);}
+.badge.info{color:var(--info); background:var(--info-soft);}
+.badge.danger{color:var(--danger); background:var(--danger-soft);}
+.mark{display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; background:var(--accent); color:#fff; font-family:var(--font-mono); font-size:.6rem; font-weight:700; margin-left:.35rem; vertical-align:middle; flex-shrink:0;}
+
+/* layout helpers */
+.stack{display:flex; flex-direction:column; gap:.85rem;}
+.row{display:flex; gap:1rem; flex-wrap:wrap;}
+.cols-2{display:grid; grid-template-columns:2fr 1fr; gap:1.4rem; align-items:start;}
+.cols-sb{display:grid; grid-template-columns:150px 1fr; gap:1.4rem; align-items:start;}
+.cards-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1rem;}
+.tiles-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:.85rem;}
+@media (max-width:760px){
+  .cols-2, .cols-sb{grid-template-columns:1fr;}
+  .cards-grid{grid-template-columns:repeat(2,1fr);}
+  .tiles-grid{grid-template-columns:repeat(2,1fr);}
+}
+
+/* card */
+.card{border:1px solid var(--line); border-radius:5px; padding:.9rem; background:var(--paper-raised);}
+.card h4{margin:0; font-size:.85rem;}
+
+/* admin sidebar */
+.admin-nav{display:flex; flex-direction:column; gap:.65rem; padding-right:1rem; border-right:1px solid var(--line);}
+.admin-nav .item{font-size:.78rem; color:var(--ink-faint); padding-left:.6rem; border-left:2px solid transparent;}
+.admin-nav .item.current{color:var(--ink); font-weight:700; border-left-color:var(--accent);}
+
+/* table wrapper */
+.tbl-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:5px;}
+table.wf-table{width:100%; border-collapse:collapse; font-size:.8rem; min-width:520px;}
+table.wf-table th{text-align:left; font-family:var(--font-mono); font-size:.65rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); padding:.6rem .8rem; border-bottom:1px solid var(--line); background:var(--fill); white-space:nowrap;}
+table.wf-table td{padding:.65rem .8rem; border-bottom:1px solid var(--line); color:var(--ink-mute); vertical-align:middle;}
+table.wf-table tr:last-child td{border-bottom:none;}
+
+/* schedule grid */
+.sched-grid{display:grid; grid-template-columns:56px repeat(4,1fr); border:1px solid var(--line); border-radius:5px; overflow:hidden; min-width:480px;}
+.sched-grid .h{background:var(--fill); font-family:var(--font-mono); font-size:.62rem; text-transform:uppercase; color:var(--ink-faint); text-align:center; padding:.5rem .3rem; border-bottom:1px solid var(--line);}
+.sched-grid .t{font-family:var(--font-mono); font-size:.68rem; color:var(--ink-faint); text-align:center; padding:.5rem .3rem; border-bottom:1px solid var(--line); border-right:1px solid var(--line);}
+.sched-grid .c{min-height:34px; border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:2px; display:flex; align-items:stretch;}
+.sched-grid .c:nth-child(5n){border-right:none;}
+.blk{flex:1; border-radius:3px; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:.6rem; font-weight:700;}
+.blk.ok{background:var(--ok-soft); color:var(--ok);}
+.blk.warn{background:var(--warn-soft); color:var(--warn);}
+.blk.info{background:var(--info-soft); color:var(--info);}
+
+/* heat grid (occupancy) */
+.heat-grid{display:grid; grid-template-columns:90px repeat(5,1fr); gap:3px; min-width:420px;}
+.heat-grid .lbl{font-size:.72rem; color:var(--ink-faint); display:flex; align-items:center;}
+.heat-grid .hd{font-family:var(--font-mono); font-size:.62rem; color:var(--ink-faint); text-align:center; padding:.3rem 0;}
+.heat-cell{height:30px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:.62rem; color:var(--ink-mute);}
+
+/* sparkline placeholder */
+.spark{border:1px solid var(--line); border-radius:5px; background:var(--fill); padding:.75rem 1rem; display:flex; flex-direction:column; gap:.4rem;}
+.spark .lbl{font-family:var(--font-mono); font-size:.66rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em;}
+.spark svg{width:100%; height:60px; display:block;}
+
+/* annotations */
+.annotations{border-top:1px dashed var(--line); padding:1rem 1.4rem 1.3rem; background:var(--paper);}
+.annotations .lbl{font-family:var(--font-mono); font-size:.63rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); margin-bottom:.6rem; display:block;}
+.annotations ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.45rem;}
+.annotations li{display:flex; gap:.6rem; font-size:.8rem; color:var(--ink-mute); align-items:flex-start;}
+
+footer.credits{margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--line); font-size:.78rem; color:var(--ink-faint);}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="kicker">Wireframe &middot; Low-Fidelity</div>
+    <h1>Sistem Booking Meja Mahjong</h1>
+    <p>Struktur layar &amp; alur interaksi untuk sisi pelanggan (booking, jadwal) dan dashboard internal (revenue, occupancy, pricing, kelola booking). Warna dan gaya visual final (ungu-gelap &amp; emas) sudah ada di implementasi &mdash; dokumen ini fokus ke tata letak, isi, dan perilaku tiap elemen.</p>
+    <div class="meta">
+      <span><b>9</b> layar</span>
+      <span><b>2</b> alur &mdash; Pelanggan / Admin</span>
+      <span>Basis: routes/web.php</span>
+    </div>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch wf-line" style="height:8px"></div> teks isi</div>
+    <div class="legend-item"><div class="legend-swatch wf-hatch-sample wf-hatch"></div> gambar / ikon</div>
+    <div class="legend-item"><div class="legend-swatch wf-box-sample wf-box"></div> kontainer / kartu</div>
+    <div class="legend-item"><span class="wf-btn wf-btn-sample">Tombol</span> aksi utama</div>
+    <div class="legend-item"><span class="badge ok wf-btn-sample">Status</span> status berwarna</div>
+    <div class="legend-item"><span class="mark">1</span> catatan perilaku &mdash; lihat daftar di bawah tiap layar</div>
+  </div>
+
+  <nav class="toc-wrap">
+    <div class="toc">
+      <span class="lane-tag">Pelanggan</span>
+      <a href="#s-home">Pilih Meja</a>
+      <a href="#s-booking">Form Booking</a>
+      <a href="#s-confirm">Konfirmasi</a>
+      <a href="#s-schedule">Jadwal &amp; Waiting List</a>
+      <span class="sep"></span>
+      <span class="lane-tag">Admin</span>
+      <a href="#s-dashboard">Dashboard</a>
+      <a href="#s-revenue">Revenue</a>
+      <a href="#s-occupancy">Occupancy</a>
+      <a href="#s-pricing">Pricing</a>
+      <a href="#s-bookings">Kelola Booking</a>
+    </div>
+  </nav>
+
+  <!-- ================= FLOW / SITEMAP ================= -->
+  <section class="flow" aria-label="Alur navigasi">
+    <div class="flow-lane">
+      <div class="lane-label">Pelanggan</div>
+      <div class="flow-box">Pilih Meja</div><span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">Form Booking</div><span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">Bayar (Midtrans)</div><span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">Konfirmasi</div>
+      <span class="flow-arrow">&hellip;</span>
+      <div class="flow-box branch">Waiting List (jika penuh)</div>
+    </div>
+    <div class="flow-note">Semua langkah di atas dapat dilihat siapa saja lewat halaman Jadwal, tanpa login.</div>
+    <div class="flow-lane">
+      <div class="lane-label">Admin</div>
+      <div class="flow-box">Login</div><span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">Dashboard</div><span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">Revenue</div>
+      <span class="flow-arrow">/</span>
+      <div class="flow-box">Occupancy</div>
+      <span class="flow-arrow">/</span>
+      <div class="flow-box">Pricing</div>
+      <span class="flow-arrow">/</span>
+      <div class="flow-box">Kelola Booking</div>
+    </div>
+    <div class="flow-note">Semua halaman admin di-guard middleware <code>role:admin</code>.</div>
+  </section>
+
+  <!-- ================= CUSTOMER GROUP ================= -->
+  <div class="group-heading"><h2>Alur Pelanggan</h2><span>publik &mdash; tanpa login</span></div>
+
+  <!-- Screen 1: Home / Table selection -->
+  <div class="frame" id="s-home">
+    <div class="frame-chrome">
+      <div class="frame-dots"><span></span><span></span><span></span></div>
+      <div class="frame-url">/</div>
+      <div class="frame-title">Pilih Meja</div>
+    </div>
+    <div class="frame-body stack">
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <div class="wf-hatch" style="width:120px;height:28px;">LOGO</div>
+        <div class="row" style="font-size:.8rem;">
+          <span>Jadwal</span><span>Masuk</span>
+        </div>
+      </div>
+      <div class="wf-box" style="padding:1.4rem;">
+        <div style="font-weight:700;font-size:1.1rem;margin-bottom:.4rem;">Reservasi Meja Mahjong <span class="mark">1</span></div>
+        <div class="wf-line" style="width:55%;"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="card stack">
+          <div class="wf-hatch" style="height:64px;">🀄</div>
+          <h4>Meja A1</h4>
+          <div class="wf-line" style="width:70%"></div>
+          <div class="row" style="justify-content:space-between;align-items:center;">
+            <span style="font-size:.78rem;">Rp 50.000/jam</span>
+            <span class="badge ok">Tersedia</span>
+          </div>
+          <span class="wf-btn primary" style="width:100%;">Pilih Meja</span>
+        </div>
+        <div class="card stack">
+          <div class="wf-hatch" style="height:64px;">🀄</div>
+          <h4>Meja A2</h4>
+          <div class="wf-line" style="width:70%"></div>
+          <div class="row" style="justify-content:space-between;align-items:center;">
+            <span style="font-size:.78rem;">Rp 50.000/jam</span>
+            <span class="badge ok">Tersedia</span>
+          </div>
+          <span class="wf-btn primary" style="width:100%;">Pilih Meja</span>
+        </div>
+        <div class="card stack">
+          <div class="wf-hatch" style="height:64px;">🀄</div>
+          <h4>Meja B1 <span class="mark">2</span></h4>
+          <div class="wf-line" style="width:70%"></div>
+          <div class="row" style="justify-content:space-between;align-items:center;">
+            <span style="font-size:.78rem;">Rp 65.000/jam</span>
+            <span class="badge warn">Maintenance</span>
+          </div>
+          <span class="wf-btn" style="width:100%;opacity:.5;">Tidak Tersedia</span>
+        </div>
+        <div class="card stack">
+          <div class="wf-hatch" style="height:64px;">🀄</div>
+          <h4>Meja B2</h4>
+          <div class="wf-line" style="width:70%"></div>
+          <div class="row" style="justify-content:space-between;align-items:center;">
+            <span style="font-size:.78rem;">Rp 65.000/jam</span>
+            <span class="badge ok">Tersedia</span>
+          </div>
+          <span class="wf-btn primary" style="width:100%;">Pilih Meja</span>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <span class="lbl">Catatan perilaku</span>
+      <ol>
+        <li><span class="mark">1</span> Daftar meja diambil dari tabel <code>mahjong_tables</code>, harga dari <code>pricing</code> aktif per meja.</li>
+        <li><span class="mark">2</span> Meja berstatus <code>maintenance</code> disembunyikan dari tombol pilih (di-nonaktifkan, bukan dihapus dari daftar).</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Screen 2: Booking form -->
+  <div class="frame" id="s-booking">
+    <div class="frame-chrome">
+      <div class="frame-dots"><span></span><span></span><span></span></div>
+      <div class="frame-url">/booking/table/{table}</div>
+      <div class="frame-title">Form Booking</div>
+    </div>
+    <div class="frame-body">
+      <div class="cols-2">
+        <div class="stack">
+          <div class="wf-box stack" style="padding:1.1rem;">
+            <h4>1 &middot; Pilih Waktu <span class="mark">1</span></h4>
+            <div class="row">
+              <div class="wf-field" style="flex:1;min-width:120px;"><span class="cap">Tanggal</span><div class="wf-input">26 Jul 2026</div></div>
+              <div class="wf-field" style="flex:1;min-width:120px;"><span class="cap">Jam Mulai</span><div class="wf-input">19:00</div></div>
+              <div class="wf-field" style="flex:1;min-width:120px;"><span class="cap">Durasi</span><div class="wf-input">2 Jam</div></div>
+            </div>
+            <span class="badge info">Penuh &mdash; masuk Waiting List</span>
+          </div>
+          <div class="wf-box stack" style="padding:1.1rem;">
+            <h4>2 &middot; Data Pemesan</h4>
+            <div class="row">
+              <div class="wf-field" style="flex:1;min-width:160px;"><span class="cap">Nama Lengkap</span><div class="wf-input">&nbsp;</div></div>
+              <div class="wf-field" style="flex:1;min-width:160px;"><span class="cap">No. HP / WhatsApp</span><div class="wf-input">+62 &nbsp;</div></div>
+            </div>
+          </div>
+          <div class="wf-box stack" style="padding:1.1rem;">
+            <h4>3 &middot; Pembayaran <span class="mark">2</span></h4>
+            <div class="row" style="align-items:center;">
+              <div class="wf-hatch" style="width:90px;height:24px;">MIDTRANS</div>
+              <div class="wf-line" style="width:200px;"></div>
+            </div>
+            <span class="wf-btn primary" style="width:100%;">Lanjut ke Pembayaran</span>
+          </div>
+        </div>
+        <div class="card stack" style="position:sticky; top:4.5rem;">
+          <h4>Ringkasan Reservasi</h4>
+          <div class="row" style="justify-content:space-between;font-size:.8rem;"><span>Meja</span><span>A1</span></div>
+          <div class="row" style="justify-content:space-between;font-size:.8rem;"><span>Tanggal</span><span>26 Jul 2026</span></div>
+          <div class="row" style="justify-content:space-between;font-size:.8rem;"><span>Waktu</span><span>19:00&ndash;21:00</span></div>
+          <div class="row" style="justify-content:space-between;align-items:center;">
+            <span style="font-size:.8rem;">Total</span>
+            <span style="font-weight:700;font-size:1.3rem;">Rp 100rb</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <span class="lbl">Catatan perilaku</span>
+      <ol>
+        <li><span class="mark">1</span> Setiap kali tanggal/jam/durasi berubah, sistem cek ketersediaan lewat AJAX (debounce). Jika slot penuh, badge berubah jadi info biru dan booking otomatis diarahkan ke status <code>waiting</code>.</li>
+        <li><span class="mark">2</span> Tombol submit non-aktif sampai hasil cek ketersediaan selesai; setelah submit, redirect ke Midtrans Snap (GoPay/OVO/DANA/transfer/kartu) kecuali statusnya waiting list.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Screen 3: Confirmation -->
+  <div class="frame" id="s-confirm">
+    <div class="frame-chrome">
+      <div class="frame-dots"><span></span><span></span><span></span></div>
+      <div class="frame-url">/booking/confirm/{code}</div>
+      <div class="frame-title">Konfirmasi</div>
+    </div>
+    <div class="frame-body">
+      <div class="card stack" style="max-width:480px;margin:0 auto;padding:1.6rem;">
+        <div class="row" style="justify-content:space-between;align-items:center;">
+          <span style="font-family:var(--font-mono);font-size:.9rem;">MJG-8F3C1A</span>
+          <span class="badge warn">Menunggu Pembayaran <span class="mark" style="margin-left:.35rem;">1</span></span>
+        </div>
+        <div class="wf-line" style="width:60%;"></div>
+        <div class="row" style="justify-content:space-between;font-size:.8rem;"><span>Meja</span><span>A1 &middot; 26 Jul, 19:00&ndash;21:00</span></div>
+        <div class="row" style="justify-content:space-between;font-size:.8rem;"><span>Total</span><span>Rp 100.000</span></div>
+        <span class="wf-btn primary" style="width:100%;">Bayar Sekarang</span>
+        <div style="text-align:center;font-size:.76rem;color:var(--ink-faint);">atau kembali ke <u>Beranda</u> / <u>Jadwal</u></div>
+      </div>
+    </div>
+    <div class="annotations">
+      <span class="lbl">Catatan perilaku</span>
+      <ol>
+        <li><span class="mark">1</span> Isi &amp; tombol berubah menurut status booking: <em>pending_payment</em> &rarr; tombol bayar Midtrans, <em>waiting</em> &rarr; pesan posisi antrian, <em>active</em> &rarr; konfirmasi sukses. Status ter-update otomatis lewat webhook Midtrans.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Screen 4: Schedule / waiting list -->
+  <div class="frame" id="s-schedule">
+    <div class="frame-chrome">
+      <div class="frame-dots"><span></span><span></span><span></span></div>
+      <div class="frame-url">/jadwal</div>
+      <div class="frame-title">Jadwal &amp; Waiting List</div>
+    </div>
+    <div class="frame-body stack">
+      <div class="row" style="align-items:center;">
+        <div class="wf-input" style="width:150px;">26 Jul 2026 <span class="mark">1</span></div>
+        <span class="wf-btn">Hari ini</span><span class="wf-btn">Besok</span><span class="wf-btn">+2</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <div class="sched-grid">
+          <div class="h"></div><div class="h">A1</div><div class="h">A2</div><div class="h">B1</div><div class="h">B2</div>
+          <div class="t">08:00</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+          <div class="t">10:00</div><div class="c"><div class="blk ok">🀄 2j</div></div><div class="c"></div><div class="c"></div><div class="c"></div>
+          <div class="t">19:00</div><div class="c"></div><div class="c"><div class="blk warn">🀄 1j</div></div><div class="c"></div><div class="c"><div class="blk info">⏳ 2j</div></div>
+          <div class="t">21:00</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"><div class="blk info">⏳ 2j</div></div>
+        </div>
+      </div>
+      <div class="row" style="font-size:.78rem;">
+        <span class="badge ok">Aktif / Sudah Bayar</span>
+        <span class="badge warn">Menunggu Pembayaran</span>
+        <span class="badge info">Waiting List</span>
+      </div>
+      <div class="card stack">
+        <h4>Waiting List &mdash; Meja B2 <span class="badge info">2 antrian</span> <span class="mark">2</span></h4>
+        <div class="row" style="justify-content:space-between;font-size:.8rem;"><span>1. Rangga W.</span><span>19:00&ndash;21:00 &middot; MJG-3B21C0</span></div>
+        <div class="row" style="justify-content:space-between;font-size:.8rem;"><span>2. Siti A.</span><span>19:00&ndash;21:00 &middot; MJG-77AE42</span></div>
+      </div>
+    </div>
+    <div class="annotations">
+      <span class="lbl">Catatan perilaku</span>
+      <ol>
+        <li><span class="mark">1</span> Halaman ini publik (tanpa login) &mdash; siapa saja bisa memantau jadwal &amp; antrian. Ganti tanggal meng-update grid via query string.</li>
+        <li><span class="mark">2</span> Urutan antrian mengikuti waktu booking dibuat; saat slot dibatalkan, antrian teratas otomatis dipromosikan ke <em>pending_payment</em> dan dapat token pembayaran baru.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN GROUP ================= -->
+  <div class="group-heading" style="margin-top:1rem;"><h2>Dashboard Admin</h2><span>internal &mdash; role: admin</span></div>
+
+  <!-- Screen 5: Dashboard overview -->
+  <div class="frame" id="s-dashboard">
+    <div class="frame-chrome">
+      <div class="frame-dots"><span></span><span></span><span></span></div>
+      <div class="frame-url">/dashboard</div>
+      <div class="frame-title">Dashboard</div>
+    </div>
+    <div class="frame-body">
+      <div class="cols-sb">
+        <div class="admin-nav">
+          <span class="item current">Dashboard</span>
+          <span class="item">Revenue</span>
+          <span class="item">Occupancy</span>
+          <span class="item">Pricing</span>
+          <span class="item">Kelola Booking</span>
+          <span class="item">Keluar</span>
+        </div>
+        <div class="stack">
+          <div class="tiles-grid">
+            <div class="card stack"><span class="cap" style="font-family:var(--font-mono);font-size:.62rem;color:var(--ink-faint);">REVENUE HARI INI</span><strong style="font-size:1.1rem;">Rp 850rb</strong></div>
+            <div class="card stack"><span class="cap" style="font-family:var(--font-mono);font-size:.62rem;color:var(--ink-faint);">REVENUE BULAN INI</span><strong style="font-size:1.1rem;">Rp 18,4jt</strong></div>
+            <div class="card stack"><span class="cap" style="font-family:var(--font-mono);font-size:.62rem;color:var(--ink-faint);">BOOKING AKTIF</span><strong style="font-size:1.1rem;">3</strong></div>
+            <div class="card stack"><span class="cap" style="font-family:var(--font-mono);font-size:.62rem;color:var(--ink-faint);">WAITING LIST <span class="mark">1</span></span><strong style="font-size:1.1rem;">2</strong></div>
+            <div class="card stack"><span class="cap" style="font-family:var(--font-mono);font-size:.62rem;color:var(--ink-faint);">OKUPANSI</span><strong style="font-size:1.1rem;">75%</strong></div>
+          </div>
+          <div class="spark">
+            <span class="lbl">Revenue 7 Hari Terakhir <span class="mark">2</span></span>
+            <svg viewBox="0 0 300 60" preserveAspectRatio="none">
+              <polyline points="0,45 40,38 80,40 120,25 160,30 200,15 240,20 300,8" fill="none" stroke="var(--ink-faint)" stroke-width="2"/>
+              <circle cx="300" cy="8" r="3.5" fill="var(--accent)"/>
+            </svg>
+          </div>
+          <div class="tbl-wrap">
+            <table class="wf-table">
+              <tr><th>Kode</th><th>Meja</th><th>Pelanggan</th><th>Tanggal</th><th>Status</th></tr>
+              <tr><td>MJG-8F3C1A</td><td>A1</td><td>Budi S.</td><td>26/07</td><td><span class="badge ok">Aktif</span></td></tr>
+              <tr><td>MJG-3B21C0</td><td>B2</td><td>Rangga W.</td><td>26/07</td><td><span class="badge info">Waiting</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <span class="lbl">Catatan perilaku</span>
+      <ol>
+        <li><span class="mark">1</span> Semua angka tile dihitung real-time dari <code>bookings</code> &amp; <code>transactions</code> untuk tanggal/bulan berjalan &mdash; bukan data statis.</li>
+        <li><span class="mark">2</span> Grafik ini placeholder; data sebenarnya sum <code>amount</code> transaksi ter-<code>paid_at</code> per hari, 7 hari ke belakang.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Screen 6: Revenue -->
+  <div class="frame" id="s-revenue">
+    <div class="frame-chrome">
+      <div class="frame-dots"><span></span><span></span><span></span></div>
+      <div class="frame-url">/dashboard/revenue</div>
+      <div class="frame-title">Revenue</div>
+    </div>
+    <div class="frame-body">
+      <div class="cols-sb">
+        <div class="admin-nav">
+          <span class="item">Dashboard</span>
+          <span class="item current">Revenue</span>
+          <span class="item">Occupancy</span>
+          <span class="item">Pricing</span>
+          <span class="item">Kelola Booking</span>
+          <span class="item">Keluar</span>
+        </div>
+        <div class="stack">
+          <div class="row" style="align-items:center;">
+            <div class="wf-field"><span class="cap">Dari</span><div class="wf-input">01 Jul 2026</div></div>
+            <div class="wf-field"><span class="cap">Sampai</span><div class="wf-input">26 Jul 2026</div></div>
+            <span class="wf-btn primary" style="align-self:flex-end;">Terapkan</span>
+            <div class="card" style="margin-left:auto;padding:.6rem 1rem;"><span class="cap" style="font-family:var(--font-mono);font-size:.62rem;color:var(--ink-faint);">TOTAL PERIODE</span><br><strong>Rp 18.400.000</strong></div>
+          </div>
+          <div class="spark">
+            <span class="lbl">Revenue per Tanggal <span class="mark">1</span></span>
+            <svg viewBox="0 0 300 60" preserveAspectRatio="none">
+              <polyline points="0,50 30,40 60,42 90,20 120,35 150,10 180,28 210,15 240,22 270,12 300,18" fill="none" stroke="var(--ink-faint)" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="tbl-wrap">
+            <table class="wf-table">
+              <tr><th>Tanggal Bayar</th><th>Meja</th><th>Pelanggan</th><th>Metode</th><th>Jumlah</th></tr>
+              <tr><td>26/07 14:02</td><td>A1</td><td>Budi S.</td><td>GoPay</td><td>Rp 100.000</td></tr>
+              <tr><td>25/07 20:11</td><td>B2</td><td>Nadia P.</td><td>Transfer</td><td>Rp 130.000</td></tr>
+              <tr><td>25/07 09:30</td><td>A2</td><td>Cash</td><td>Tunai (admin)</td><td>Rp 50.000 <span class="mark">2</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <span class="lbl">Catatan perilaku</span>
+      <ol>
+        <li><span class="mark">1</span> Filter tanggal (default: awal bulan &ndash; hari ini) meng-query ulang transaksi ter-<code>paid_at</code> di rentang tersebut.</li>
+        <li><span class="mark">2</span> Baris "Tunai (admin)" berasal dari booking yang ditandai selesai manual tanpa transaksi Midtrans &mdash; sistem otomatis catat sebagai pembayaran cash.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Screen 7: Occupancy -->
+  <div class="frame" id="s-occupancy">
+    <div class="frame-chrome">
+      <div class="frame-dots"><span></span><span></span><span></span></div>
+      <div class="frame-url">/dashboard/occupancy</div>
+      <div class="frame-title">Occupancy</div>
+    </div>
+    <div class="frame-body">
+      <div class="cols-sb">
+        <div class="admin-nav">
+          <span class="item">Dashboard</span>
+          <span class="item">Revenue</span>
+          <span class="item current">Occupancy</span>
+          <span class="item">Pricing</span>
+          <span class="item">Kelola Booking</span>
+          <span class="item">Keluar</span>
+        </div>
+        <div class="stack">
+          <div class="row"><div class="wf-field"><span class="cap">Dari</span><div class="wf-input">20 Jul</div></div><div class="wf-field"><span class="cap">Sampai</span><div class="wf-input">26 Jul</div></div></div>
+          <div style="overflow-x:auto;">
+            <div class="heat-grid">
+              <div class="lbl"></div><div class="hd">20/07</div><div class="hd">21/07</div><div class="hd">22/07</div><div class="hd">23/07</div><div class="hd">24/07</div>
+              <div class="lbl">Meja A1 <span class="mark">1</span></div>
+              <div class="heat-cell" style="background:var(--ok-soft);">6j</div><div class="heat-cell" style="background:var(--fill);">2j</div><div class="heat-cell" style="background:var(--ok-soft);">7j</div><div class="heat-cell" style="background:var(--fill);">0j</div><div class="heat-cell" style="background:var(--ok-soft);">5j</div>
+              <div class="lbl">Meja A2</div>
+              <div class="heat-cell" style="background:var(--fill);">3j</div><div class="heat-cell" style="background:var(--fill);">3j</div><div class="heat-cell" style="background:var(--ok-soft);">6j</div><div class="heat-cell" style="background:var(--fill);">1j</div><div class="heat-cell" style="background:var(--fill);">2j</div>
+              <div class="lbl">Meja B1</div>
+              <div class="heat-cell" style="background:var(--fill);">0j</div><div class="heat-cell" style="background:var(--fill);">0j</div><div class="heat-cell" style="background:var(--fill);">0j</div><div class="heat-cell" style="background:var(--fill);">0j</div><div class="heat-cell" style="background:var(--fill);">0j</div>
+              <div class="lbl">Meja B2</div>
+              <div class="heat-cell" style="background:var(--ok-soft);">8j</div><div class="heat-cell" style="background:var(--ok-soft);">6j</div><div class="heat-cell" style="background:var(--fill);">2j</div><div class="heat-cell" style="background:var(--ok-soft);">5j</div><div class="heat-cell" style="background:var(--fill);">3j</div>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="wf-table">
+              <tr><th>Meja</th><th>Total Booking</th><th>Total Jam Terpakai <span class="mark">2</span></th></tr>
+              <tr><td>A1</td><td>9</td><td>20 jam</td></tr>
+              <tr><td>B2</td><td>11</td><td>24 jam</td></tr>
+              <tr><td>B1</td><td>0</td><td>0 jam <span class="badge warn">maintenance</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <span class="lbl">Catatan perilaku</span>
+      <ol>
+        <li><span class="mark">1</span> Warna sel = intensitas jam terpakai (bukan warna brand); makin gelap = makin sering dipakai pada tanggal itu.</li>
+        <li><span class="mark">2</span> Dihitung dari <code>SUM(duration_hours)</code> booking berstatus <em>active</em>/<em>done</em> di rentang tanggal terpilih.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Screen 8: Pricing -->
+  <div class="frame" id="s-pricing">
+    <div class="frame-chrome">
+      <div class="frame-dots"><span></span><span></span><span></span></div>
+      <div class="frame-url">/dashboard/pricing</div>
+      <div class="frame-title">Pricing</div>
+    </div>
+    <div class="frame-body">
+      <div class="cols-sb">
+        <div class="admin-nav">
+          <span class="item">Dashboard</span>
+          <span class="item">Revenue</span>
+          <span class="item">Occupancy</span>
+          <span class="item current">Pricing</span>
+          <span class="item">Kelola Booking</span>
+          <span class="item">Keluar</span>
+        </div>
+        <div class="tbl-wrap">
+          <table class="wf-table">
+            <tr><th>Meja</th><th>Harga / Jam Saat Ini</th><th>Harga Baru <span class="mark">1</span></th><th></th></tr>
+            <tr><td>A1</td><td>Rp 50.000</td><td><div class="wf-input" style="width:110px;">50000</div></td><td><span class="wf-btn primary">Simpan</span></td></tr>
+            <tr><td>A2</td><td>Rp 50.000</td><td><div class="wf-input" style="width:110px;">50000</div></td><td><span class="wf-btn primary">Simpan</span></td></tr>
+            <tr><td>B1</td><td>Rp 65.000</td><td><div class="wf-input" style="width:110px;">65000</div></td><td><span class="wf-btn primary">Simpan</span></td></tr>
+            <tr><td>B2</td><td>Rp 65.000</td><td><div class="wf-input" style="width:110px;">65000</div></td><td><span class="wf-btn primary">Simpan</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <span class="lbl">Catatan perilaku</span>
+      <ol>
+        <li><span class="mark">1</span> Simpan tidak meng-edit harga lama &mdash; sistem menonaktifkan harga sebelumnya dan membuat baris harga baru (riwayat harga tetap tersimpan).</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Screen 9: Booking management -->
+  <div class="frame" id="s-bookings">
+    <div class="frame-chrome">
+      <div class="frame-dots"><span></span><span></span><span></span></div>
+      <div class="frame-url">/dashboard/bookings</div>
+      <div class="frame-title">Kelola Booking</div>
+    </div>
+    <div class="frame-body">
+      <div class="cols-sb">
+        <div class="admin-nav">
+          <span class="item">Dashboard</span>
+          <span class="item">Revenue</span>
+          <span class="item">Occupancy</span>
+          <span class="item">Pricing</span>
+          <span class="item current">Kelola Booking</span>
+          <span class="item">Keluar</span>
+        </div>
+        <div class="stack">
+          <div class="row">
+            <div class="wf-input" style="width:140px;">Semua Status</div>
+            <div class="wf-input" style="width:140px;">Tanggal</div>
+            <div class="wf-input" style="width:200px;flex:1;">Cari nama / kode / HP</div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="wf-table">
+              <tr><th>Kode</th><th>Pelanggan</th><th>Meja</th><th>Tanggal / Jam</th><th>Status</th><th>Aksi <span class="mark">1</span></th></tr>
+              <tr><td>MJG-8F3C1A</td><td>Budi S.</td><td>A1</td><td>26/07, 19:00&ndash;21:00</td><td><span class="badge ok">Aktif</span></td><td><div class="wf-input" style="width:120px;">Ubah status &#9662;</div></td></tr>
+              <tr><td>MJG-3B21C0</td><td>Rangga W.</td><td>B2</td><td>26/07, 19:00&ndash;21:00</td><td><span class="badge info">Waiting</span></td><td><div class="wf-input" style="width:120px;">Ubah status &#9662;</div></td></tr>
+              <tr><td>MJG-77AE42</td><td>Siti A.</td><td>B2</td><td>26/07, 19:00&ndash;21:00</td><td><span class="badge danger">Dibatalkan <span class="mark">2</span></span></td><td><div class="wf-input" style="width:120px;opacity:.4;">&mdash;</div></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotations">
+      <span class="lbl">Catatan perilaku</span>
+      <ol>
+        <li><span class="mark">1</span> Pilihan "Ubah status" terbatas ke: Aktif, Selesai, Dibatalkan. Menandai "Selesai" tanpa transaksi Midtrans otomatis membuat catatan pembayaran tunai.</li>
+        <li><span class="mark">2</span> Membatalkan booking aktif/pending memicu promosi otomatis: antrian waiting list teratas untuk slot yang sama naik jadi <em>pending_payment</em>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <footer class="credits">
+    Dibuat berdasarkan struktur route &amp; controller aktual (routes/web.php, app/Http/Controllers) &mdash; bukan mockup lepas. Siap dipakai sebagai acuan sebelum revisi tampilan visual.
+  </footer>
+
+</div>
+</body>
+</html>

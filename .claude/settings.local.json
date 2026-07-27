@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(php -v)",
+      "Bash(php artisan *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8000)",
+      "Bash(xargs -I{} basename {})",
+      "Bash(npx --version)",
+      "Bash(curl -s \"http://127.0.0.1:8000/\" --max-time 5)",
+      "Read(//c/tmp/**)",
+      "Bash(rm -f cookies.txt)",
+      "Bash(curl -s -c cookies.txt -b cookies.txt \"http://127.0.0.1:8000/booking/table/1\" -o home.html --max-time 5)",
+      "Bash(curl -s -b cookies.txt -c cookies.txt http://127.0.0.1:8000/booking/table/1/availability -X POST -H 'Content-Type: application/json' -H 'X-CSRF-TOKEN: __TRACKED_VAR__' -H 'Accept: application/json' -d '{\"booking_date\":\"2026-07-27\",\"start_time\":\"14:00\",\"duration_hours\":2}' --max-time 5 -w '\\\\nHTTP_CODE:%{http_code}\\\\n')"
+    ]
+  }
+}
