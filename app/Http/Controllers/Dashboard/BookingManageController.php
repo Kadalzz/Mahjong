@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Transaction;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 
 class BookingManageController extends Controller
 {
+    public function __construct(private WhatsAppService $whatsapp)
+    {
+    }
+
     public function index(Request $request)
     {
         $query = Booking::with('table')->latest();
@@ -52,6 +57,8 @@ class BookingManageController extends Controller
                 'paid_at'        => now(),
                 'notes'          => 'Pembayaran manual oleh admin',
             ]);
+
+            $this->whatsapp->sendInvoice($booking);
         }
 
         // If cancelled, try to promote waiting booking

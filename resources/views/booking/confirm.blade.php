@@ -141,6 +141,13 @@
                     <a href="{{ $booking->midtrans_payment_url }}" class="btn btn-gold btn-lg w-100" target="_blank">
                         <i class="bi bi-credit-card me-2"></i>Bayar Sekarang
                     </a>
+                    @elseif(in_array($booking->status, ['active', 'done']))
+                    <a href="{{ route('booking.invoice', $booking->booking_code) }}" class="btn btn-gold btn-lg w-100">
+                        <i class="bi bi-receipt me-2"></i>Lihat Invoice
+                    </a>
+                    <p class="text-center text-muted mt-1" style="font-size:0.78rem">
+                        Invoice juga sudah kami kirim ke WhatsApp Anda 📩
+                    </p>
                     @endif
 
                     <a href="{{ route('schedule.index') }}" class="btn btn-outline-secondary">

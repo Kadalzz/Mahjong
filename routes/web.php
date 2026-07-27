@@ -19,6 +19,7 @@ Route::get('/booking/table/{table}', [BookingController::class, 'create'])->name
 Route::post('/booking/table/{table}/availability', [BookingController::class, 'checkAvailability'])->name('booking.check');
 Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 Route::get('/booking/confirm/{code}', [BookingController::class, 'confirm'])->name('booking.confirm');
+Route::get('/booking/invoice/{code}', [BookingController::class, 'invoice'])->name('booking.invoice');
 
 // Public schedule (waiting list)
 Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.index');

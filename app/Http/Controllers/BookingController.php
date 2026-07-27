@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\MahjongTable;
 use App\Models\Transaction;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Midtrans\Config;
@@ -13,7 +14,7 @@ use Midtrans\Notification;
 
 class BookingController extends Controller
 {
-    public function __construct()
+    public function __construct(private WhatsAppService $whatsapp)
     {
         Config::$serverKey    = config('midtrans.server_key');
         Config::$isProduction = config('midtrans.is_production');
@@ -175,6 +176,20 @@ class BookingController extends Controller
     }
 
     /**
+     * Show a printable invoice (only available once a booking is paid)
+     */
+    public function invoice(string $code)
+    {
+        $booking = Booking::with(['table', 'transaction'])->where('booking_code', $code)->firstOrFail();
+
+        if (!in_array($booking->status, ['active', 'done'])) {
+            abort(404);
+        }
+
+        return view('booking.invoice', compact('booking'));
+    }
+
+    /**
      * Handle Midtrans webhook notification
      */
     public function webhook(Request $request)
@@ -201,6 +216,8 @@ class BookingController extends Controller
             }
 
             if ($paid) {
+                $alreadyActive = $booking->status === 'active';
+
                 $booking->update(['status' => 'active']);
 
                 Transaction::updateOrCreate(
@@ -214,6 +231,11 @@ class BookingController extends Controller
                         'paid_at'                 => now(),
                     ]
                 );
+
+                // Midtrans may re-send the same notification; only send once per booking.
+                if (!$alreadyActive) {
+                    $this->whatsapp->sendInvoice($booking);
+                }
             }
 
             return response()->json(['status' => 'ok']);
