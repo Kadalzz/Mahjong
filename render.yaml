@@ -1,0 +1,71 @@
+services:
+  - type: web
+    name: mahjong-club
+    runtime: php
+    plan: free
+    buildCommand: composer install --no-dev --optimize-autoloader && npm install && npm run build
+    startCommand: php artisan migrate --force && php artisan config:cache && php artisan serve --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_NAME
+        value: "Mahjong Club"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_LOCALE
+        value: id
+      - key: APP_FALLBACK_LOCALE
+        value: id
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        fromService:
+          type: web
+          name: mahjong-club
+          property: host
+      - key: LOG_CHANNEL
+        value: stack
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: mahjong-club-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: mahjong-club-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: mahjong-club-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: mahjong-club-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: mahjong-club-db
+          property: password
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: MAIL_MAILER
+        value: log
+      - key: MIDTRANS_SERVER_KEY
+        sync: false
+      - key: MIDTRANS_CLIENT_KEY
+        sync: false
+      - key: MIDTRANS_IS_PRODUCTION
+        value: false
+      - key: FONNTE_TOKEN
+        sync: false
+      - key: FONNTE_ENDPOINT
+        value: https://api.fonnte.com/send
+
+databases:
+  - name: mahjong-club-db
+    plan: free
