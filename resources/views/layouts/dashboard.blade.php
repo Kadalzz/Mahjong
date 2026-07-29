@@ -3,24 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard') | Mahjong Club Admin</title>
+    <title>@yield('title', 'Dashboard') | Hóng Zhōng Mahjong Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --gold: #c9a84c;
-            --gold-light: #e8c97a;
-            --sidebar-bg: #0d0d1f;
+            --red: #551414;
+            --red-light: #7a2020;
+            --cream: #f4f1dd;
+            --ink: #3a1414;
+            --ink-mute: #6b5d4a;
+            --sidebar-bg: #0a2410;
             --sidebar-width: 260px;
             --topbar-h: 64px;
-            --dark: #111122;
-            --card-bg: #1a1a2e;
-            --border: #2a2a45;
+            --dark: #0e300f;
+            --card-bg: #f4f1dd;
+            --border: rgba(244,241,221,0.14);
+            /* legacy aliases */
+            --gold: var(--red);
+            --gold-light: var(--red-light);
         }
-        * { font-family: 'Inter', sans-serif; }
-        body { background: var(--dark); color: #e0e0e0; }
+        * { font-family: 'Nunito', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Baloo 2', sans-serif; }
+        body { background: var(--dark); color: var(--cream); }
 
         /* Sidebar */
         .sidebar {
@@ -34,22 +41,25 @@
             transition: transform 0.3s;
         }
         .sidebar-brand {
-            padding: 1.5rem 1.5rem 1rem;
-            font-size: 1.25rem;
+            padding: 1.25rem 1.5rem 1rem;
+            font-family: 'Baloo 2', sans-serif;
+            font-size: 1.05rem;
             font-weight: 700;
-            color: var(--gold);
+            color: var(--cream);
             border-bottom: 1px solid var(--border);
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
             text-decoration: none;
         }
-        .sidebar-brand:hover { color: var(--gold-light); }
+        .sidebar-brand:hover { color: var(--cream); opacity: 0.85; }
         .sidebar-nav { padding: 1rem 0; }
         .sidebar-label {
             font-size: 0.7rem;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            color: #444466;
+            color: rgba(244,241,221,0.35);
             padding: 0.8rem 1.5rem 0.4rem;
         }
         .sidebar-link {
@@ -57,22 +67,22 @@
             align-items: center;
             gap: 0.75rem;
             padding: 0.65rem 1.5rem;
-            color: #8888aa;
+            color: rgba(244,241,221,0.65);
             text-decoration: none;
             font-size: 0.9rem;
-            font-weight: 500;
+            font-weight: 700;
             border-left: 3px solid transparent;
             transition: all 0.2s;
         }
         .sidebar-link:hover {
-            color: #e0e0e0;
-            background: rgba(201,168,76,0.06);
-            border-left-color: rgba(201,168,76,0.3);
+            color: var(--cream);
+            background: rgba(85,20,20,0.25);
+            border-left-color: rgba(244,241,221,0.3);
         }
         .sidebar-link.active {
-            color: var(--gold);
-            background: rgba(201,168,76,0.1);
-            border-left-color: var(--gold);
+            color: var(--cream);
+            background: var(--red);
+            border-left-color: var(--cream);
         }
         .sidebar-link i { font-size: 1.1rem; width: 20px; text-align: center; }
 
@@ -91,22 +101,24 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            color: var(--cream);
         }
         .page-content { padding: 2rem; }
 
         /* Cards */
         .stat-card {
             background: var(--card-bg);
-            border: 1px solid var(--border);
+            border: 1px solid rgba(58,20,20,0.08);
             border-radius: 16px;
             padding: 1.5rem;
             position: relative;
             overflow: hidden;
             transition: transform 0.2s, border-color 0.2s;
+            color: var(--ink);
         }
         .stat-card:hover {
             transform: translateY(-2px);
-            border-color: rgba(201,168,76,0.3);
+            border-color: rgba(85,20,20,0.3);
         }
         .stat-icon {
             width: 48px; height: 48px;
@@ -114,67 +126,69 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1.4rem;
         }
-        .stat-value { font-size: 1.75rem; font-weight: 700; color: #fff; }
-        .stat-label { font-size: 0.8rem; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-change { font-size: 0.8rem; font-weight: 500; }
+        .stat-value { font-family: 'Baloo 2', sans-serif; font-size: 1.75rem; font-weight: 700; color: var(--ink); }
+        .stat-label { font-size: 0.8rem; color: var(--ink-mute); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-change { font-size: 0.8rem; font-weight: 700; }
 
         .card-dark {
             background: var(--card-bg);
-            border: 1px solid var(--border);
+            border: 1px solid rgba(58,20,20,0.08);
             border-radius: 16px;
-            color: #e0e0e0;
+            color: var(--ink);
         }
         .card-dark .card-header {
             background: transparent;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(58,20,20,0.1);
             padding: 1.25rem 1.5rem;
-            font-weight: 600;
-            color: #e0e0e0;
+            font-weight: 700;
+            color: var(--ink);
         }
         .card-dark .card-body { padding: 1.5rem; }
 
         /* Table */
         .table-dark-custom {
-            color: #e0e0e0;
+            color: var(--ink);
             --bs-table-bg: transparent;
         }
         .table-dark-custom thead th {
-            background: rgba(255,255,255,0.03);
-            border-color: var(--border);
+            background: rgba(58,20,20,0.04);
+            border-color: rgba(58,20,20,0.1);
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #888;
-            font-weight: 600;
+            color: var(--ink-mute);
+            font-weight: 700;
             padding: 0.875rem 1rem;
         }
         .table-dark-custom tbody td {
-            border-color: var(--border);
+            border-color: rgba(58,20,20,0.1);
             padding: 0.875rem 1rem;
             vertical-align: middle;
         }
-        .table-dark-custom tbody tr:hover { background: rgba(255,255,255,0.02); }
+        .table-dark-custom tbody tr:hover { background: rgba(58,20,20,0.03); }
 
-        .text-gold { color: var(--gold) !important; }
+        .text-gold { color: var(--red) !important; }
         .btn-gold {
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            color: #1a1200;
-            font-weight: 600;
+            background: var(--red);
+            color: var(--cream);
+            font-weight: 700;
             border: none;
-            border-radius: 8px;
+            border-radius: 999px;
+            font-family: 'Baloo 2', sans-serif;
             transition: all 0.3s;
         }
         .btn-gold:hover {
+            background: var(--red-light);
             transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(201,168,76,0.4);
-            color: #1a1200;
+            box-shadow: 0 4px 20px rgba(85,20,20,0.4);
+            color: var(--cream);
         }
 
-        .badge-s-active    { background: #16a08520; color: #1abc9c; border: 1px solid #16a08540; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.75rem; }
-        .badge-s-waiting   { background: #2980b920; color: #3498db; border: 1px solid #2980b940; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.75rem; }
-        .badge-s-pending   { background: #f39c1220; color: #f1c40f; border: 1px solid #f39c1240; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.75rem; }
-        .badge-s-done      { background: #ffffff10; color: #aaa;     border: 1px solid #ffffff20; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.75rem; }
-        .badge-s-cancelled { background: #c0392b20; color: #e74c3c; border: 1px solid #c0392b40; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.75rem; }
+        .badge-s-active    { background: #DCEFDD; color: #1f7a34; border: 1px solid #2f9e4440; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .badge-s-waiting   { background: #FBF0C8; color: #8a6d1a; border: 1px solid #d4a01740; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .badge-s-pending   { background: #DCE8F7; color: #2e6fba; border: 1px solid #2e6fba40; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .badge-s-done      { background: rgba(58,20,20,0.08); color: var(--ink-mute); border: 1px solid rgba(58,20,20,0.12); padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .badge-s-cancelled { background: #F6DEDE; color: var(--red); border: 1px solid rgba(85,20,20,0.3); padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
 
         @media (max-width: 991px) {
             .sidebar { transform: translateX(-100%); }
@@ -189,8 +203,10 @@
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
     <a class="sidebar-brand" href="{{ route('dashboard.index') }}">
-        🀄 Mahjong Club
-        <div style="font-size:0.7rem;font-weight:400;color:#555;margin-top:2px">Admin Dashboard</div>
+        <x-brand-logo :size="28" />
+        <span>HÓNG ZHŌNG
+            <div style="font-size:0.7rem;font-weight:400;color:rgba(244,241,221,0.5);margin-top:2px">Admin Dashboard</div>
+        </span>
     </a>
 
     <nav class="sidebar-nav">
@@ -223,11 +239,11 @@
     </nav>
 
     <div style="padding:1.5rem;border-top:1px solid var(--border);margin-top:auto">
-        <div style="font-size:0.8rem;color:#666">Login sebagai</div>
-        <div style="font-weight:600;color:var(--gold)">{{ auth()->user()->name ?? 'Admin' }}</div>
+        <div style="font-size:0.8rem;color:rgba(244,241,221,0.5)">Login sebagai</div>
+        <div style="font-weight:700;color:var(--cream)">{{ auth()->user()->name ?? 'Admin' }}</div>
         <form method="POST" action="{{ route('logout') }}" class="mt-2">
             @csrf
-            <button type="submit" class="btn btn-sm btn-outline-secondary w-100">
+            <button type="submit" class="btn btn-sm btn-outline-light w-100" style="border-radius:999px;">
                 <i class="bi bi-box-arrow-right me-1"></i>Logout
             </button>
         </form>
@@ -237,26 +253,26 @@
 <!-- Main content -->
 <div class="main-content">
     <div class="topbar">
-        <button class="btn btn-sm me-3 d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('show')" style="color:var(--gold);background:transparent;border:1px solid var(--border)">
+        <button class="btn btn-sm me-3 d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('show')" style="color:var(--cream);background:transparent;border:1px solid var(--border)">
             <i class="bi bi-list fs-5"></i>
         </button>
         <div>
-            <h6 class="mb-0 fw-600">@yield('page-title', 'Dashboard')</h6>
-            <small class="text-muted">{{ now()->format('l, d F Y') }}</small>
+            <h6 class="mb-0 fw-700" style="color:var(--cream)">@yield('page-title', 'Dashboard')</h6>
+            <small style="color:rgba(244,241,221,0.5)">{{ now()->format('l, d F Y') }}</small>
         </div>
         <div class="ms-auto d-flex align-items-center gap-2">
-            <span style="font-size:0.8rem;color:#555">{{ now()->format('H:i') }} WIB</span>
+            <span style="font-size:0.8rem;color:rgba(244,241,221,0.4)">{{ now()->format('H:i') }} WIB</span>
         </div>
     </div>
 
     <div class="page-content">
         @if(session('success'))
-            <div class="alert border-0 mb-3" style="background:#16a08520;color:#1abc9c;border-radius:10px;">
+            <div class="alert border-0 mb-3" style="background:#DCEFDD;color:#1f7a34;border-radius:10px;">
                 <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
             </div>
         @endif
         @if(session('error'))
-            <div class="alert border-0 mb-3" style="background:#c0392b20;color:#e74c3c;border-radius:10px;">
+            <div class="alert border-0 mb-3" style="background:#F6DEDE;color:#551414;border-radius:10px;">
                 <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
             </div>
         @endif

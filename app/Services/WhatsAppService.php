@@ -59,7 +59,7 @@ class WhatsAppService
         $paidAt        = $booking->transaction?->paid_at?->translatedFormat('d F Y, H:i') ?? now()->translatedFormat('d F Y, H:i');
 
         return <<<MSG
-        🀄 *MAHJONG CLUB* — Invoice Pembayaran
+        🀄 *HÓNG ZHŌNG MAHJONG* — Invoice Pembayaran
 
         No. Invoice: *{$booking->booking_code}*
         Dibayar: {$paidAt}
@@ -74,7 +74,7 @@ class WhatsAppService
 
         *Total Bayar: Rp {$this->rupiah($booking->total_price)}*
 
-        Terima kasih telah reservasi di Mahjong Club! Sampai jumpa 🀄
+        Terima kasih telah reservasi di Hóng Zhōng Mahjong! Sampai jumpa 🀄
         MSG;
     }
 

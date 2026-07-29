@@ -4,19 +4,33 @@
 
 @section('content')
 
-<!-- Filter -->
+<!-- View toggle -->
+<div class="d-flex gap-2 mb-4">
+    <a href="{{ route('dashboard.revenue', ['view' => 'harian']) }}"
+       class="btn btn-sm {{ $view === 'harian' ? 'btn-gold' : 'btn-outline-secondary' }}">
+        <i class="bi bi-calendar-day me-1"></i>Harian
+    </a>
+    <a href="{{ route('dashboard.revenue', ['view' => 'bulanan']) }}"
+       class="btn btn-sm {{ $view === 'bulanan' ? 'btn-gold' : 'btn-outline-secondary' }}">
+        <i class="bi bi-calendar-month me-1"></i>Bulanan
+    </a>
+</div>
+
+@if($view === 'harian')
+<!-- Filter (Harian) -->
 <div class="card-dark mb-4">
     <div class="card-body">
         <form method="GET" class="row g-3 align-items-end">
+            <input type="hidden" name="view" value="harian">
             <div class="col-sm-4">
-                <label class="form-label text-muted small">Dari Tanggal</label>
+                <label class="form-label small" style="color:var(--ink-mute)">Dari Tanggal</label>
                 <input type="date" name="from" value="{{ $from }}"
-                    class="form-control" style="background:#0f0f1a;border-color:#2a2a45;color:#e0e0e0">
+                    class="form-control" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
             </div>
             <div class="col-sm-4">
-                <label class="form-label text-muted small">Sampai Tanggal</label>
+                <label class="form-label small" style="color:var(--ink-mute)">Sampai Tanggal</label>
                 <input type="date" name="to" value="{{ $to }}"
-                    class="form-control" style="background:#0f0f1a;border-color:#2a2a45;color:#e0e0e0">
+                    class="form-control" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
             </div>
             <div class="col-sm-4">
                 <button type="submit" class="btn btn-gold w-100">
@@ -26,6 +40,29 @@
         </form>
     </div>
 </div>
+@else
+<!-- Filter (Bulanan) -->
+<div class="card-dark mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <input type="hidden" name="view" value="bulanan">
+            <div class="col-sm-4">
+                <label class="form-label small" style="color:var(--ink-mute)">Tahun</label>
+                <select name="year" class="form-select" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
+                    @foreach($years as $y)
+                    <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-sm-4">
+                <button type="submit" class="btn btn-gold w-100">
+                    <i class="bi bi-search me-1"></i>Tampilkan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 
 <!-- Summary -->
 <div class="row g-3 mb-4">
@@ -51,12 +88,59 @@
     </div>
 </div>
 
-<!-- Chart -->
+@if($view === 'harian')
+<!-- Chart (Harian) -->
 @if($chartData->isNotEmpty())
 <div class="card-dark mb-4">
     <div class="card-header"><i class="bi bi-graph-up-arrow me-2 text-gold"></i>Revenue per Hari</div>
     <div class="card-body">
-        <canvas id="revenueChart" height="120"></canvas>
+        <canvas id="revenueChartDaily" height="120"></canvas>
+    </div>
+</div>
+@endif
+@else
+<!-- Chart (Bulanan) -->
+<div class="card-dark mb-4">
+    <div class="card-header"><i class="bi bi-bar-chart-fill me-2 text-gold"></i>Revenue per Bulan — {{ $year }}</div>
+    <div class="card-body">
+        <canvas id="revenueChartMonthly" height="120"></canvas>
+    </div>
+</div>
+
+<!-- Monthly breakdown table -->
+<div class="card-dark mb-4">
+    <div class="card-header"><i class="bi bi-table me-2 text-gold"></i>Ringkasan per Bulan</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Bulan</th>
+                        <th class="text-center">Jumlah Transaksi</th>
+                        <th class="text-end">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($monthlyData as $row)
+                    <tr>
+                        <td class="fw-600">{{ $row['month'] }}</td>
+                        <td class="text-center">{{ $row['count'] }}</td>
+                        <td class="text-end fw-700" style="color:var(--red)">
+                            Rp {{ number_format($row['total'], 0, ',', '.') }}
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr style="border-top:2px solid rgba(58,20,20,0.15)">
+                        <td colspan="2" class="fw-700">Total {{ $year }}</td>
+                        <td class="text-end fw-700" style="color:var(--red);font-size:1.1rem">
+                            Rp {{ number_format($totalRevenue, 0, ',', '.') }}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     </div>
 </div>
 @endif
@@ -85,10 +169,10 @@
                     <tr>
                         <td>
                             <div style="font-size:0.875rem">{{ $tx->paid_at->format('d/m/Y') }}</div>
-                            <div style="font-size:0.75rem;color:#666">{{ $tx->paid_at->format('H:i') }}</div>
+                            <div style="font-size:0.75rem;color:var(--ink-mute)">{{ $tx->paid_at->format('H:i') }}</div>
                         </td>
                         <td>
-                            <code style="color:var(--gold);font-size:0.8rem">{{ $tx->booking->booking_code }}</code>
+                            <code style="color:var(--red);font-size:0.8rem">{{ $tx->booking->booking_code }}</code>
                         </td>
                         <td>{{ $tx->booking->customer_name }}</td>
                         <td>{{ $tx->booking->table->name }}</td>
@@ -109,9 +193,9 @@
                 </tbody>
                 @if($transactions->isNotEmpty())
                 <tfoot>
-                    <tr style="border-top:2px solid #2a2a45">
-                        <td colspan="5" class="fw-600">Total</td>
-                        <td class="text-end fw-700" style="color:var(--gold);font-size:1.1rem">
+                    <tr style="border-top:2px solid rgba(58,20,20,0.15)">
+                        <td colspan="5" class="fw-700">Total</td>
+                        <td class="text-end fw-700" style="color:var(--red);font-size:1.1rem">
                             Rp {{ number_format($totalRevenue, 0, ',', '.') }}
                         </td>
                     </tr>
@@ -125,36 +209,70 @@
 @endsection
 
 @section('scripts')
-@if($chartData->isNotEmpty())
-<script>
-new Chart(document.getElementById('revenueChart'), {
-    type: 'line',
-    data: {
-        labels: {!! json_encode($chartData->keys()) !!},
-        datasets: [{
-            label: 'Revenue',
-            data: {!! json_encode($chartData->values()) !!},
-            borderColor: 'rgba(201,168,76,0.8)',
-            backgroundColor: 'rgba(201,168,76,0.1)',
-            borderWidth: 2,
-            pointRadius: 4,
-            pointBackgroundColor: 'rgba(201,168,76,1)',
-            tension: 0.4,
-            fill: true,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: c => 'Rp ' + c.raw.toLocaleString('id-ID') } }
+@if($view === 'harian')
+    @if($chartData->isNotEmpty())
+    <script>
+    new Chart(document.getElementById('revenueChartDaily'), {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($chartData->keys()) !!},
+            datasets: [{
+                label: 'Revenue',
+                data: {!! json_encode($chartData->values()) !!},
+                borderColor: 'rgba(85,20,20,0.85)',
+                backgroundColor: 'rgba(85,20,20,0.1)',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBackgroundColor: 'rgba(85,20,20,1)',
+                tension: 0.4,
+                fill: true,
+            }]
         },
-        scales: {
-            x: { grid: { color: '#2a2a4530' } },
-            y: { grid: { color: '#2a2a4530' }, ticks: { callback: v => 'Rp ' + (v/1000).toFixed(0) + 'k' } }
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: c => 'Rp ' + c.raw.toLocaleString('id-ID') } }
+            },
+            scales: {
+                x: { grid: { color: 'rgba(58,20,20,0.08)' } },
+                y: { grid: { color: 'rgba(58,20,20,0.08)' }, ticks: { callback: v => 'Rp ' + (v/1000).toFixed(0) + 'k' } }
+            }
         }
-    }
-});
-</script>
+    });
+    </script>
+    @endif
+@else
+    <script>
+    const monthLabels = {!! json_encode($monthlyData->pluck('month')) !!};
+    const monthTotals = {!! json_encode($monthlyData->pluck('total')) !!};
+
+    new Chart(document.getElementById('revenueChartMonthly'), {
+        type: 'bar',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: 'Revenue',
+                data: monthTotals,
+                backgroundColor: 'rgba(85,20,20,0.25)',
+                borderColor: 'rgba(85,20,20,0.85)',
+                borderWidth: 2,
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: c => 'Rp ' + c.raw.toLocaleString('id-ID') } }
+            },
+            scales: {
+                x: { grid: { color: 'rgba(58,20,20,0.08)' } },
+                y: { grid: { color: 'rgba(58,20,20,0.08)' }, ticks: { callback: v => 'Rp ' + (v/1000).toFixed(0) + 'k' }, beginAtZero: true }
+            }
+        }
+    });
+    </script>
 @endif
 @endsection

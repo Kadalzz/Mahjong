@@ -5,14 +5,15 @@
 @section('head')
 <style>
 .schedule-hero {
-    background: linear-gradient(135deg, #1a1035, #0f0f1a);
+    background: var(--green);
     padding: 2.5rem 0;
-    border-bottom: 1px solid #2a2a45;
+    border-bottom: 1px solid var(--border);
 }
+.schedule-hero h2 { font-weight: 800; text-transform: uppercase; }
 .date-nav {
-    background: #1a1a2e;
-    border: 1px solid #2a2a45;
-    border-radius: 14px;
+    background: var(--cream);
+    color: var(--ink);
+    border-radius: 18px;
     padding: 1rem 1.5rem;
     margin-bottom: 2rem;
     display: flex;
@@ -21,47 +22,52 @@
     flex-wrap: wrap;
 }
 .date-nav input[type=date] {
-    background: #0f0f1a;
-    border: 1px solid #2a2a45;
-    color: #e0e0e0;
+    background: rgba(58,20,20,0.06);
+    border: none;
+    color: var(--ink);
     padding: 0.5rem 1rem;
-    border-radius: 10px;
+    border-radius: 999px;
     font-size: 0.9rem;
+    font-weight: 700;
+}
+.date-nav .btn-outline-secondary {
+    border-radius: 999px;
+    border-color: rgba(58,20,20,0.2);
+    color: var(--ink-mute);
 }
 .table-grid {
     display: grid;
     grid-template-columns: 80px repeat({{ $tables->count() }}, 1fr);
-    border: 1px solid #2a2a45;
-    border-radius: 16px;
+    border-radius: 18px;
     overflow: hidden;
     margin-bottom: 2rem;
-    background: #1a1a2e;
+    background: var(--cream);
 }
 .grid-header {
-    background: #16163a;
+    background: rgba(58,20,20,0.06);
     padding: 0.75rem 0.5rem;
     text-align: center;
     font-size: 0.75rem;
-    font-weight: 600;
-    color: #888;
+    font-weight: 700;
+    color: var(--ink-mute);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid #2a2a45;
+    border-bottom: 1px solid rgba(58,20,20,0.08);
 }
-.grid-header.table-name { color: var(--gold); font-size: 0.7rem; }
+.grid-header.table-name { color: var(--red); font-size: 0.7rem; }
 .grid-time {
     padding: 0.5rem;
     text-align: center;
     font-size: 0.75rem;
-    color: #555;
-    border-right: 1px solid #2a2a4530;
-    border-bottom: 1px solid #2a2a4520;
-    background: #13132a;
+    color: var(--ink-mute);
+    border-right: 1px solid rgba(58,20,20,0.06);
+    border-bottom: 1px solid rgba(58,20,20,0.06);
+    background: rgba(58,20,20,0.03);
     font-variant-numeric: tabular-nums;
 }
 .grid-cell {
-    border-right: 1px solid #2a2a4520;
-    border-bottom: 1px solid #2a2a4520;
+    border-right: 1px solid rgba(58,20,20,0.06);
+    border-bottom: 1px solid rgba(58,20,20,0.06);
     min-height: 44px;
     position: relative;
 }
@@ -74,32 +80,33 @@
     align-items: center;
     justify-content: center;
     font-size: 0.65rem;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
     line-height: 1.3;
     padding: 2px;
     cursor: default;
 }
-.block-active          { background: #16a08530; color: #1abc9c; border: 1px solid #16a08550; }
-.block-waiting         { background: #2980b930; color: #3498db; border: 1px solid #2980b950; }
-.block-pending_payment { background: #f39c1230; color: #f1c40f; border: 1px solid #f39c1250; }
+.block-active          { background: #DCEFDD; color: #1f7a34; border: 1px solid #2f9e4450; }
+.block-waiting         { background: #DCE8F7; color: #2e6fba; border: 1px solid #2e6fba50; }
+.block-pending_payment { background: #FBF0C8; color: #8a6d1a; border: 1px solid #d4a01750; }
 
 .waiting-list-card {
-    background: #1a1a2e;
-    border: 1px solid #2a2a45;
-    border-radius: 16px;
+    background: var(--cream);
+    color: var(--ink);
+    border-radius: 18px;
     overflow: hidden;
 }
 .waiting-list-card .card-header {
-    background: #16163a;
-    border-bottom: 1px solid #2a2a45;
+    background: rgba(58,20,20,0.06);
+    border-bottom: 1px solid rgba(58,20,20,0.08);
     padding: 1rem 1.5rem;
-    font-weight: 600;
-    color: #e0e0e0;
+    font-weight: 700;
+    color: var(--ink);
+    font-family: 'Baloo 2', sans-serif;
 }
 .booking-row {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid #2a2a4530;
+    border-bottom: 1px solid rgba(58,20,20,0.06);
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -112,8 +119,11 @@
 @section('content')
 <div class="schedule-hero">
     <div class="container">
-        <h2 class="mb-1">Jadwal & <span class="text-gold">Waiting List</span></h2>
-        <p class="text-muted mb-0">Pantau ketersediaan meja secara real-time</p>
+        <h2 class="mb-1" style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:2.5rem;text-transform:uppercase;">
+            <span style="color:var(--cream);">Jadwal &amp;</span>
+            <span style="color:var(--cream);text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:3px;">Waiting List</span>
+        </h2>
+        <p class="mb-0" style="color:rgba(244,241,221,0.7)">Pantau ketersediaan meja secara real-time</p>
     </div>
 </div>
 
@@ -122,7 +132,7 @@
     <!-- Date Navigation -->
     <div class="date-nav">
         <i class="bi bi-calendar3 text-gold"></i>
-        <span style="color:#888;font-size:0.9rem">Tanggal:</span>
+        <span style="color:var(--ink-mute);font-size:0.9rem;font-weight:700;">Tanggal:</span>
         <input type="date" id="dateFilter" value="{{ $date }}"
             min="{{ today()->toDateString() }}">
         <button onclick="changeDate()" class="btn btn-gold btn-sm">
@@ -178,14 +188,14 @@
     </div>
 
     <!-- Legend -->
-    <div class="d-flex gap-3 mb-4 flex-wrap" style="font-size:0.8rem">
-        <span><span class="badge py-1 px-2 me-1" style="background:#16a08530;color:#1abc9c">■</span>Aktif / Sudah Bayar</span>
-        <span><span class="badge py-1 px-2 me-1" style="background:#f39c1230;color:#f1c40f">■</span>Menunggu Pembayaran</span>
-        <span><span class="badge py-1 px-2 me-1" style="background:#2980b930;color:#3498db">■</span>Waiting List</span>
+    <div class="d-flex gap-3 mb-4 flex-wrap" style="font-size:0.8rem;color:rgba(244,241,221,0.85);font-weight:600;">
+        <span><span class="badge py-1 px-2 me-1" style="background:#DCEFDD;color:#1f7a34">■</span>Aktif / Sudah Bayar</span>
+        <span><span class="badge py-1 px-2 me-1" style="background:#FBF0C8;color:#8a6d1a">■</span>Menunggu Pembayaran</span>
+        <span><span class="badge py-1 px-2 me-1" style="background:#DCE8F7;color:#2e6fba">■</span>Waiting List</span>
     </div>
 
     <!-- Waiting List per table -->
-    <h5 class="mb-3 text-gold"><i class="bi bi-clock me-2"></i>Waiting List Hari Ini</h5>
+    <h5 class="mb-3" style="color:var(--cream);text-transform:uppercase;"><i class="bi bi-clock me-2" style="color:var(--red)"></i>Waiting List Hari Ini</h5>
     <div class="row g-3">
         @foreach($tables as $table)
         @php $waiting = $table->bookings->where('status', 'waiting'); @endphp
@@ -194,21 +204,21 @@
             <div class="waiting-list-card">
                 <div class="card-header">
                     <i class="bi bi-clock me-2 text-gold"></i>{{ $table->name }}
-                    <span class="badge ms-2 rounded-pill" style="background:#2980b930;color:#3498db">{{ $waiting->count() }} antrian</span>
+                    <span class="badge ms-2 rounded-pill" style="background:#DCE8F7;color:#2e6fba">{{ $waiting->count() }} antrian</span>
                 </div>
                 @foreach($waiting as $i => $bk)
                 <div class="booking-row">
-                    <div style="width:28px;height:28px;background:#2980b920;color:#3498db;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0">
+                    <div style="width:28px;height:28px;background:#DCE8F7;color:#2e6fba;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0">
                         {{ $i + 1 }}
                     </div>
                     <div class="flex-grow-1">
-                        <div style="font-weight:600;font-size:0.9rem">{{ $bk->customer_name }}</div>
-                        <div style="font-size:0.78rem;color:#888">
+                        <div style="font-weight:700;font-size:0.9rem">{{ $bk->customer_name }}</div>
+                        <div style="font-size:0.78rem;color:var(--ink-mute)">
                             {{ substr($bk->start_time, 0, 5) }} – {{ substr($bk->end_time, 0, 5) }}
                             &bull; {{ $bk->duration_hours }} jam
                         </div>
                     </div>
-                    <div style="font-size:0.8rem;color:#555">{{ $bk->booking_code }}</div>
+                    <div style="font-size:0.8rem;color:var(--ink-mute)">{{ $bk->booking_code }}</div>
                 </div>
                 @endforeach
             </div>
@@ -217,8 +227,8 @@
         @endforeach
 
         @if($tables->every(fn($t) => $t->bookings->where('status','waiting')->isEmpty()))
-        <div class="col-12 text-center py-4 text-muted">
-            <i class="bi bi-check-circle fs-2 d-block mb-2 text-success"></i>
+        <div class="col-12 text-center py-4" style="color:rgba(244,241,221,0.6)">
+            <i class="bi bi-check-circle fs-2 d-block mb-2" style="color:#2f9e44"></i>
             Tidak ada waiting list untuk tanggal ini.
         </div>
         @endif

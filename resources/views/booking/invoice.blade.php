@@ -9,17 +9,17 @@
     padding: 3rem 0;
 }
 .invoice-card {
-    background: #1a1a2e;
-    border: 1px solid #2a2a45;
+    background: var(--cream);
     border-radius: 24px;
     max-width: 640px;
     margin: 0 auto;
     overflow: hidden;
+    color: var(--ink);
 }
 .invoice-header {
     padding: 2rem;
-    background: linear-gradient(135deg, #1e1e3a, #16213e);
-    border-bottom: 1px solid #2a2a45;
+    background: rgba(85,20,20,0.06);
+    border-bottom: 1px solid rgba(58,20,20,0.08);
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -31,22 +31,22 @@
     display: flex;
     justify-content: space-between;
     padding: 0.6rem 0;
-    border-bottom: 1px solid #2a2a4520;
+    border-bottom: 1px solid rgba(58,20,20,0.08);
     font-size: 0.9rem;
 }
 .invoice-row:last-child { border-bottom: none; }
-.invoice-label { color: #888; }
-.invoice-value { font-weight: 500; text-align: right; }
-.invoice-total .invoice-value { color: var(--gold); font-size: 1.4rem; font-weight: 700; }
+.invoice-label { color: var(--ink-mute); }
+.invoice-value { font-weight: 700; text-align: right; }
+.invoice-total .invoice-value { color: var(--red); font-size: 1.4rem; font-weight: 800; }
 .invoice-code {
     font-family: monospace;
     font-size: 1.3rem;
     font-weight: 700;
     letter-spacing: 1px;
-    color: var(--gold);
+    color: var(--red);
 }
-.badge-s-active { background: #16a08520; color: #1abc9c; border: 1px solid #16a08540; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.8rem; }
-.badge-s-done   { background: #ffffff10; color: #aaa;     border: 1px solid #ffffff20; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.8rem; }
+.badge-s-active { background: #DCEFDD; color: #1f7a34; border: 1px solid #2f9e4440; padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+.badge-s-done   { background: rgba(58,20,20,0.08); color: var(--ink-mute); border: 1px solid rgba(58,20,20,0.12); padding: 0.35em 0.75em; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
 @media print {
     nav, footer, .no-print { display: none !important; }
     body { background: #fff !important; color: #000 !important; }
@@ -63,13 +63,16 @@
         <div class="invoice-card">
             <div class="invoice-header">
                 <div>
-                    <div style="font-weight:700;font-size:1.2rem;">🀄 <span class="text-gold">Mahjong Club</span></div>
-                    <div style="font-size:0.8rem;color:#888;margin-top:0.25rem;">Sistem Reservasi Meja Mahjong</div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;font-weight:700;font-size:1.1rem;font-family:'Baloo 2',sans-serif;">
+                        <x-brand-logo :size="26" variant="dark" />
+                        <span class="text-gold">HÓNG ZHŌNG MAHJONG</span>
+                    </div>
+                    <div style="font-size:0.8rem;color:var(--ink-mute);margin-top:0.25rem;">Sistem Reservasi Meja Mahjong</div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:0.75rem;color:#888;">No. Invoice</div>
+                    <div style="font-size:0.75rem;color:var(--ink-mute);">No. Invoice</div>
                     <div class="invoice-code">{{ $booking->booking_code }}</div>
-                    <div style="font-size:0.75rem;color:#888;margin-top:0.4rem;">
+                    <div style="font-size:0.75rem;color:var(--ink-mute);margin-top:0.4rem;">
                         {{ ($booking->transaction->paid_at ?? now())->translatedFormat('d F Y, H:i') }} WIB
                     </div>
                 </div>

@@ -8,14 +8,14 @@
     <div class="card-body">
         <form method="GET" class="row g-3 align-items-end">
             <div class="col-sm-4">
-                <label class="form-label text-muted small">Dari Tanggal</label>
+                <label class="form-label small" style="color:var(--ink-mute)">Dari Tanggal</label>
                 <input type="date" name="from" value="{{ $from }}"
-                    class="form-control" style="background:#0f0f1a;border-color:#2a2a45;color:#e0e0e0">
+                    class="form-control" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
             </div>
             <div class="col-sm-4">
-                <label class="form-label text-muted small">Sampai Tanggal</label>
+                <label class="form-label small" style="color:var(--ink-mute)">Sampai Tanggal</label>
                 <input type="date" name="to" value="{{ $to }}"
-                    class="form-control" style="background:#0f0f1a;border-color:#2a2a45;color:#e0e0e0">
+                    class="form-control" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
             </div>
             <div class="col-sm-4">
                 <button type="submit" class="btn btn-gold w-100">
@@ -56,10 +56,10 @@
                     <td class="text-center">{{ $row['total_hours'] }} jam</td>
                     <td style="min-width:200px">
                         <div class="d-flex align-items-center gap-2">
-                            <div class="progress flex-grow-1" style="height:8px;background:#2a2a45">
-                                <div class="progress-bar" style="width:{{ $maxHours > 0 ? round(($row['total_hours']/$maxHours)*100) : 0 }}%;background:linear-gradient(90deg,rgba(201,168,76,0.6),rgba(201,168,76,1))"></div>
+                            <div class="progress flex-grow-1" style="height:8px;background:rgba(58,20,20,0.1)">
+                                <div class="progress-bar" style="width:{{ $maxHours > 0 ? round(($row['total_hours']/$maxHours)*100) : 0 }}%;background:var(--red)"></div>
                             </div>
-                            <span style="font-size:0.75rem;color:#888;width:40px;text-align:right">
+                            <span style="font-size:0.75rem;color:var(--ink-mute);width:40px;text-align:right">
                                 {{ $maxHours > 0 ? round(($row['total_hours']/$maxHours)*100) : 0 }}%
                             </span>
                         </div>
@@ -80,12 +80,12 @@ const dates = {!! json_encode($dates) !!};
 const occupancyData = {!! json_encode($occupancyData) !!};
 
 const colors = [
-    'rgba(201,168,76,0.7)',
-    'rgba(52,152,219,0.7)',
-    'rgba(26,188,156,0.7)',
-    'rgba(231,76,60,0.7)',
-    'rgba(155,89,182,0.7)',
-    'rgba(241,196,15,0.7)',
+    'rgba(85,20,20,0.75)',
+    'rgba(46,111,186,0.75)',
+    'rgba(47,158,68,0.75)',
+    'rgba(212,160,23,0.75)',
+    'rgba(122,32,32,0.75)',
+    'rgba(139,90,43,0.75)',
 ];
 
 const datasets = tableNames.map((name, i) => ({
@@ -104,14 +104,14 @@ new Chart(document.getElementById('occupancyChart'), {
         responsive: true,
         plugins: {
             legend: {
-                labels: { color: '#888', font: { size: 11 } }
+                labels: { color: '#6b5d4a', font: { size: 11 } }
             },
             tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.raw + ' jam' } }
         },
         scales: {
-            x: { grid: { color: '#2a2a4530' }, stacked: false },
+            x: { grid: { color: 'rgba(58,20,20,0.08)' }, stacked: false },
             y: {
-                grid: { color: '#2a2a4530' },
+                grid: { color: 'rgba(58,20,20,0.08)' },
                 ticks: { callback: v => v + ' jam' },
                 beginAtZero: true
             }

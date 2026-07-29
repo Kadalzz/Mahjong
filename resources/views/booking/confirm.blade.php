@@ -11,20 +11,21 @@
     padding: 3rem 0;
 }
 .confirm-card {
-    background: #1a1a2e;
-    border: 1px solid #2a2a45;
+    background: var(--cream);
     border-radius: 24px;
     overflow: hidden;
     max-width: 560px;
     margin: 0 auto;
     width: 100%;
+    color: var(--ink);
 }
 .confirm-header {
     padding: 2.5rem 2rem;
     text-align: center;
-    background: linear-gradient(135deg, #1e1e3a, #16213e);
-    border-bottom: 1px solid #2a2a45;
+    background: rgba(85,20,20,0.06);
+    border-bottom: 1px solid rgba(58,20,20,0.08);
 }
+.confirm-header h4 { font-family: 'Baloo 2', sans-serif; color: var(--ink); text-transform: uppercase; }
 .confirm-icon {
     width: 80px; height: 80px;
     border-radius: 50%;
@@ -34,18 +35,18 @@
     margin: 0 auto 1rem;
     font-size: 2rem;
 }
-.icon-success { background: #16a08520; border: 2px solid #16a08560; color: #1abc9c; }
-.icon-waiting  { background: #2980b920; border: 2px solid #2980b960; color: #3498db; }
+.icon-success { background: #DCEFDD; border: 2px solid #2f9e4460; color: #1f7a34; }
+.icon-waiting  { background: #DCE8F7; border: 2px solid #2e6fba60; color: #2e6fba; }
 .booking-code {
     font-family: monospace;
     font-size: 1.6rem;
     font-weight: 700;
     letter-spacing: 2px;
-    color: var(--gold);
-    background: rgba(201,168,76,0.1);
+    color: var(--red);
+    background: rgba(85,20,20,0.08);
     padding: 0.5rem 1.5rem;
     border-radius: 10px;
-    border: 1px solid rgba(201,168,76,0.2);
+    border: 1px solid rgba(85,20,20,0.15);
 }
 .confirm-body { padding: 2rem; }
 .info-row {
@@ -53,13 +54,13 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 0;
-    border-bottom: 1px solid #2a2a4520;
+    border-bottom: 1px solid rgba(58,20,20,0.08);
     font-size: 0.9rem;
 }
 .info-row:last-child { border-bottom: none; }
-.info-label { color: #888; }
-.info-value { font-weight: 500; text-align: right; }
-.total-row .info-value { color: var(--gold); font-size: 1.3rem; font-weight: 700; }
+.info-label { color: var(--ink-mute); }
+.info-value { font-weight: 700; text-align: right; }
+.total-row .info-value { color: var(--red); font-size: 1.3rem; font-weight: 800; }
 </style>
 @endsection
 

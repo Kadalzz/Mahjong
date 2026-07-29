@@ -14,7 +14,7 @@
                     <div class="stat-label">Revenue Hari Ini</div>
                     <div class="stat-value mt-1">Rp {{ number_format($revenueToday, 0, ',', '.') }}</div>
                 </div>
-                <div class="stat-icon" style="background:#16a08520;color:#1abc9c">
+                <div class="stat-icon" style="background:#DCEFDD;color:#1f7a34">
                     <i class="bi bi-cash-coin"></i>
                 </div>
             </div>
@@ -27,7 +27,7 @@
                     <div class="stat-label">Revenue Bulan Ini</div>
                     <div class="stat-value mt-1">Rp {{ number_format($revenueMonth, 0, ',', '.') }}</div>
                 </div>
-                <div class="stat-icon" style="background:rgba(201,168,76,0.15);color:var(--gold)">
+                <div class="stat-icon" style="background:rgba(85,20,20,0.12);color:var(--red)">
                     <i class="bi bi-graph-up"></i>
                 </div>
             </div>
@@ -45,8 +45,8 @@
                 </div>
             </div>
             <div class="mt-2">
-                <div class="progress" style="height:4px;background:#2a2a45">
-                    <div class="progress-bar" style="width:{{ $occupancyRate }}%;background:linear-gradient(90deg,#2980b9,#3498db)"></div>
+                <div class="progress" style="height:4px;background:rgba(58,20,20,0.1)">
+                    <div class="progress-bar" style="width:{{ $occupancyRate }}%;background:#2e6fba"></div>
                 </div>
             </div>
         </div>
@@ -58,7 +58,7 @@
                     <div class="stat-label">Waiting List</div>
                     <div class="stat-value mt-1">{{ $waitingCount }}</div>
                 </div>
-                <div class="stat-icon" style="background:#f39c1220;color:#f1c40f">
+                <div class="stat-icon" style="background:#FBF0C8;color:#8a6d1a">
                     <i class="bi bi-clock-history"></i>
                 </div>
             </div>
@@ -88,15 +88,15 @@
             </div>
             <div class="card-body p-0" style="max-height:320px;overflow-y:auto">
                 @forelse($recentBookings as $bk)
-                <div class="d-flex align-items-center gap-3 px-4 py-3" style="border-bottom:1px solid #2a2a4530">
+                <div class="d-flex align-items-center gap-3 px-4 py-3" style="border-bottom:1px solid rgba(58,20,20,0.08)">
                     <div class="flex-grow-1" style="min-width:0">
-                        <div style="font-weight:600;font-size:0.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                        <div style="font-weight:700;font-size:0.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                             {{ $bk->customer_name }}
                         </div>
-                        <div style="font-size:0.75rem;color:#666">{{ $bk->table->name }} &bull; {{ $bk->booking_date->format('d/m') }}</div>
+                        <div style="font-size:0.75rem;color:var(--ink-mute)">{{ $bk->table->name }} &bull; {{ $bk->booking_date->format('d/m') }}</div>
                     </div>
                     <div class="text-end flex-shrink-0">
-                        <div style="font-size:0.8rem;color:var(--gold);font-weight:600">
+                        <div style="font-size:0.8rem;color:var(--red);font-weight:700">
                             Rp {{ number_format($bk->total_price, 0, ',', '.') }}
                         </div>
                         <span class="badge-s-{{ $bk->status === 'pending_payment' ? 'pending' : $bk->status }}">
@@ -120,7 +120,7 @@ const labels = {!! json_encode($last7Days->pluck('date')) !!};
 const revenues = {!! json_encode($last7Days->pluck('revenue')) !!};
 
 const ctx = document.getElementById('revenueChart').getContext('2d');
-Chart.defaults.color = '#888';
+Chart.defaults.color = '#6b5d4a';
 
 new Chart(ctx, {
     type: 'bar',
@@ -129,8 +129,8 @@ new Chart(ctx, {
         datasets: [{
             label: 'Revenue (Rp)',
             data: revenues,
-            backgroundColor: 'rgba(201,168,76,0.25)',
-            borderColor: 'rgba(201,168,76,0.8)',
+            backgroundColor: 'rgba(85,20,20,0.25)',
+            borderColor: 'rgba(85,20,20,0.85)',
             borderWidth: 2,
             borderRadius: 8,
             borderSkipped: false,
@@ -147,9 +147,9 @@ new Chart(ctx, {
             }
         },
         scales: {
-            x: { grid: { color: '#2a2a4530' }, ticks: { font: { size: 11 } } },
+            x: { grid: { color: 'rgba(58,20,20,0.08)' }, ticks: { font: { size: 11 } } },
             y: {
-                grid: { color: '#2a2a4530' },
+                grid: { color: 'rgba(58,20,20,0.08)' },
                 ticks: {
                     callback: v => 'Rp ' + (v/1000).toFixed(0) + 'k',
                     font: { size: 11 }

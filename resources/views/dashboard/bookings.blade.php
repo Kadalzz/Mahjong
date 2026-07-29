@@ -11,11 +11,11 @@
             <div class="col-sm-3">
                 <label class="form-label text-muted small">Cari</label>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama / No HP / Kode..."
-                    class="form-control" style="background:#0f0f1a;border-color:#2a2a45;color:#e0e0e0">
+                    class="form-control" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
             </div>
             <div class="col-sm-3">
                 <label class="form-label text-muted small">Status</label>
-                <select name="status" class="form-select" style="background:#0f0f1a;border-color:#2a2a45;color:#e0e0e0">
+                <select name="status" class="form-select" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
                     <option value="">Semua Status</option>
                     <option value="pending_payment" {{ request('status') === 'pending_payment' ? 'selected' : '' }}>Menunggu Pembayaran</option>
                     <option value="waiting"         {{ request('status') === 'waiting'         ? 'selected' : '' }}>Waiting List</option>
@@ -27,7 +27,7 @@
             <div class="col-sm-3">
                 <label class="form-label text-muted small">Tanggal</label>
                 <input type="date" name="date" value="{{ request('date') }}"
-                    class="form-control" style="background:#0f0f1a;border-color:#2a2a45;color:#e0e0e0">
+                    class="form-control" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
             </div>
             <div class="col-sm-3">
                 <button type="submit" class="btn btn-gold w-100">
@@ -63,21 +63,21 @@
                     @forelse($bookings as $bk)
                     <tr>
                         <td>
-                            <code style="color:var(--gold);font-size:0.8rem">{{ $bk->booking_code }}</code>
+                            <code style="color:var(--red);font-size:0.8rem">{{ $bk->booking_code }}</code>
                         </td>
                         <td>
                             <div style="font-weight:500">{{ $bk->customer_name }}</div>
-                            <div style="font-size:0.75rem;color:#666">{{ $bk->customer_phone }}</div>
+                            <div style="font-size:0.75rem;color:var(--ink-mute)">{{ $bk->customer_phone }}</div>
                         </td>
                         <td style="font-size:0.875rem">{{ $bk->table->name }}</td>
                         <td style="font-size:0.875rem">
                             {{ $bk->booking_date->format('d/m/Y') }}<br>
-                            <span style="color:#888;font-size:0.78rem">
+                            <span style="color:var(--ink-mute);font-size:0.78rem">
                                 {{ substr($bk->start_time, 0, 5) }} – {{ substr($bk->end_time, 0, 5) }}
                             </span>
                         </td>
                         <td style="font-size:0.875rem">{{ $bk->duration_hours }} jam</td>
-                        <td style="color:var(--gold);font-weight:600;font-size:0.875rem">
+                        <td style="color:var(--red);font-weight:700;font-size:0.875rem">
                             Rp {{ number_format($bk->total_price, 0, ',', '.') }}
                         </td>
                         <td>
@@ -91,13 +91,13 @@
                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
                                     Ubah
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end" style="background:#1a1a2e;border-color:#2a2a45">
+                                <ul class="dropdown-menu dropdown-menu-end" style="background:var(--cream);border:none;">
                                     @if($bk->status !== 'active')
                                     <li>
                                         <form method="POST" action="{{ route('dashboard.bookings.status', $bk) }}">
                                             @csrf @method('PUT')
                                             <input type="hidden" name="status" value="active">
-                                            <button class="dropdown-item" style="color:#1abc9c">
+                                            <button class="dropdown-item" style="color:#1f7a34">
                                                 <i class="bi bi-play-circle me-2"></i>Aktifkan
                                             </button>
                                         </form>
@@ -107,18 +107,18 @@
                                         <form method="POST" action="{{ route('dashboard.bookings.status', $bk) }}">
                                             @csrf @method('PUT')
                                             <input type="hidden" name="status" value="done">
-                                            <button class="dropdown-item" style="color:#888">
+                                            <button class="dropdown-item" style="color:var(--ink-mute)">
                                                 <i class="bi bi-check2-circle me-2"></i>Selesai (Cash)
                                             </button>
                                         </form>
                                     </li>
-                                    <li><hr class="dropdown-divider" style="border-color:#2a2a45"></li>
+                                    <li><hr class="dropdown-divider" style="border-color:rgba(58,20,20,0.12)"></li>
                                     <li>
                                         <form method="POST" action="{{ route('dashboard.bookings.status', $bk) }}"
                                               onsubmit="return confirm('Batalkan booking ini?')">
                                             @csrf @method('PUT')
                                             <input type="hidden" name="status" value="cancelled">
-                                            <button class="dropdown-item" style="color:#e74c3c">
+                                            <button class="dropdown-item" style="color:var(--red)">
                                                 <i class="bi bi-x-circle me-2"></i>Batalkan
                                             </button>
                                         </form>
@@ -126,7 +126,7 @@
                                 </ul>
                             </div>
                             @else
-                            <span style="font-size:0.75rem;color:#555">—</span>
+                            <span style="font-size:0.75rem;color:var(--ink-mute)">—</span>
                             @endif
                         </td>
                     </tr>
@@ -143,7 +143,7 @@
         </div>
     </div>
     @if($bookings->hasPages())
-    <div class="card-body border-top" style="border-color:#2a2a45!important">
+    <div class="card-body border-top" style="border-color:rgba(58,20,20,0.12)!important">
         {{ $bookings->links() }}
     </div>
     @endif

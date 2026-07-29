@@ -5,59 +5,63 @@
 @section('head')
 <style>
 .booking-hero {
-    background: linear-gradient(135deg, #1a1035 0%, #0f0f1a 100%);
-    padding: 2.5rem 0;
-    border-bottom: 1px solid #2a2a45;
+    background: var(--green);
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border);
 }
+.booking-hero h2 { color: var(--cream); font-weight: 800; text-transform: uppercase; }
 .form-card {
-    background: #1a1a2e;
-    border: 1px solid #2a2a45;
-    border-radius: 20px;
-    padding: 2rem;
+    background: var(--cream);
+    border-radius: 22px;
+    padding: 1.75rem;
+    color: var(--ink);
 }
 .summary-card {
-    background: linear-gradient(135deg, #1e1e3a, #16213e);
-    border: 1px solid rgba(201,168,76,0.2);
-    border-radius: 20px;
+    background: var(--red);
+    border-radius: 22px;
     padding: 1.5rem;
     position: sticky;
-    top: 80px;
+    top: 90px;
+    color: var(--cream);
 }
-.form-label { color: #aaa; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.4rem; }
+.form-label { color: var(--ink-mute); font-size: 0.875rem; font-weight: 700; margin-bottom: 0.4rem; }
 .form-control, .form-select {
-    background: #0f0f1a !important;
-    border: 1px solid #2a2a45 !important;
-    color: #e0e0e0 !important;
-    border-radius: 10px;
-    padding: 0.7rem 1rem;
-    transition: border-color 0.2s;
+    background: var(--red) !important;
+    border: none !important;
+    color: var(--cream) !important;
+    border-radius: 999px;
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    transition: background 0.2s;
 }
 .form-control:focus, .form-select:focus {
-    border-color: rgba(201,168,76,0.5) !important;
-    box-shadow: 0 0 0 3px rgba(201,168,76,0.1) !important;
+    background: var(--red-light) !important;
+    box-shadow: 0 0 0 3px rgba(85,20,20,0.2) !important;
+    color: var(--cream) !important;
 }
-.form-control::placeholder { color: #444; }
+.form-control::placeholder { color: rgba(244,241,221,0.6); }
 .price-display {
+    font-family: 'Baloo 2', sans-serif;
     font-size: 2rem;
-    font-weight: 700;
-    color: var(--gold);
+    font-weight: 800;
+    color: var(--cream);
 }
 .availability-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
     padding: 0.4em 1em;
     border-radius: 20px;
 }
-.avail-ok { background: #16a08520; color: #1abc9c; border: 1px solid #16a08540; }
-.avail-no { background: #2980b920; color: #3498db; border: 1px solid #2980b940; }
-.avail-checking { background: #f39c1220; color: #f1c40f; border: 1px solid #f39c1240; }
+.avail-ok { background: #DCEFDD; color: #1f7a34; }
+.avail-no { background: #DCE8F7; color: #2e6fba; }
+.avail-checking { background: #FBF0C8; color: #8a6d1a; }
 .step-badge {
     width: 28px; height: 28px;
-    background: rgba(201,168,76,0.15);
-    color: var(--gold);
+    background: var(--red);
+    color: var(--cream);
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
@@ -66,17 +70,18 @@
     font-weight: 700;
     margin-right: 0.5rem;
 }
+.form-card h5 { font-family: 'Baloo 2', sans-serif; font-weight: 700; color: var(--ink); text-transform: uppercase; }
 </style>
 @endsection
 
 @section('content')
 <div class="booking-hero">
     <div class="container">
-        <a href="{{ route('booking.index') }}" class="text-muted text-decoration-none mb-2 d-inline-block">
+        <a href="{{ route('booking.index') }}" class="text-decoration-none mb-2 d-inline-block" style="color:rgba(244,241,221,0.7)">
             <i class="bi bi-arrow-left me-1"></i>Kembali
         </a>
-        <h2 class="mb-1">Reservasi <span class="text-gold">{{ $table->name }}</span></h2>
-        <p class="text-muted mb-0">Rp {{ number_format($table->getCurrentPricePerHour(), 0, ',', '.') }} / jam &bull; {{ $table->capacity }} pemain</p>
+        <h2 class="mb-1">Reservasi {{ $table->name }}</h2>
+        <p class="mb-0" style="color:rgba(244,241,221,0.7)">Rp {{ number_format($table->getCurrentPricePerHour(), 0, ',', '.') }} / jam &bull; {{ $table->capacity }} pemain</p>
     </div>
 </div>
 
@@ -130,13 +135,13 @@
 
                     <div class="mt-3" id="availability-result" style="display:none">
                         <span id="avail-badge" class="availability-badge"></span>
-                        <span id="end-time-display" class="text-muted ms-2" style="font-size:0.85rem"></span>
+                        <span id="end-time-display" class="ms-2" style="font-size:0.85rem;color:var(--ink-mute)"></span>
                     </div>
                 </div>
 
                 <!-- Step 2: Personal Info -->
                 <div class="form-card mb-4">
-                    <h5 class="mb-4"><span class="step-badge">2</span>Data Pemesan</h5>
+                    <h5 class="mb-4"><span class="step-badge">2</span>Data Pemesanan</h5>
 
                     <div class="row g-3">
                         <div class="col-sm-6">
@@ -151,9 +156,10 @@
                         <div class="col-sm-6">
                             <label class="form-label">No. HP / WhatsApp</label>
                             <div class="input-group">
-                                <span class="input-group-text" style="background:#0f0f1a;border-color:#2a2a45;color:#666">+62</span>
+                                <span class="input-group-text" style="background:var(--red);border:none;color:var(--cream);border-radius:999px 0 0 999px;font-weight:700;">+62</span>
                                 <input type="tel" name="customer_phone" id="customer_phone"
                                     class="form-control @error('customer_phone') is-invalid @enderror"
+                                    style="border-radius:0 999px 999px 0 !important;"
                                     placeholder="8xx xxxx xxxx"
                                     value="{{ old('customer_phone') }}"
                                     required>
@@ -166,17 +172,17 @@
                 <!-- Step 3: Payment -->
                 <div class="form-card">
                     <h5 class="mb-3"><span class="step-badge">3</span>Pembayaran</h5>
-                    <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3" style="background:#0f0f1a;border:1px solid #2a2a45">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3" style="background:rgba(58,20,20,0.06)">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/MidtransLogo.png/320px-MidtransLogo.png"
-                             alt="Midtrans" height="24" style="filter:brightness(0.8)">
-                        <div style="font-size:0.85rem;color:#888">
+                             alt="Midtrans" height="24">
+                        <div style="font-size:0.85rem;color:var(--ink-mute)">
                             Dibayar via Midtrans — GoPay, OVO, DANA, Transfer Bank, Kartu Kredit
                         </div>
                     </div>
                     <button type="submit" id="submitBtn" class="btn btn-gold btn-lg w-100" disabled>
                         <i class="bi bi-lock-fill me-2"></i>Lanjut ke Pembayaran
                     </button>
-                    <p class="text-center text-muted mt-2" style="font-size:0.78rem">
+                    <p class="text-center mt-2" style="font-size:0.78rem;color:var(--ink-mute)">
                         Jika meja sudah penuh, booking akan masuk <strong>Waiting List</strong> otomatis
                     </p>
                 </div>
@@ -186,30 +192,30 @@
             <div class="col-lg-4">
                 <div class="summary-card">
                     <div class="text-center mb-3" style="font-size:3rem">🀄</div>
-                    <h6 class="text-gold mb-3 text-center">Ringkasan Reservasi</h6>
-                    <hr style="border-color:#2a2a45">
+                    <h6 class="mb-3 text-center" style="font-family:'Baloo 2',sans-serif;text-transform:uppercase;">Ringkasan Reservasi</h6>
+                    <hr style="border-color:rgba(244,241,221,0.25)">
                     <div class="d-flex justify-content-between mb-2" style="font-size:0.875rem">
-                        <span class="text-muted">Meja</span>
-                        <span class="fw-500">{{ $table->name }}</span>
+                        <span style="opacity:0.75">Meja</span>
+                        <span class="fw-600">{{ $table->name }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2" style="font-size:0.875rem">
-                        <span class="text-muted">Tanggal</span>
+                        <span style="opacity:0.75">Tanggal</span>
                         <span id="s-date">—</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2" style="font-size:0.875rem">
-                        <span class="text-muted">Waktu</span>
+                        <span style="opacity:0.75">Waktu</span>
                         <span id="s-time">—</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2" style="font-size:0.875rem">
-                        <span class="text-muted">Durasi</span>
+                        <span style="opacity:0.75">Durasi</span>
                         <span id="s-duration">—</span>
                     </div>
-                    <hr style="border-color:#2a2a45">
+                    <hr style="border-color:rgba(244,241,221,0.25)">
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted">Total</span>
+                        <span style="opacity:0.75">Total</span>
                         <div class="price-display" id="s-total">—</div>
                     </div>
-                    <div id="s-waiting-info" class="mt-3 p-2 rounded-2 text-center" style="background:#2980b920;color:#3498db;font-size:0.8rem;display:none!important">
+                    <div id="s-waiting-info" class="mt-3 p-2 rounded-2 text-center" style="background:rgba(244,241,221,0.15);font-size:0.8rem;display:none!important">
                         <i class="bi bi-clock me-1"></i>Slot ini penuh — akan masuk Waiting List
                     </div>
                 </div>
