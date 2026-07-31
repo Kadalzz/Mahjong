@@ -6,6 +6,7 @@ use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\OccupancyController;
 use App\Http\Controllers\Dashboard\PricingController;
 use App\Http\Controllers\Dashboard\RevenueController;
+use App\Http\Controllers\Dashboard\TableController;
 use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +48,12 @@ Route::prefix('dashboard')->name('dashboard.')->middleware(['auth', 'role:admin'
     Route::get('/occupancy', [OccupancyController::class, 'index'])->name('occupancy');
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
     Route::put('/pricing/{table}', [PricingController::class, 'update'])->name('pricing.update');
+    Route::get('/tables', [TableController::class, 'index'])->name('tables.index');
+    Route::get('/tables/create', [TableController::class, 'create'])->name('tables.create');
+    Route::post('/tables', [TableController::class, 'store'])->name('tables.store');
+    Route::get('/tables/{table}/edit', [TableController::class, 'edit'])->name('tables.edit');
+    Route::put('/tables/{table}', [TableController::class, 'update'])->name('tables.update');
+    Route::delete('/tables/{table}', [TableController::class, 'destroy'])->name('tables.destroy');
     Route::get('/bookings', [BookingManageController::class, 'index'])->name('bookings');
     Route::put('/bookings/{booking}/status', [BookingManageController::class, 'updateStatus'])->name('bookings.status');
 });

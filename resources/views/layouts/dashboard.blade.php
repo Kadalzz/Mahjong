@@ -225,6 +225,9 @@
         <a href="{{ route('dashboard.bookings') }}" class="sidebar-link {{ request()->routeIs('dashboard.bookings') ? 'active' : '' }}">
             <i class="bi bi-journal-check"></i> Booking
         </a>
+        <a href="{{ route('dashboard.tables.index') }}" class="sidebar-link {{ request()->routeIs('dashboard.tables.*') ? 'active' : '' }}">
+            <i class="bi bi-grid-3x3-gap-fill"></i> Meja
+        </a>
         <a href="{{ route('dashboard.pricing') }}" class="sidebar-link {{ request()->routeIs('dashboard.pricing') ? 'active' : '' }}">
             <i class="bi bi-tag-fill"></i> Harga
         </a>
