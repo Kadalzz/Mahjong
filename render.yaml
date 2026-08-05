@@ -55,12 +55,12 @@ services:
         value: database
       - key: MAIL_MAILER
         value: log
-      - key: MIDTRANS_SERVER_KEY
+      - key: XENDIT_SECRET_KEY
         sync: false
-      - key: MIDTRANS_CLIENT_KEY
+      - key: XENDIT_CALLBACK_TOKEN
         sync: false
-      - key: MIDTRANS_IS_PRODUCTION
-        value: false
+      - key: XENDIT_API_URL
+        value: https://api.xendit.co
       - key: FONNTE_TOKEN
         sync: false
       - key: FONNTE_ENDPOINT

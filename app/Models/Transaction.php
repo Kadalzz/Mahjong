@@ -11,17 +11,17 @@ class Transaction extends Model
         'booking_id',
         'amount',
         'payment_method',
-        'midtrans_transaction_id',
-        'midtrans_status',
-        'midtrans_payload',
+        'gateway_transaction_id',
+        'gateway_status',
+        'gateway_payload',
         'paid_at',
         'notes',
     ];
 
     protected $casts = [
-        'amount'           => 'decimal:2',
-        'midtrans_payload' => 'array',
-        'paid_at'          => 'datetime',
+        'amount'          => 'decimal:2',
+        'gateway_payload' => 'array',
+        'paid_at'         => 'datetime',
     ];
 
     public function booking(): BelongsTo

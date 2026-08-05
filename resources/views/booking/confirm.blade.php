@@ -133,13 +133,8 @@
                 </div>
 
                 <div class="mt-4 d-flex flex-column gap-2">
-                    @if($booking->status === 'pending_payment' && $booking->midtrans_token)
-                    <button id="pay-btn" class="btn btn-gold btn-lg w-100"
-                        onclick="snapPay('{{ $booking->midtrans_token }}')">
-                        <i class="bi bi-credit-card me-2"></i>Bayar Sekarang
-                    </button>
-                    @elseif($booking->status === 'pending_payment' && $booking->midtrans_payment_url)
-                    <a href="{{ $booking->midtrans_payment_url }}" class="btn btn-gold btn-lg w-100" target="_blank">
+                    @if($booking->status === 'pending_payment' && $booking->payment_url)
+                    <a href="{{ $booking->payment_url }}" class="btn btn-gold btn-lg w-100" target="_blank">
                         <i class="bi bi-credit-card me-2"></i>Bayar Sekarang
                     </a>
                     @elseif(in_array($booking->status, ['active', 'done']))
@@ -162,29 +157,4 @@
         </div>
     </div>
 </div>
-@endsection
-
-@section('scripts')
-@if($booking->status === 'pending_payment' && $booking->midtrans_token)
-<script src="https://app.sandbox.midtrans.com/snap/snap.js"
-    data-client-key="{{ config('midtrans.client_key') }}"></script>
-<script>
-function snapPay(token) {
-    window.snap.pay(token, {
-        onSuccess: function(result) {
-            window.location.reload();
-        },
-        onPending: function(result) {
-            window.location.reload();
-        },
-        onError: function(result) {
-            alert('Pembayaran gagal. Silakan coba lagi.');
-        },
-        onClose: function() {
-            // user closed the popup without finishing payment
-        }
-    });
-}
-</script>
-@endif
 @endsection

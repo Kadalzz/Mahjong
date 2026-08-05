@@ -20,12 +20,17 @@ class WhatsAppService
             return false;
         }
 
-        $response = Http::withHeaders(['Authorization' => $token])
-            ->asForm()
-            ->post(config('fonnte.endpoint'), [
-                'target'  => $this->formatPhone($booking->customer_phone),
-                'message' => $this->buildInvoiceMessage($booking),
-            ]);
+        try {
+            $response = Http::withHeaders(['Authorization' => $token])
+                ->asForm()
+                ->post(config('fonnte.endpoint'), [
+                    'target'  => $this->formatPhone($booking->customer_phone),
+                    'message' => $this->buildInvoiceMessage($booking),
+                ]);
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error("WhatsApp connection failed for {$booking->booking_code}: " . $e->getMessage());
+            return false;
+        }
 
         if (!$response->successful() || ($response->json('status') === false)) {
             Log::error("WhatsApp invoice failed for {$booking->booking_code}: " . $response->body());
@@ -55,7 +60,7 @@ class WhatsAppService
     {
         $booking->loadMissing('table', 'transaction');
 
-        $paymentMethod = $booking->transaction->payment_method ?? 'Midtrans';
+        $paymentMethod = $booking->transaction->payment_method ?? 'Transfer';
         $paidAt        = $booking->transaction?->paid_at?->translatedFormat('d F Y, H:i') ?? now()->translatedFormat('d F Y, H:i');
 
         return <<<MSG

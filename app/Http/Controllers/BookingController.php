@@ -6,29 +6,16 @@ use App\Models\Booking;
 use App\Models\MahjongTable;
 use App\Models\Transaction;
 use App\Services\WhatsAppService;
+use App\Services\XenditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Midtrans\Config;
-use Midtrans\Snap;
-use Midtrans\Notification;
 
 class BookingController extends Controller
 {
-    public function __construct(private WhatsAppService $whatsapp)
-    {
-        Config::$serverKey    = config('midtrans.server_key');
-        Config::$isProduction = config('midtrans.is_production');
-        Config::$isSanitized  = true;
-        Config::$is3ds        = true;
-    }
-
-    /**
-     * Midtrans requires customer_details.email; the booking form only collects
-     * name & phone, so derive a placeholder from the phone number.
-     */
-    private function placeholderEmail(string $phone): string
-    {
-        return preg_replace('/[^0-9]/', '', $phone) . '@booking.mahjongclub.local';
+    public function __construct(
+        private WhatsAppService $whatsapp,
+        private XenditService $xendit,
+    ) {
     }
 
     /**
@@ -87,7 +74,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Store booking & create Midtrans payment
+     * Store booking & create Xendit payment invoice
      */
     public function store(Request $request)
     {
@@ -123,43 +110,16 @@ class BookingController extends Controller
             'booking_code'     => Booking::generateCode(),
         ]);
 
-        // Only create Midtrans payment for non-waiting bookings
+        // Only create a Xendit invoice for non-waiting bookings
         if ($status !== 'waiting') {
-            try {
-                $orderId = 'MJG-' . $booking->id . '-' . time();
+            $orderId = 'MJG-' . $booking->id . '-' . time();
+            $invoice = $this->xendit->createInvoice($booking, $orderId);
 
-                $params = [
-                    'transaction_details' => [
-                        'order_id'     => $orderId,
-                        'gross_amount' => (int) $totalPrice,
-                    ],
-                    'customer_details' => [
-                        'first_name' => $request->customer_name,
-                        'phone'      => $request->customer_phone,
-                        'email'      => $this->placeholderEmail($request->customer_phone),
-                    ],
-                    'item_details' => [
-                        [
-                            'id'       => 'TABLE-' . $table->id,
-                            'price'    => (int) $table->getCurrentPricePerHour(),
-                            'quantity' => $durationHours,
-                            'name'     => $table->name . ' (' . $durationHours . ' jam)',
-                        ],
-                    ],
-                    'callbacks' => [
-                        'finish' => route('booking.confirm', $booking->booking_code),
-                    ],
-                ];
-
-                $snapToken = Snap::getSnapToken($params);
-
+            if ($invoice) {
                 $booking->update([
-                    'midtrans_order_id'    => $orderId,
-                    'midtrans_token'       => $snapToken,
-                    'midtrans_payment_url' => "https://app.sandbox.midtrans.com/snap/v2/vtweb/{$snapToken}",
+                    'payment_order_id' => $invoice['order_id'],
+                    'payment_url'      => $invoice['invoice_url'],
                 ]);
-            } catch (\Exception $e) {
-                Log::error('Midtrans error: ' . $e->getMessage());
             }
         }
 
@@ -190,32 +150,25 @@ class BookingController extends Controller
     }
 
     /**
-     * Handle Midtrans webhook notification
+     * Handle Xendit invoice callback (webhook)
      */
     public function webhook(Request $request)
     {
+        $token = $request->header('X-CALLBACK-TOKEN');
+
+        if (empty($token) || !hash_equals((string) config('xendit.callback_token'), (string) $token)) {
+            Log::warning('Xendit webhook rejected: invalid callback token.');
+            return response()->json(['status' => 'unauthorized'], 401);
+        }
+
         try {
-            $notification = new Notification();
+            $payload    = $request->all();
+            $externalId = $payload['external_id'] ?? null;
+            $status     = $payload['status'] ?? null;
 
-            $transactionStatus = $notification->transaction_status;
-            $orderId           = $notification->order_id;
-            $paymentType       = $notification->payment_type;
-            $grossAmount       = $notification->gross_amount;
-            $fraudStatus       = $notification->fraud_status ?? null;
+            $booking = Booking::where('payment_order_id', $externalId)->firstOrFail();
 
-            $booking = Booking::where('midtrans_order_id', $orderId)->firstOrFail();
-
-            $paid = false;
-            if ($transactionStatus === 'capture' && $fraudStatus === 'accept') {
-                $paid = true;
-            } elseif ($transactionStatus === 'settlement') {
-                $paid = true;
-            } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-                $booking->update(['status' => 'cancelled']);
-                $this->promoteWaiting($booking);
-            }
-
-            if ($paid) {
+            if ($status === 'PAID' || $status === 'SETTLED') {
                 $alreadyActive = $booking->status === 'active';
 
                 $booking->update(['status' => 'active']);
@@ -223,24 +176,27 @@ class BookingController extends Controller
                 Transaction::updateOrCreate(
                     ['booking_id' => $booking->id],
                     [
-                        'amount'                  => $grossAmount,
-                        'payment_method'          => $paymentType,
-                        'midtrans_transaction_id' => $notification->transaction_id,
-                        'midtrans_status'         => $transactionStatus,
-                        'midtrans_payload'        => $notification->getResponse(),
-                        'paid_at'                 => now(),
+                        'amount'                 => $payload['paid_amount'] ?? $payload['amount'] ?? $booking->total_price,
+                        'payment_method'         => $payload['payment_channel'] ?? $payload['payment_method'] ?? null,
+                        'gateway_transaction_id' => $payload['id'] ?? null,
+                        'gateway_status'         => $status,
+                        'gateway_payload'        => $payload,
+                        'paid_at'                => now(),
                     ]
                 );
 
-                // Midtrans may re-send the same notification; only send once per booking.
+                // Xendit may re-send the same callback; only send once per booking.
                 if (!$alreadyActive) {
                     $this->whatsapp->sendInvoice($booking);
                 }
+            } elseif (in_array($status, ['EXPIRED', 'FAILED'])) {
+                $booking->update(['status' => 'cancelled']);
+                $this->promoteWaiting($booking);
             }
 
             return response()->json(['status' => 'ok']);
         } catch (\Exception $e) {
-            Log::error('Webhook error: ' . $e->getMessage());
+            Log::error('Xendit webhook error: ' . $e->getMessage());
             return response()->json(['status' => 'error'], 500);
         }
     }
@@ -261,29 +217,14 @@ class BookingController extends Controller
             ->first();
 
         if ($waiting) {
-            try {
-                $orderId = 'MJG-' . $waiting->id . '-' . time();
-                $params  = [
-                    'transaction_details' => [
-                        'order_id'     => $orderId,
-                        'gross_amount' => (int) $waiting->total_price,
-                    ],
-                    'customer_details' => [
-                        'first_name' => $waiting->customer_name,
-                        'phone'      => $waiting->customer_phone,
-                        'email'      => $this->placeholderEmail($waiting->customer_phone),
-                    ],
-                ];
-                $snapToken = Snap::getSnapToken($params);
-                $waiting->update([
-                    'status'               => 'pending_payment',
-                    'midtrans_order_id'    => $orderId,
-                    'midtrans_token'       => $snapToken,
-                    'midtrans_payment_url' => "https://app.sandbox.midtrans.com/snap/v2/vtweb/{$snapToken}",
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Promote waiting error: ' . $e->getMessage());
-            }
+            $orderId = 'MJG-' . $waiting->id . '-' . time();
+            $invoice = $this->xendit->createInvoice($waiting, $orderId);
+
+            $waiting->update(array_filter([
+                'status'           => 'pending_payment',
+                'payment_order_id' => $invoice['order_id'] ?? null,
+                'payment_url'      => $invoice['invoice_url'] ?? null,
+            ]));
         }
     }
 }

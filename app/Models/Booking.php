@@ -19,9 +19,8 @@ class Booking extends Model
         'total_price',
         'status',
         'booking_code',
-        'midtrans_order_id',
-        'midtrans_payment_url',
-        'midtrans_token',
+        'payment_order_id',
+        'payment_url',
     ];
 
     protected $casts = [

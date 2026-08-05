@@ -25,10 +25,10 @@ Route::get('/booking/invoice/{code}', [BookingController::class, 'invoice'])->na
 // Public schedule (waiting list)
 Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.index');
 
-// Midtrans webhook
-Route::post('/midtrans/webhook', [BookingController::class, 'webhook'])
-    ->name('midtrans.webhook')
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+// Xendit invoice callback (webhook)
+Route::post('/xendit/webhook', [BookingController::class, 'webhook'])
+    ->name('xendit.webhook')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class]);
 
 /*
 |--------------------------------------------------------------------------
