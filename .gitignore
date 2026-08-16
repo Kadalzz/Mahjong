@@ -22,6 +22,9 @@
 /storage/*.key
 /storage/pail
 /vendor
+/esp32-bridge/vendor
+/esp32-bridge/composer.lock
+/esp32-bridge/config.php
 _ide_helper.php
 Homestead.json
 Homestead.yaml

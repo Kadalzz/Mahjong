@@ -71,7 +71,7 @@
 <body>
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
-        <a class="navbar-brand" href="{{ route('booking.index') }}">
+        <a class="navbar-brand" href="{{ route('landing.index') }}">
             <x-brand-logo :size="34" />
             <span>HÓNG ZHŌNG<span class="brand-sub">MAHJONG</span></span>
         </a>
@@ -81,13 +81,23 @@
         <div class="collapse navbar-collapse" id="navMain">
             <ul class="navbar-nav ms-auto align-items-center gap-2">
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('booking.index') ? 'active' : '' }}" href="{{ route('booking.index') }}">
+                    <a class="nav-link {{ request()->routeIs('landing.index') ? 'active' : '' }}" href="{{ route('landing.index') }}">
+                        <i class="bi bi-house-door me-1"></i>Beranda
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('booking.index') || request()->routeIs('booking.create') ? 'active' : '' }}" href="{{ route('booking.index') }}">
                         <i class="bi bi-table me-1"></i>Pesan Meja
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('schedule.index') ? 'active' : '' }}" href="{{ route('schedule.index') }}">
                         <i class="bi bi-calendar3 me-1"></i>Jadwal
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('booking.lookup') ? 'active' : '' }}" href="{{ route('booking.lookup') }}">
+                        <i class="bi bi-search me-1"></i>Cek Booking
                     </a>
                 </li>
                 @auth

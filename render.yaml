@@ -61,10 +61,6 @@ services:
         sync: false
       - key: XENDIT_API_URL
         value: https://api.xendit.co
-      - key: FONNTE_TOKEN
-        sync: false
-      - key: FONNTE_ENDPOINT
-        value: https://api.fonnte.com/send
 
 databases:
   - name: mahjong-club-db

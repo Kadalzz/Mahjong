@@ -86,7 +86,11 @@
                 @endif
 
                 <div class="booking-code">{{ $booking->booking_code }}</div>
-                <p class="mt-2 mb-0" style="font-size:0.75rem;color:#555">Simpan kode ini untuk referensi Anda</p>
+                <p class="mt-2 mb-0" style="font-size:0.75rem;color:#555">
+                    Simpan kode ini untuk referensi Anda. Lupa kode? Cari lagi lewat
+                    <a href="{{ route('booking.lookup') }}" style="color:var(--red);font-weight:700;">Cek Booking</a>
+                    pakai nomor HP.
+                </p>
             </div>
 
             <div class="confirm-body">
@@ -141,9 +145,6 @@
                     <a href="{{ route('booking.invoice', $booking->booking_code) }}" class="btn btn-gold btn-lg w-100">
                         <i class="bi bi-receipt me-2"></i>Lihat Invoice
                     </a>
-                    <p class="text-center text-muted mt-1" style="font-size:0.78rem">
-                        Invoice juga sudah kami kirim ke WhatsApp Anda 📩
-                    </p>
                     @endif
 
                     <a href="{{ route('schedule.index') }}" class="btn btn-outline-secondary">

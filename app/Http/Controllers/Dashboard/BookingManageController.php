@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Transaction;
-use App\Services\WhatsAppService;
+use App\Services\TableDeviceService;
 use Illuminate\Http\Request;
 
 class BookingManageController extends Controller
 {
-    public function __construct(private WhatsAppService $whatsapp)
-    {
+    public function __construct(
+        private TableDeviceService $device,
+    ) {
     }
 
     public function index(Request $request)
@@ -48,6 +49,17 @@ class BookingManageController extends Controller
         $oldStatus = $booking->status;
         $booking->update(['status' => $request->status]);
 
+        // Admin activating a table directly (e.g. walk-in paid cash on the spot)
+        if ($request->status === 'active' && $oldStatus !== 'active') {
+            $this->device->activate($booking->table, $booking);
+        }
+
+        // Admin finishing a session early - turn the table off right away
+        // instead of waiting for the originally scheduled auto-off job.
+        if ($request->status === 'done' && $oldStatus === 'active') {
+            $this->device->deactivate($booking->table, $booking);
+        }
+
         // If marking as done and no transaction, create manual one
         if ($request->status === 'done' && !$booking->transaction) {
             Transaction::create([
@@ -57,8 +69,6 @@ class BookingManageController extends Controller
                 'paid_at'        => now(),
                 'notes'          => 'Pembayaran manual oleh admin',
             ]);
-
-            $this->whatsapp->sendInvoice($booking);
         }
 
         // If cancelled, try to promote waiting booking

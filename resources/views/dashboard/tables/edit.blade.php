@@ -45,12 +45,24 @@
                         </div>
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-3">
                         <label class="form-label small" style="color:var(--ink-mute)">Deskripsi (opsional)</label>
                         <textarea name="description" rows="2"
                             class="form-control @error('description') is-invalid @enderror"
                             style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:16px;">{{ old('description', $table->description) }}</textarea>
                         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small" style="color:var(--ink-mute)">ID Meja ESP32 (opsional)</label>
+                        <input type="number" name="esp32_meja_id" value="{{ old('esp32_meja_id', $table->esp32_meja_id) }}" min="1" max="255"
+                            class="form-control @error('esp32_meja_id') is-invalid @enderror"
+                            style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;font-family:monospace;"
+                            placeholder="1">
+                        @error('esp32_meja_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div style="font-size:0.75rem;color:var(--ink-mute);margin-top:0.35rem;">
+                            Nomor ID meja ini di firmware ESP32 Master (harus sama dengan urutan <code>clientMAC[]</code> di master.ino). Perintah dikirim lewat bridge WebSocket saat pembayaran berhasil.
+                        </div>
                     </div>
 
                     <div class="mb-4" style="font-size:0.8rem;color:var(--ink-mute)">

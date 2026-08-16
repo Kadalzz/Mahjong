@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\MahjongTable;
 use App\Models\Transaction;
-use App\Services\WhatsAppService;
+use App\Services\TableDeviceService;
 use App\Services\XenditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Log;
 class BookingController extends Controller
 {
     public function __construct(
-        private WhatsAppService $whatsapp,
         private XenditService $xendit,
+        private TableDeviceService $device,
     ) {
     }
 
@@ -150,6 +150,31 @@ class BookingController extends Controller
     }
 
     /**
+     * Look up a customer's own bookings by phone number (no login, so this
+     * is the only way back in once the booking code is lost).
+     */
+    public function lookup(Request $request)
+    {
+        $bookings = collect();
+        $searched = $request->filled('phone');
+
+        if ($searched) {
+            $digits = preg_replace('/\D/', '', $request->phone);
+            $suffix = substr($digits, -9);
+
+            if ($suffix !== '') {
+                $bookings = Booking::with('table')
+                    ->where('customer_phone', 'like', "%{$suffix}")
+                    ->latest()
+                    ->limit(20)
+                    ->get();
+            }
+        }
+
+        return view('booking.lookup', compact('bookings', 'searched'));
+    }
+
+    /**
      * Handle Xendit invoice callback (webhook)
      */
     public function webhook(Request $request)
@@ -166,7 +191,7 @@ class BookingController extends Controller
             $externalId = $payload['external_id'] ?? null;
             $status     = $payload['status'] ?? null;
 
-            $booking = Booking::where('payment_order_id', $externalId)->firstOrFail();
+            $booking = Booking::with('table')->where('payment_order_id', $externalId)->firstOrFail();
 
             if ($status === 'PAID' || $status === 'SETTLED') {
                 $alreadyActive = $booking->status === 'active';
@@ -185,9 +210,9 @@ class BookingController extends Controller
                     ]
                 );
 
-                // Xendit may re-send the same callback; only send once per booking.
+                // Xendit may re-send the same callback; only act once per booking.
                 if (!$alreadyActive) {
-                    $this->whatsapp->sendInvoice($booking);
+                    $this->device->activate($booking->table, $booking);
                 }
             } elseif (in_array($status, ['EXPIRED', 'FAILED'])) {
                 $booking->update(['status' => 'cancelled']);

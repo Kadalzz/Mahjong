@@ -7,20 +7,31 @@ use App\Http\Controllers\Dashboard\OccupancyController;
 use App\Http\Controllers\Dashboard\PricingController;
 use App\Http\Controllers\Dashboard\RevenueController;
 use App\Http\Controllers\Dashboard\TableController;
+use App\Http\Controllers\CoverController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Cover / Landing Page (Public)
+|--------------------------------------------------------------------------
+*/
+Route::get('/', [CoverController::class, 'index'])->name('cover.index');
+Route::get('/beranda', [LandingController::class, 'index'])->name('landing.index');
 
 /*
 |--------------------------------------------------------------------------
 | User Side (Public)
 |--------------------------------------------------------------------------
 */
-Route::get('/', [BookingController::class, 'index'])->name('booking.index');
+Route::get('/pesan', [BookingController::class, 'index'])->name('booking.index');
 Route::get('/booking/table/{table}', [BookingController::class, 'create'])->name('booking.create');
 Route::post('/booking/table/{table}/availability', [BookingController::class, 'checkAvailability'])->name('booking.check');
 Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 Route::get('/booking/confirm/{code}', [BookingController::class, 'confirm'])->name('booking.confirm');
 Route::get('/booking/invoice/{code}', [BookingController::class, 'invoice'])->name('booking.invoice');
+Route::get('/cek-booking', [BookingController::class, 'lookup'])->name('booking.lookup');
 
 // Public schedule (waiting list)
 Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.index');

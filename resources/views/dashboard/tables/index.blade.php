@@ -25,6 +25,7 @@
                         <th>Status</th>
                         <th class="text-end">Harga / Jam</th>
                         <th class="text-center">Riwayat Booking</th>
+                        <th class="text-center">Perangkat</th>
                         <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -48,6 +49,15 @@
                         </td>
                         <td class="text-center">{{ $table->bookings_count }}</td>
                         <td class="text-center">
+                            @if($table->esp32_meja_id)
+                            <span class="badge-s-active" title="ID Meja ESP32: {{ $table->esp32_meja_id }}" style="font-family:monospace;">
+                                <i class="bi bi-cpu me-1"></i>Meja {{ $table->esp32_meja_id }}
+                            </span>
+                            @else
+                            <span style="font-size:0.75rem;color:var(--ink-mute)">—</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
                             <div class="d-flex gap-2 justify-content-center">
                                 <a href="{{ route('dashboard.tables.edit', $table) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-pencil"></i>
@@ -64,7 +74,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             <i class="bi bi-inbox fs-2 d-block mb-2"></i>
                             Belum ada meja
                         </td>

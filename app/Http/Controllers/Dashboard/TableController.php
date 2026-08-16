@@ -28,14 +28,16 @@ class TableController extends Controller
             'capacity'       => 'required|integer|min:1|max:20',
             'status'         => 'required|in:available,occupied,maintenance',
             'description'    => 'nullable|string|max:500',
+            'esp32_meja_id'  => 'nullable|integer|min:1|max:255|unique:mahjong_tables,esp32_meja_id',
             'price_per_hour' => 'required|numeric|min:0',
         ]);
 
         $table = MahjongTable::create([
-            'name'        => $validated['name'],
-            'capacity'    => $validated['capacity'],
-            'status'      => $validated['status'],
-            'description' => $validated['description'] ?? null,
+            'name'          => $validated['name'],
+            'capacity'      => $validated['capacity'],
+            'status'        => $validated['status'],
+            'description'   => $validated['description'] ?? null,
+            'esp32_meja_id' => $validated['esp32_meja_id'] ?? null,
         ]);
 
         Pricing::create([
@@ -56,10 +58,11 @@ class TableController extends Controller
     public function update(Request $request, MahjongTable $table)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:100',
-            'capacity'    => 'required|integer|min:1|max:20',
-            'status'      => 'required|in:available,occupied,maintenance',
-            'description' => 'nullable|string|max:500',
+            'name'          => 'required|string|max:100',
+            'capacity'      => 'required|integer|min:1|max:20',
+            'status'        => 'required|in:available,occupied,maintenance',
+            'description'   => 'nullable|string|max:500',
+            'esp32_meja_id' => 'nullable|integer|min:1|max:255|unique:mahjong_tables,esp32_meja_id,' . $table->id,
         ]);
 
         $table->update($validated);
