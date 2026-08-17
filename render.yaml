@@ -1,10 +1,8 @@
 services:
   - type: web
     name: mahjong-club
-    runtime: php
+    runtime: docker
     plan: free
-    buildCommand: composer install --no-dev --optimize-autoloader && npm install && npm run build
-    startCommand: php artisan migrate --force && php artisan config:cache && php artisan serve --host 0.0.0.0 --port $PORT
     envVars:
       - key: APP_NAME
         value: "Hóng Zhōng Mahjong"
