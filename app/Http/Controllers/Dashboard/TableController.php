@@ -5,10 +5,16 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\MahjongTable;
 use App\Models\Pricing;
+use App\Services\TableDeviceService;
 use Illuminate\Http\Request;
 
 class TableController extends Controller
 {
+    public function __construct(
+        private TableDeviceService $device,
+    ) {
+    }
+
     public function index()
     {
         $tables = MahjongTable::with('pricing')->withCount('bookings')->orderBy('name')->get();
@@ -83,5 +89,29 @@ class TableController extends Controller
 
         return redirect()->route('dashboard.tables.index')
             ->with('success', "Meja \"{$name}\" berhasil dihapus.");
+    }
+
+    /**
+     * Manual ESP32 on/off override - fallback when the automatic signal
+     * (payment webhook, admin status change) fails to reach the Master.
+     */
+    public function device(Request $request, MahjongTable $table)
+    {
+        $request->validate(['action' => 'required|in:on,off']);
+
+        if (empty($table->esp32_meja_id)) {
+            return back()->with('error', "Meja \"{$table->name}\" belum punya ID Meja ESP32.");
+        }
+
+        $sent = $request->action === 'on'
+            ? $this->device->turnOn($table)
+            : $this->device->turnOff($table);
+
+        if (!$sent) {
+            return back()->with('error', "Gagal mengirim perintah ke Meja \"{$table->name}\". Cek koneksi bridge/ESP32 Master.");
+        }
+
+        $label = $request->action === 'on' ? 'dinyalakan' : 'dimatikan';
+        return back()->with('success', "Meja \"{$table->name}\" berhasil {$label}.");
     }
 }

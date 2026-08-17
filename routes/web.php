@@ -65,6 +65,7 @@ Route::prefix('dashboard')->name('dashboard.')->middleware(['auth', 'role:admin'
     Route::get('/tables/{table}/edit', [TableController::class, 'edit'])->name('tables.edit');
     Route::put('/tables/{table}', [TableController::class, 'update'])->name('tables.update');
     Route::delete('/tables/{table}', [TableController::class, 'destroy'])->name('tables.destroy');
+    Route::post('/tables/{table}/device', [TableController::class, 'device'])->name('tables.device');
     Route::get('/bookings', [BookingManageController::class, 'index'])->name('bookings');
     Route::put('/bookings/{booking}/status', [BookingManageController::class, 'updateStatus'])->name('bookings.status');
 });

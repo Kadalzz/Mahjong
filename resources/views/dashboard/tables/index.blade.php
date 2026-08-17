@@ -50,9 +50,27 @@
                         <td class="text-center">{{ $table->bookings_count }}</td>
                         <td class="text-center">
                             @if($table->esp32_meja_id)
-                            <span class="badge-s-active" title="ID Meja ESP32: {{ $table->esp32_meja_id }}" style="font-family:monospace;">
-                                <i class="bi bi-cpu me-1"></i>Meja {{ $table->esp32_meja_id }}
-                            </span>
+                            <div class="d-flex flex-column align-items-center gap-1">
+                                <span class="badge-s-active" title="ID Meja ESP32: {{ $table->esp32_meja_id }}" style="font-family:monospace;">
+                                    <i class="bi bi-cpu me-1"></i>Meja {{ $table->esp32_meja_id }}
+                                </span>
+                                <div class="d-flex gap-1">
+                                    <form method="POST" action="{{ route('dashboard.tables.device', $table) }}">
+                                        @csrf
+                                        <input type="hidden" name="action" value="on">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary" style="color:var(--green,#3fb950)" title="Nyalakan manual">
+                                            <i class="bi bi-power"></i> ON
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('dashboard.tables.device', $table) }}">
+                                        @csrf
+                                        <input type="hidden" name="action" value="off">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary" style="color:var(--red)" title="Matikan manual">
+                                            <i class="bi bi-power"></i> OFF
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                             @else
                             <span style="font-size:0.75rem;color:var(--ink-mute)">—</span>
                             @endif
