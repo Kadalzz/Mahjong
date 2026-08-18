@@ -17,20 +17,26 @@ function wsAcceptKey(string $key): string
 
 function wsEncodeTextFrame(string $payload): string
 {
+    return wsEncodeFrame(0x1, $payload);
+}
+
+function wsEncodeFrame(int $opcode, string $payload): string
+{
     $length = strlen($payload);
+    $finOpcode = 0x80 | $opcode;
 
     if ($length <= 125) {
-        $header = chr(0x81) . chr($length);
+        $header = chr($finOpcode) . chr($length);
     } elseif ($length <= 65535) {
-        $header = chr(0x81) . chr(126) . pack('n', $length);
+        $header = chr($finOpcode) . chr(126) . pack('n', $length);
     } else {
-        $header = chr(0x81) . chr(127) . pack('J', $length);
+        $header = chr($finOpcode) . chr(127) . pack('J', $length);
     }
 
     return $header . $payload;
 }
 
-function wsDecodeFrames(string &$buffer): array
+function wsDecodeFrames(string &$buffer, ConnectionInterface $conn): array
 {
     $messages = [];
 
@@ -74,6 +80,11 @@ function wsDecodeFrames(string &$buffer): array
             $messages[] = $payload;
         } elseif ($opcode === 0x8) {
             $messages[] = null;
+        } elseif ($opcode === 0x9) {
+            // Ping - must reply with Pong carrying the same payload (RFC 6455 5.5.3),
+            // otherwise heartbeat-enabled clients (ESP32 Master) conclude the
+            // connection is dead and disconnect/reconnect in a tight loop.
+            $conn->write(wsEncodeFrame(0xA, $payload));
         }
 
         $buffer = substr($buffer, $frameTotal);
@@ -142,7 +153,7 @@ $wsServer->on('connection', function (ConnectionInterface $conn) use ($bridge) {
             return;
         }
 
-        foreach (wsDecodeFrames($buffer) as $message) {
+        foreach (wsDecodeFrames($buffer, $conn) as $message) {
             if ($message === null) {
                 $conn->end();
                 return;

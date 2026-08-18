@@ -6,7 +6,7 @@
 const char* ssid     = "NAMA_WIFI_TOKO";
 const char* password = "PASSWORD_WIFI";
 
-const char* websocket_server = "192.168.1.100";
+const char* websocket_server = "192.168.1.10";
 const uint16_t websocket_port = 81;
 const char* websocket_path = "/";
 
@@ -232,6 +232,9 @@ void setup() {
   webSocket.begin(websocket_server, websocket_port, websocket_path);
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
+  // Ping tiap 15s supaya koneksi tidak dianggap idle & di-drop NAT hotspot
+  // (mati kalau 2x pong berturut-turut tidak dibalas dalam 3s, lalu reconnect).
+  webSocket.enableHeartbeat(15000, 3000, 2);
 
   Serial.println("[OK] ESP32 Master siap!");
 }

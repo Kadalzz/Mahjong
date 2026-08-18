@@ -3,7 +3,7 @@
 #include <esp_wifi.h>
 
 const int RELAY_PIN = 5;
-const int WIFI_CHANNEL = 1;
+const int WIFI_CHANNEL = 4; // harus sama dengan "Channel WiFi: X" yang tercetak di Serial Monitor Master saat boot
 const uint8_t MEJA_ID = 1;
 const char NAMA_MEJA[10] = "Meja1";
 
