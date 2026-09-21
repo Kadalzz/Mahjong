@@ -26,9 +26,4 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
-
-    public function isViewer(): bool
-    {
-        return $this->role === 'viewer';
-    }
 }

@@ -27,11 +27,17 @@ Route::get('/beranda', [LandingController::class, 'index'])->name('landing.index
 */
 Route::get('/pesan', [BookingController::class, 'index'])->name('booking.index');
 Route::get('/booking/table/{table}', [BookingController::class, 'create'])->name('booking.create');
-Route::post('/booking/table/{table}/availability', [BookingController::class, 'checkAvailability'])->name('booking.check');
-Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+Route::post('/booking/table/{table}/availability', [BookingController::class, 'checkAvailability'])
+    ->middleware('throttle:20,1')
+    ->name('booking.check');
+Route::post('/booking', [BookingController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('booking.store');
 Route::get('/booking/confirm/{code}', [BookingController::class, 'confirm'])->name('booking.confirm');
 Route::get('/booking/invoice/{code}', [BookingController::class, 'invoice'])->name('booking.invoice');
-Route::get('/cek-booking', [BookingController::class, 'lookup'])->name('booking.lookup');
+Route::get('/cek-booking', [BookingController::class, 'lookup'])
+    ->middleware('throttle:10,1')
+    ->name('booking.lookup');
 
 // Public schedule (waiting list)
 Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.index');
@@ -66,6 +72,7 @@ Route::prefix('dashboard')->name('dashboard.')->middleware(['auth', 'role:admin'
     Route::put('/tables/{table}', [TableController::class, 'update'])->name('tables.update');
     Route::delete('/tables/{table}', [TableController::class, 'destroy'])->name('tables.destroy');
     Route::post('/tables/{table}/device', [TableController::class, 'device'])->name('tables.device');
+    Route::post('/tables/{table}/pause', [TableController::class, 'pause'])->name('tables.pause');
     Route::get('/bookings', [BookingManageController::class, 'index'])->name('bookings');
     Route::put('/bookings/{booking}/status', [BookingManageController::class, 'updateStatus'])->name('bookings.status');
 });

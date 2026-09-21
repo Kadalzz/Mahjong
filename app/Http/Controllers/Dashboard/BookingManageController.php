@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Transaction;
 use App\Services\TableDeviceService;
+use App\Services\XenditService;
 use Illuminate\Http\Request;
 
 class BookingManageController extends Controller
 {
     public function __construct(
         private TableDeviceService $device,
+        private XenditService $xendit,
     ) {
     }
 
@@ -84,7 +86,14 @@ class BookingManageController extends Controller
                 ->first();
 
             if ($waiting) {
-                $waiting->update(['status' => 'pending_payment']);
+                $orderId = 'MJG-' . $waiting->id . '-' . time();
+                $invoice = $this->xendit->createInvoice($waiting, $orderId);
+
+                $waiting->update(array_filter([
+                    'status'           => 'pending_payment',
+                    'payment_order_id' => $invoice['order_id'] ?? null,
+                    'payment_url'      => $invoice['invoice_url'] ?? null,
+                ]));
             }
         }
 

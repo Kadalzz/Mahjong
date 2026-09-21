@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\EndTablePause;
 use App\Models\MahjongTable;
 use App\Models\Pricing;
 use App\Services\TableDeviceService;
@@ -71,10 +72,36 @@ class TableController extends Controller
             'esp32_meja_id' => 'nullable|integer|min:1|max:255|unique:mahjong_tables,esp32_meja_id,' . $table->id,
         ]);
 
+        // A manual status edit always wins over a leftover "jeda" timer,
+        // so an admin setting maintenance on purpose isn't auto-reverted
+        // by the pause job later.
+        $validated['paused_until'] = null;
+
         $table->update($validated);
 
         return redirect()->route('dashboard.tables.index')
             ->with('success', "Meja \"{$table->name}\" berhasil diperbarui.");
+    }
+
+    /**
+     * Quick "jeda" (cleanup pause) - temporarily takes the table out of the
+     * public booking list for a short, fixed duration, then auto-reverts.
+     */
+    public function pause(Request $request, MahjongTable $table)
+    {
+        $request->validate(['minutes' => 'required|integer|in:2,5,10']);
+
+        if ($table->status === 'occupied') {
+            return back()->with('error', "Meja \"{$table->name}\" sedang dipakai, tidak bisa dijeda.");
+        }
+
+        $pausedUntil = now()->addMinutes((int) $request->minutes);
+        $table->update(['status' => 'maintenance', 'paused_until' => $pausedUntil]);
+
+        EndTablePause::dispatch($table, $pausedUntil->format('Y-m-d H:i:s'))
+            ->delay($pausedUntil);
+
+        return back()->with('success', "Meja \"{$table->name}\" dijeda {$request->minutes} menit untuk dirapikan.");
     }
 
     public function destroy(MahjongTable $table)

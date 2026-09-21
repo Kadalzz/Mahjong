@@ -89,7 +89,7 @@
                 <p class="mt-2 mb-0" style="font-size:0.75rem;color:#555">
                     Simpan kode ini untuk referensi Anda. Lupa kode? Cari lagi lewat
                     <a href="{{ route('booking.lookup') }}" style="color:var(--red);font-weight:700;">Cek Booking</a>
-                    pakai nomor HP.
+                    pakai nama atau nomor HP.
                 </p>
             </div>
 

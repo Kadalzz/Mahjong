@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use App\Services\TableDeviceService;
 use App\Services\XenditService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
@@ -87,28 +88,35 @@ class BookingController extends Controller
             'duration_hours'   => 'required|integer|min:1|max:8',
         ]);
 
-        $table          = MahjongTable::with('pricing')->findOrFail($request->mahjong_table_id);
-        $durationHours  = (int) $request->duration_hours;
-        $startTime      = $request->start_time;
-        $endTime        = date('H:i', strtotime($startTime) + ($durationHours * 3600));
-        $totalPrice     = $table->getCurrentPricePerHour() * $durationHours;
+        $durationHours = (int) $request->duration_hours;
+        $startTime     = $request->start_time;
+        $endTime       = date('H:i', strtotime($startTime) + ($durationHours * 3600));
 
-        // Check if table slot is available (auto waiting list if not)
-        $isAvailable = $table->isAvailableAt($request->booking_date, $startTime, $durationHours);
-        $status      = $isAvailable ? 'pending_payment' : 'waiting';
+        // Lock the table row so two concurrent requests for the same slot
+        // can't both pass the availability check before either has
+        // inserted its booking - otherwise both get seated on it.
+        $booking = DB::transaction(function () use ($request, $durationHours, $startTime, $endTime) {
+            $table      = MahjongTable::with('pricing')->lockForUpdate()->findOrFail($request->mahjong_table_id);
+            $totalPrice = $table->getCurrentPricePerHour() * $durationHours;
 
-        $booking = Booking::create([
-            'mahjong_table_id' => $table->id,
-            'customer_name'    => $request->customer_name,
-            'customer_phone'   => $request->customer_phone,
-            'booking_date'     => $request->booking_date,
-            'start_time'       => $startTime,
-            'duration_hours'   => $durationHours,
-            'end_time'         => $endTime,
-            'total_price'      => $totalPrice,
-            'status'           => $status,
-            'booking_code'     => Booking::generateCode(),
-        ]);
+            $isAvailable = $table->isAvailableAt($request->booking_date, $startTime, $durationHours);
+            $status      = $isAvailable ? 'pending_payment' : 'waiting';
+
+            return Booking::create([
+                'mahjong_table_id' => $table->id,
+                'customer_name'    => $request->customer_name,
+                'customer_phone'   => $request->customer_phone,
+                'booking_date'     => $request->booking_date,
+                'start_time'       => $startTime,
+                'duration_hours'   => $durationHours,
+                'end_time'         => $endTime,
+                'total_price'      => $totalPrice,
+                'status'           => $status,
+                'booking_code'     => Booking::generateCode(),
+            ]);
+        });
+
+        $status = $booking->status;
 
         // Only create a Xendit invoice for non-waiting bookings
         if ($status !== 'waiting') {
@@ -150,21 +158,32 @@ class BookingController extends Controller
     }
 
     /**
-     * Look up a customer's own bookings by phone number (no login, so this
-     * is the only way back in once the booking code is lost).
+     * Look up a customer's own bookings by code, name, or phone number (no
+     * login, so this is the only way back in once the booking code is lost).
      */
     public function lookup(Request $request)
     {
         $bookings = collect();
-        $searched = $request->filled('phone');
+        $searched = $request->filled('q');
 
         if ($searched) {
-            $digits = preg_replace('/\D/', '', $request->phone);
-            $suffix = substr($digits, -9);
+            $query = trim($request->q);
+            $digits = preg_replace('/\D/', '', $query);
 
-            if ($suffix !== '') {
+            if (preg_match('/^MJG-[A-Z0-9]+$/i', $query)) {
+                $bookings = Booking::with('table')
+                    ->where('booking_code', strtoupper($query))
+                    ->get();
+            } elseif (strlen($digits) >= 6 && strlen($digits) >= strlen(preg_replace('/[\s\-\+]/', '', $query))) {
+                $suffix = substr($digits, -9);
                 $bookings = Booking::with('table')
                     ->where('customer_phone', 'like', "%{$suffix}")
+                    ->latest()
+                    ->limit(20)
+                    ->get();
+            } else {
+                $bookings = Booking::with('table')
+                    ->whereRaw('LOWER(customer_name) LIKE ?', ['%' . strtolower($query) . '%'])
                     ->latest()
                     ->limit(20)
                     ->get();

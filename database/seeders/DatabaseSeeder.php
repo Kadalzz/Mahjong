@@ -20,14 +20,6 @@ class DatabaseSeeder extends Seeder
             'role'     => 'admin',
         ]);
 
-        // Create viewer user
-        User::create([
-            'name'     => 'Viewer',
-            'email'    => 'viewer@mahjong.com',
-            'password' => Hash::make('viewer123'),
-            'role'     => 'viewer',
-        ]);
-
         // Create 6 mahjong tables with pricing
         $tables = [
             ['name' => 'Meja 1 - Reguler',    'price' => 50000],

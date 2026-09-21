@@ -27,5 +27,8 @@ COPY --from=assets /app/public/build ./public/build
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 EXPOSE 10000
-CMD php artisan migrate --force && php artisan config:cache && php artisan serve --host 0.0.0.0 --port ${PORT:-10000}
+CMD ["/usr/local/bin/docker-entrypoint.sh"]

@@ -60,20 +60,19 @@
     <div class="container">
         <div class="eyebrow">Cari Booking</div>
         <h1>Cek Booking Saya</h1>
-        <p>Lupa menyimpan kode booking? Cari lagi pakai nomor HP yang dipakai saat memesan.</p>
+        <p>Lupa menyimpan kode booking? Cari lagi pakai nama, kode booking, atau nomor HP.</p>
     </div>
 </div>
 
 <div class="container">
     <div class="lookup-form-card">
         <form method="GET" action="{{ route('booking.lookup') }}">
-            <label class="form-label small" style="color:var(--ink-mute)">Nomor HP / WhatsApp</label>
+            <label class="form-label small" style="color:var(--ink-mute)">Nama / Kode Booking / No. HP</label>
             <div class="input-group">
-                <span class="input-group-text" style="background:var(--red);border:none;color:var(--cream);border-radius:999px 0 0 999px;font-weight:700;">+62</span>
-                <input type="tel" name="phone" value="{{ request('phone') }}"
+                <input type="text" name="q" value="{{ request('q') }}"
                     class="form-control"
-                    style="border-radius:0;border:none;background:rgba(58,20,20,0.06);color:var(--ink);"
-                    placeholder="8xx xxxx xxxx" required>
+                    style="border-radius:999px 0 0 999px;border:none;background:rgba(58,20,20,0.06);color:var(--ink);"
+                    placeholder="Budi / MJG-XXXXXX / 08xx xxxx xxxx" required>
                 <button type="submit" class="btn btn-gold" style="border-radius:0 999px 999px 0;">
                     <i class="bi bi-search"></i>
                 </button>
@@ -108,7 +107,7 @@
             @empty
             <div class="text-center py-4">
                 <div style="font-size:2.5rem;opacity:0.3">🀄</div>
-                <p style="color:rgba(244,241,221,0.65)">Tidak ada booking ditemukan untuk nomor HP ini.</p>
+                <p style="color:rgba(244,241,221,0.65)">Tidak ada booking ditemukan untuk pencarian ini.</p>
             </div>
             @endforelse
         @endif

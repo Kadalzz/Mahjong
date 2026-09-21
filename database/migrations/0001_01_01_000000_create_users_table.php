@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
-            $table->string('role')->default('admin'); // admin, viewer
+            $table->string('role')->default('admin'); // only 'admin' is meaningful; accounts are provisioned manually, never self-registered
             $table->timestamps();
         });
 

@@ -40,9 +40,34 @@
                         </td>
                         <td class="text-center">{{ $table->capacity }} pemain</td>
                         <td>
+                            @if($table->status === 'maintenance' && $table->paused_until && $table->paused_until->isFuture())
+                            <span class="badge-s-waiting" title="Jeda untuk dirapikan">
+                                <i class="bi bi-hourglass-split me-1"></i>Jeda hingga {{ $table->paused_until->format('H:i') }}
+                            </span>
+                            @else
                             <span class="badge-s-{{ $table->status === 'available' ? 'active' : ($table->status === 'occupied' ? 'cancelled' : 'waiting') }}">
                                 {{ ucfirst($table->status) }}
                             </span>
+                            @endif
+
+                            @if($table->status === 'available')
+                            <div class="dropdown mt-1">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Jeda untuk merapikan meja">
+                                    <i class="bi bi-hourglass-split"></i> Jeda
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @foreach([2, 5, 10] as $minutes)
+                                    <li>
+                                        <form method="POST" action="{{ route('dashboard.tables.pause', $table) }}">
+                                            @csrf
+                                            <input type="hidden" name="minutes" value="{{ $minutes }}">
+                                            <button type="submit" class="dropdown-item">{{ $minutes }} menit</button>
+                                        </form>
+                                    </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            @endif
                         </td>
                         <td class="text-end fw-700" style="color:var(--red)">
                             Rp {{ number_format($table->pricing?->price_per_hour ?? 0, 0, ',', '.') }}

@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class MahjongTable extends Model
 {
-    protected $fillable = ['name', 'capacity', 'status', 'description', 'esp32_meja_id'];
+    protected $fillable = ['name', 'capacity', 'status', 'description', 'esp32_meja_id', 'paused_until'];
+
+    protected $casts = [
+        'paused_until' => 'datetime',
+    ];
 
     public function pricing(): HasOne
     {

@@ -143,12 +143,6 @@
         </button>
     </form>
 
-    <div class="hint-box">
-        <div class="mb-1"><strong style="color:#551414">Demo Akun:</strong></div>
-        <div>Admin: <code>admin@mahjong.com</code> / <code>admin123</code></div>
-        <div>Viewer: <code>viewer@mahjong.com</code> / <code>viewer123</code></div>
-    </div>
-
     <div class="back-link">
         <a href="{{ route('booking.index') }}">
             <i class="bi bi-arrow-left me-1"></i>Kembali ke Halaman Utama
