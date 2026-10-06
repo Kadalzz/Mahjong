@@ -8,11 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class XenditService
 {
-    /**
-     * Create a Xendit hosted-checkout invoice for a booking.
-     *
-     * @return array{order_id: string, invoice_url: string}|null
-     */
+    
     public function createInvoice(Booking $booking, string $orderId): ?array
     {
         $secretKey = config('xendit.secret_key');

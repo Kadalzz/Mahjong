@@ -29,7 +29,6 @@
             overflow: hidden;
         }
 
-        /* --- reactbits-style "Aurora" ambient background --- */
         .aurora {
             position: absolute;
             inset: 0;
@@ -97,7 +96,6 @@
             animation-delay: 0.15s;
         }
 
-        /* --- reactbits-style "Split Text" character reveal --- */
         .split-text {
             font-family: 'Baloo 2', sans-serif;
             font-weight: 800;

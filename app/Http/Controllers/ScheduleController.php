@@ -19,7 +19,7 @@ class ScheduleController extends Controller
             }
         ])->get();
 
-        // Generate time slots 08:00 - 24:00
+        
         $timeSlots = [];
         for ($h = 8; $h < 24; $h++) {
             $timeSlots[] = str_pad($h, 2, '0', STR_PAD_LEFT) . ':00';

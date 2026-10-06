@@ -20,7 +20,6 @@
             --ink: #3a1414;
             --ink-mute: #6b5d4a;
             --border: rgba(244,241,221,0.14);
-            /* legacy aliases kept so existing markup/components keep working */
             --gold: var(--red);
             --gold-light: var(--red-light);
             --dark: var(--green);

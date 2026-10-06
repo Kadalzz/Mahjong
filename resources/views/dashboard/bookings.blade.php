@@ -4,7 +4,6 @@
 
 @section('content')
 
-<!-- Filter Bar -->
 <div class="card-dark mb-4">
     <div class="card-body">
         <form method="GET" class="row g-3 align-items-end">
@@ -38,7 +37,6 @@
     </div>
 </div>
 
-<!-- Table -->
 <div class="card-dark">
     <div class="card-header d-flex justify-content-between">
         <span><i class="bi bi-journal-check me-2 text-gold"></i>Daftar Booking</span>

@@ -81,9 +81,9 @@ function wsDecodeFrames(string &$buffer, ConnectionInterface $conn): array
         } elseif ($opcode === 0x8) {
             $messages[] = null;
         } elseif ($opcode === 0x9) {
-            // Ping - must reply with Pong carrying the same payload (RFC 6455 5.5.3),
-            // otherwise heartbeat-enabled clients (ESP32 Master) conclude the
-            // connection is dead and disconnect/reconnect in a tight loop.
+            
+            
+            
             $conn->write(wsEncodeFrame(0xA, $payload));
         }
 

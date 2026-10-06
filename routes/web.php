@@ -11,18 +11,8 @@ use App\Http\Controllers\CoverController;
 use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Cover Page (Public)
-|--------------------------------------------------------------------------
-*/
 Route::get('/', [CoverController::class, 'index'])->name('cover.index');
 
-/*
-|--------------------------------------------------------------------------
-| User Side (Public)
-|--------------------------------------------------------------------------
-*/
 Route::get('/pesan', [BookingController::class, 'index'])->name('booking.index');
 Route::get('/booking/table/{table}', [BookingController::class, 'create'])->name('booking.create');
 Route::post('/booking/table/{table}/availability', [BookingController::class, 'checkAvailability'])
@@ -37,26 +27,14 @@ Route::get('/cek-booking', [BookingController::class, 'lookup'])
     ->middleware('throttle:10,1')
     ->name('booking.lookup');
 
-// Public schedule (waiting list)
 Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.index');
 
-// Xendit invoice callback (webhook)
 Route::post('/xendit/webhook', [BookingController::class, 'webhook'])
     ->name('xendit.webhook')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class]);
 
-/*
-|--------------------------------------------------------------------------
-| Auth Routes (Breeze)
-|--------------------------------------------------------------------------
-*/
 require __DIR__ . '/auth.php';
 
-/*
-|--------------------------------------------------------------------------
-| Dashboard (Admin only)
-|--------------------------------------------------------------------------
-*/
 Route::prefix('dashboard')->name('dashboard.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('index');
     Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue');
@@ -75,11 +53,6 @@ Route::prefix('dashboard')->name('dashboard.')->middleware(['auth', 'role:admin'
     Route::put('/bookings/{booking}/status', [BookingManageController::class, 'updateStatus'])->name('bookings.status');
 });
 
-/*
-|--------------------------------------------------------------------------
-| After login redirect based on role
-|--------------------------------------------------------------------------
-*/
 Route::get('/home', function () {
     if (auth()->user()?->isAdmin()) {
         return redirect()->route('dashboard.index');

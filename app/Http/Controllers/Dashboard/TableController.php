@@ -72,9 +72,9 @@ class TableController extends Controller
             'esp32_meja_id' => 'nullable|integer|min:1|max:255|unique:mahjong_tables,esp32_meja_id,' . $table->id,
         ]);
 
-        // A manual status edit always wins over a leftover "jeda" timer,
-        // so an admin setting maintenance on purpose isn't auto-reverted
-        // by the pause job later.
+        
+        
+        
         $validated['paused_until'] = null;
 
         $table->update($validated);
@@ -83,10 +83,7 @@ class TableController extends Controller
             ->with('success', "Meja \"{$table->name}\" berhasil diperbarui.");
     }
 
-    /**
-     * Quick "jeda" (cleanup pause) - temporarily takes the table out of the
-     * public booking list for a short, fixed duration, then auto-reverts.
-     */
+    
     public function pause(Request $request, MahjongTable $table)
     {
         $request->validate(['minutes' => 'required|integer|in:2,5,10']);
@@ -118,10 +115,7 @@ class TableController extends Controller
             ->with('success', "Meja \"{$name}\" berhasil dihapus.");
     }
 
-    /**
-     * Manual ESP32 on/off override - fallback when the automatic signal
-     * (payment webhook, admin status change) fails to reach the Master.
-     */
+    
     public function device(Request $request, MahjongTable $table)
     {
         $request->validate(['action' => 'required|in:on,off']);

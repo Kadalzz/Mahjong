@@ -27,11 +27,7 @@ class TableDeviceService
         return $this->turnOff($table);
     }
 
-    /**
-     * Manual override (no booking involved) - used by the admin "on/off"
-     * button in Kelola Meja as a fallback when the automatic signal
-     * (e.g. from the payment webhook) fails to reach the ESP32 Master.
-     */
+    
     public function turnOn(MahjongTable $table): bool
     {
         if (empty($table->esp32_meja_id)) {

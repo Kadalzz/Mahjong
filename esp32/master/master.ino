@@ -232,8 +232,6 @@ void setup() {
   webSocket.begin(websocket_server, websocket_port, websocket_path);
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
-  // Ping tiap 15s supaya koneksi tidak dianggap idle & di-drop NAT hotspot
-  // (mati kalau 2x pong berturut-turut tidak dibalas dalam 3s, lalu reconnect).
   webSocket.enableHeartbeat(15000, 3000, 2);
 
   Serial.println("[OK] ESP32 Master siap!");

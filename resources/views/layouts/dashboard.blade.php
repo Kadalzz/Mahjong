@@ -21,7 +21,6 @@
             --dark: #0e300f;
             --card-bg: #f4f1dd;
             --border: rgba(244,241,221,0.14);
-            /* legacy aliases */
             --gold: var(--red);
             --gold-light: var(--red-light);
         }
@@ -29,7 +28,6 @@
         h1, h2, h3, h4, h5, h6 { font-family: 'Baloo 2', sans-serif; }
         body { background: var(--dark); color: var(--cream); }
 
-        /* Sidebar */
         .sidebar {
             position: fixed;
             left: 0; top: 0; bottom: 0;
@@ -86,7 +84,6 @@
         }
         .sidebar-link i { font-size: 1.1rem; width: 20px; text-align: center; }
 
-        /* Main area */
         .main-content {
             margin-left: var(--sidebar-width);
             min-height: 100vh;
@@ -105,7 +102,6 @@
         }
         .page-content { padding: 2rem; }
 
-        /* Cards */
         .stat-card {
             background: var(--card-bg);
             border: 1px solid rgba(58,20,20,0.08);
@@ -145,7 +141,6 @@
         }
         .card-dark .card-body { padding: 1.5rem; }
 
-        /* Table */
         .table-dark-custom {
             color: var(--ink);
             --bs-table-bg: transparent;
@@ -200,7 +195,6 @@
 </head>
 <body>
 
-<!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
     <a class="sidebar-brand" href="{{ route('dashboard.index') }}">
         <x-brand-logo :size="28" />
@@ -253,7 +247,6 @@
     </div>
 </aside>
 
-<!-- Main content -->
 <div class="main-content">
     <div class="topbar">
         <button class="btn btn-sm me-3 d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('show')" style="color:var(--cream);background:transparent;border:1px solid var(--border)">

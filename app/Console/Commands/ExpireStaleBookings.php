@@ -12,10 +12,7 @@ use Illuminate\Console\Command;
 #[Description('Cancel unpaid bookings past their Xendit invoice expiry, freeing the slot even if the payment webhook never arrives')]
 class ExpireStaleBookings extends Command
 {
-    /**
-     * Xendit invoices are created with a 1-hour expiry (see XenditService).
-     * This runs a bit after that so the webhook gets first chance to act.
-     */
+    
     private const STALE_AFTER_MINUTES = 70;
 
     public function handle(XenditService $xendit): int

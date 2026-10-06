@@ -4,7 +4,6 @@
 
 @section('content')
 
-<!-- View toggle -->
 <div class="d-flex gap-2 mb-4">
     <a href="{{ route('dashboard.revenue', ['view' => 'harian']) }}"
        class="btn btn-sm {{ $view === 'harian' ? 'btn-gold' : 'btn-outline-secondary' }}">
@@ -17,7 +16,6 @@
 </div>
 
 @if($view === 'harian')
-<!-- Filter (Harian) -->
 <div class="card-dark mb-4">
     <div class="card-body">
         <form method="GET" class="row g-3 align-items-end">
@@ -41,7 +39,6 @@
     </div>
 </div>
 @else
-<!-- Filter (Bulanan) -->
 <div class="card-dark mb-4">
     <div class="card-body">
         <form method="GET" class="row g-3 align-items-end">
@@ -64,7 +61,6 @@
 </div>
 @endif
 
-<!-- Summary -->
 <div class="row g-3 mb-4">
     <div class="col-sm-4">
         <div class="stat-card">
@@ -89,7 +85,6 @@
 </div>
 
 @if($view === 'harian')
-<!-- Chart (Harian) -->
 @if($chartData->isNotEmpty())
 <div class="card-dark mb-4">
     <div class="card-header"><i class="bi bi-graph-up-arrow me-2 text-gold"></i>Revenue per Hari</div>
@@ -99,7 +94,6 @@
 </div>
 @endif
 @else
-<!-- Chart (Bulanan) -->
 <div class="card-dark mb-4">
     <div class="card-header"><i class="bi bi-bar-chart-fill me-2 text-gold"></i>Revenue per Bulan — {{ $year }}</div>
     <div class="card-body">
@@ -107,7 +101,6 @@
     </div>
 </div>
 
-<!-- Monthly breakdown table -->
 <div class="card-dark mb-4">
     <div class="card-header"><i class="bi bi-table me-2 text-gold"></i>Ringkasan per Bulan</div>
     <div class="card-body p-0">
@@ -145,7 +138,6 @@
 </div>
 @endif
 
-<!-- Table -->
 <div class="card-dark">
     <div class="card-header d-flex justify-content-between">
         <span><i class="bi bi-receipt me-2 text-gold"></i>Detail Transaksi</span>

@@ -26,7 +26,6 @@
     </div>
 </div>
 
-<!-- Chart -->
 <div class="card-dark mb-4">
     <div class="card-header"><i class="bi bi-bar-chart-fill me-2 text-gold"></i>Jam Terpakai per Meja</div>
     <div class="card-body">
@@ -34,7 +33,6 @@
     </div>
 </div>
 
-<!-- Summary Table -->
 <div class="card-dark">
     <div class="card-header"><i class="bi bi-table me-2 text-gold"></i>Ringkasan per Meja</div>
     <div class="card-body p-0">

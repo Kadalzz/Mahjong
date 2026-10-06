@@ -21,9 +21,9 @@ class EndTablePause implements ShouldQueue
     {
         $table = $this->table->fresh();
 
-        // Only revert if this is still the same pause we scheduled - an
-        // admin may have manually changed the status (or started a new,
-        // longer pause) in the meantime.
+        
+        
+        
         if (!$table || $table->status !== 'maintenance' || $table->paused_until === null) {
             return;
         }

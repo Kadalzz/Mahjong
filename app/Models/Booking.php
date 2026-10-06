@@ -62,9 +62,7 @@ class Booking extends Model
         };
     }
 
-    /**
-     * Generate a unique booking code
-     */
+    
     public static function generateCode(): string
     {
         do {

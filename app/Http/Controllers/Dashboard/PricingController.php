@@ -21,10 +21,10 @@ class PricingController extends Controller
             'price_per_hour' => 'required|numeric|min:0',
         ]);
 
-        // Deactivate old pricing
+        
         $table->allPricing()->update(['is_active' => false]);
 
-        // Create new active pricing
+        
         Pricing::create([
             'mahjong_table_id' => $table->id,
             'price_per_hour'   => $request->price_per_hour,

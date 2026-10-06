@@ -16,9 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
 
-        // Trust the reverse proxy (Cloudflare Tunnel locally, platform proxy in
-        // production) so Laravel detects the original request scheme (https)
-        // correctly instead of generating mixed-content http:// URLs.
+        
+        
+        
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {

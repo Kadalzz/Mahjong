@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('booking_id')->constrained()->onDelete('cascade');
             $table->decimal('amount', 12, 2);
-            $table->string('payment_method')->nullable(); // gopay, bank_transfer, card, etc.
+            $table->string('payment_method')->nullable(); 
             $table->string('midtrans_transaction_id')->nullable();
             $table->string('midtrans_status')->nullable();
             $table->json('midtrans_payload')->nullable();

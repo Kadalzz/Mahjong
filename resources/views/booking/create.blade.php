@@ -91,10 +91,8 @@
         <input type="hidden" name="mahjong_table_id" value="{{ $table->id }}">
 
         <div class="row g-4">
-            <!-- Left: Form -->
             <div class="col-lg-8">
 
-                <!-- Step 1: Date & Time -->
                 <div class="form-card mb-4">
                     <h5 class="mb-4"><span class="step-badge">1</span>Pilih Waktu</h5>
 
@@ -139,7 +137,6 @@
                     </div>
                 </div>
 
-                <!-- Step 2: Personal Info -->
                 <div class="form-card mb-4">
                     <h5 class="mb-4"><span class="step-badge">2</span>Data Pemesanan</h5>
 
@@ -169,7 +166,6 @@
                     </div>
                 </div>
 
-                <!-- Step 3: Payment -->
                 <div class="form-card">
                     <h5 class="mb-3"><span class="step-badge">3</span>Pembayaran</h5>
                     <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3" style="background:rgba(58,20,20,0.06)">
@@ -188,7 +184,6 @@
                 </div>
             </div>
 
-            <!-- Right: Summary -->
             <div class="col-lg-4">
                 <div class="summary-card">
                     <div class="text-center mb-3" style="font-size:3rem">🀄</div>

@@ -1,11 +1,5 @@
 <?php
 
-// Thin HTTP-to-TCP relay in front of bridge.php's control port, so the
-// control channel can be tunneled (Cloudflare Tunnel) as plain HTTP when
-// Laravel runs on a cloud host that can't reach 127.0.0.1 on this machine.
-// The wire protocol to bridge.php itself is unchanged - this just forwards
-// the raw request body as-is over TCP and returns the raw response.
-
 $config = require __DIR__ . '/config.php';
 
 $body = file_get_contents('php://input');

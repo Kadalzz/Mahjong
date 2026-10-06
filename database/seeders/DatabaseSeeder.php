@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create admin user
+        
         User::create([
             'name'     => 'Admin',
             'email'    => 'admin@mahjong.com',
@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             'role'     => 'admin',
         ]);
 
-        // Create 6 mahjong tables with pricing
+        
         $tables = [
             ['name' => 'Meja 1 - Reguler',    'price' => 50000],
             ['name' => 'Meja 2 - Reguler',    'price' => 50000],

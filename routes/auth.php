@@ -10,10 +10,6 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
-// No public registration route: admin accounts are provisioned deliberately
-// (seeder/tinker), never self-served. Self-registration + the users.role
-// column defaulting to 'admin' would otherwise let anyone grant themselves
-// dashboard access.
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

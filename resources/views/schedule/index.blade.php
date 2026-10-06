@@ -129,7 +129,6 @@
 
 <div class="container py-4">
 
-    <!-- Date Navigation -->
     <div class="date-nav">
         <i class="bi bi-calendar3 text-gold"></i>
         <span style="color:var(--ink-mute);font-size:0.9rem;font-weight:700;">Tanggal:</span>
@@ -151,16 +150,13 @@
         </div>
     </div>
 
-    <!-- Timeline Grid -->
     <div style="overflow-x:auto">
         <div class="table-grid" style="min-width:600px">
-            <!-- Header row -->
             <div class="grid-header">Waktu</div>
             @foreach($tables as $table)
             <div class="grid-header table-name">{{ $table->name }}</div>
             @endforeach
 
-            <!-- Time rows -->
             @foreach($timeSlots as $slot)
             <div class="grid-time">{{ $slot }}</div>
             @foreach($tables as $table)
@@ -187,14 +183,12 @@
         </div>
     </div>
 
-    <!-- Legend -->
     <div class="d-flex gap-3 mb-4 flex-wrap" style="font-size:0.8rem;color:rgba(244,241,221,0.85);font-weight:600;">
         <span><span class="badge py-1 px-2 me-1" style="background:#DCEFDD;color:#1f7a34">■</span>Aktif / Sudah Bayar</span>
         <span><span class="badge py-1 px-2 me-1" style="background:#FBF0C8;color:#8a6d1a">■</span>Menunggu Pembayaran</span>
         <span><span class="badge py-1 px-2 me-1" style="background:#DCE8F7;color:#2e6fba">■</span>Waiting List</span>
     </div>
 
-    <!-- Waiting List per table -->
     <h5 class="mb-3" style="color:var(--cream);text-transform:uppercase;"><i class="bi bi-clock me-2" style="color:var(--red)"></i>Waiting List Hari Ini</h5>
     <div class="row g-3">
         @foreach($tables as $table)

@@ -51,18 +51,18 @@ class BookingManageController extends Controller
         $oldStatus = $booking->status;
         $booking->update(['status' => $request->status]);
 
-        // Admin activating a table directly (e.g. walk-in paid cash on the spot)
+        
         if ($request->status === 'active' && $oldStatus !== 'active') {
             $this->device->activate($booking->table, $booking);
         }
 
-        // Admin finishing a session early - turn the table off right away
-        // instead of waiting for the originally scheduled auto-off job.
+        
+        
         if ($request->status === 'done' && $oldStatus === 'active') {
             $this->device->deactivate($booking->table, $booking);
         }
 
-        // If marking as done and no transaction, create manual one
+        
         if ($request->status === 'done' && !$booking->transaction) {
             Transaction::create([
                 'booking_id'     => $booking->id,
@@ -73,7 +73,7 @@ class BookingManageController extends Controller
             ]);
         }
 
-        // If cancelled, try to promote waiting booking
+        
         if ($request->status === 'cancelled' && in_array($oldStatus, ['active', 'pending_payment'])) {
             $waiting = Booking::where('mahjong_table_id', $booking->mahjong_table_id)
                 ->whereDate('booking_date', $booking->booking_date)

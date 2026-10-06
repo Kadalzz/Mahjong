@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('mahjong_tables', function (Blueprint $table) {
             $table->id();
-            $table->string('name');          // e.g. "Meja 1"
-            $table->integer('capacity')->default(4); // 4 players per table
+            $table->string('name');          
+            $table->integer('capacity')->default(4); 
             $table->enum('status', ['available', 'occupied', 'maintenance'])->default('available');
             $table->text('description')->nullable();
             $table->timestamps();

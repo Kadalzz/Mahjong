@@ -32,7 +32,7 @@ class RevenueController extends Controller
 
         $totalRevenue = $transactions->sum('amount');
 
-        // Group by date for chart
+        
         $chartData = $transactions->groupBy(function ($t) {
             return $t->paid_at->format('d/m/Y');
         })->map(fn($group) => $group->sum('amount'));

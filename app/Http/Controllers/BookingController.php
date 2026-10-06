@@ -19,9 +19,7 @@ class BookingController extends Controller
     ) {
     }
 
-    /**
-     * Show table selection page
-     */
+    
     public function index()
     {
         $tables = MahjongTable::with('pricing')
@@ -31,9 +29,7 @@ class BookingController extends Controller
         return view('booking.index', compact('tables'));
     }
 
-    /**
-     * Show booking form for a specific table
-     */
+    
     public function create(MahjongTable $table)
     {
         $table->load('pricing');
@@ -46,9 +42,7 @@ class BookingController extends Controller
         return view('booking.create', compact('table'));
     }
 
-    /**
-     * Check availability (AJAX)
-     */
+    
     public function checkAvailability(Request $request, MahjongTable $table)
     {
         $request->validate([
@@ -74,9 +68,7 @@ class BookingController extends Controller
         ]);
     }
 
-    /**
-     * Store booking & create Xendit payment invoice
-     */
+    
     public function store(Request $request)
     {
         $request->validate([
@@ -92,9 +84,9 @@ class BookingController extends Controller
         $startTime     = $request->start_time;
         $endTime       = date('H:i', strtotime($startTime) + ($durationHours * 3600));
 
-        // Lock the table row so two concurrent requests for the same slot
-        // can't both pass the availability check before either has
-        // inserted its booking - otherwise both get seated on it.
+        
+        
+        
         $booking = DB::transaction(function () use ($request, $durationHours, $startTime, $endTime) {
             $table      = MahjongTable::with('pricing')->lockForUpdate()->findOrFail($request->mahjong_table_id);
             $totalPrice = $table->getCurrentPricePerHour() * $durationHours;
@@ -118,7 +110,7 @@ class BookingController extends Controller
 
         $status = $booking->status;
 
-        // Only create a Xendit invoice for non-waiting bookings
+        
         if ($status !== 'waiting') {
             $orderId = 'MJG-' . $booking->id . '-' . time();
             $invoice = $this->xendit->createInvoice($booking, $orderId);
@@ -134,18 +126,14 @@ class BookingController extends Controller
         return redirect()->route('booking.confirm', $booking->booking_code);
     }
 
-    /**
-     * Show booking confirmation page
-     */
+    
     public function confirm(string $code)
     {
         $booking = Booking::with('table')->where('booking_code', $code)->firstOrFail();
         return view('booking.confirm', compact('booking'));
     }
 
-    /**
-     * Show a printable invoice (only available once a booking is paid)
-     */
+    
     public function invoice(string $code)
     {
         $booking = Booking::with(['table', 'transaction'])->where('booking_code', $code)->firstOrFail();
@@ -157,10 +145,7 @@ class BookingController extends Controller
         return view('booking.invoice', compact('booking'));
     }
 
-    /**
-     * Look up a customer's own bookings by code, name, or phone number (no
-     * login, so this is the only way back in once the booking code is lost).
-     */
+    
     public function lookup(Request $request)
     {
         $bookings = collect();
@@ -193,9 +178,7 @@ class BookingController extends Controller
         return view('booking.lookup', compact('bookings', 'searched'));
     }
 
-    /**
-     * Handle Xendit invoice callback (webhook)
-     */
+    
     public function webhook(Request $request)
     {
         $token = $request->header('X-CALLBACK-TOKEN');
@@ -229,7 +212,7 @@ class BookingController extends Controller
                     ]
                 );
 
-                // Xendit may re-send the same callback; only act once per booking.
+                
                 if (!$alreadyActive) {
                     $this->device->activate($booking->table, $booking);
                 }
@@ -245,9 +228,7 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Promote first waiting booking to active when a slot opens up
-     */
+    
     private function promoteWaiting(Booking $cancelledBooking): void
     {
         $waiting = Booking::where('mahjong_table_id', $cancelledBooking->mahjong_table_id)

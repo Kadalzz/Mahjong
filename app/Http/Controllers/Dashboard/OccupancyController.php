@@ -16,7 +16,7 @@ class OccupancyController extends Controller
 
         $tables = MahjongTable::all();
 
-        // Occupancy per table per day
+        
         $occupancyData = [];
         $dates         = [];
 
@@ -39,7 +39,7 @@ class OccupancyController extends Controller
             $current->addDay();
         }
 
-        // Summary: total bookings per table
+        
         $tableSummary = $tables->map(function ($table) use ($from, $to) {
             return [
                 'name'           => $table->name,

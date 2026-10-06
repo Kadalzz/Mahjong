@@ -29,9 +29,7 @@ class MahjongTable extends Model
         return $this->hasMany(Booking::class);
     }
 
-    /**
-     * Check if the table is available for a given date + time slot
-     */
+    
     public function isAvailableAt(string $date, string $startTime, int $durationHours): bool
     {
         $endTime = date('H:i', strtotime($startTime) + ($durationHours * 3600));

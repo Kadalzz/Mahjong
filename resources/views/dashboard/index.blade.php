@@ -5,7 +5,6 @@
 
 @section('content')
 
-<!-- Stat Cards -->
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
         <div class="stat-card">
@@ -66,7 +65,6 @@
     </div>
 </div>
 
-<!-- Chart + Recent Bookings -->
 <div class="row g-4">
     <div class="col-lg-7">
         <div class="card-dark">
