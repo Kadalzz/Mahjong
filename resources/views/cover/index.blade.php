@@ -130,51 +130,28 @@
             animation-delay: 1.5s;
         }
 
-        .cover-band {
-            position: relative;
-            z-index: 2;
-            background: var(--red);
-            padding: 1.75rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1.25rem;
-            flex-wrap: wrap;
-            opacity: 0;
-            animation: fadeUp 0.9s ease forwards;
-            animation-delay: 1.8s;
-        }
-        .cover-band .band-text {
-            font-family: 'Baloo 2', sans-serif;
-            font-weight: 700;
-            color: var(--cream);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            font-size: 0.95rem;
-        }
         .btn-enter {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            background: var(--cream);
-            color: var(--red);
+            background: var(--red);
+            color: var(--cream);
             font-family: 'Baloo 2', sans-serif;
             font-weight: 700;
-            padding: 0.6rem 1.75rem;
+            padding: 0.7rem 2.25rem;
             border-radius: 999px;
             text-decoration: none;
             transition: all 0.25s ease;
+            margin-top: 2rem;
+            opacity: 0;
+            animation: fadeUp 0.9s ease forwards;
+            animation-delay: 1.8s;
         }
         .btn-enter:hover {
-            color: var(--red);
+            color: var(--cream);
+            background: var(--red-light);
             transform: translateY(-2px);
             box-shadow: 0 10px 28px rgba(0,0,0,0.28);
-        }
-        .btn-enter i { transition: transform 0.25s ease; }
-        .btn-enter:hover i { transform: translateX(4px); }
-
-        @media (max-width: 576px) {
-            .cover-band { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
@@ -189,14 +166,8 @@
         </div>
         <div class="cover-eyebrow">Selamat Datang</div>
         <h1 class="split-text" id="splitText" aria-label="Hóng Zhōng Mahjong"></h1>
-        <p class="cover-tagline">Tempat bermain Mahjong dengan reservasi meja yang mudah, cepat, dan nyaman.</p>
-    </div>
-
-    <div class="cover-band">
-        <span class="band-text">Hóng Zhōng Mahjong</span>
-        <a href="{{ route('landing.index') }}" class="btn-enter">
-            Masuk ke Website <i class="bi bi-arrow-right"></i>
-        </a>
+        <p class="cover-tagline">Mahjong & Beers — Open 24 Hours</p>
+        <a href="{{ route('booking.index') }}" class="btn-enter">Book Now</a>
     </div>
 </div>
 

@@ -8,17 +8,15 @@ use App\Http\Controllers\Dashboard\PricingController;
 use App\Http\Controllers\Dashboard\RevenueController;
 use App\Http\Controllers\Dashboard\TableController;
 use App\Http\Controllers\CoverController;
-use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Cover / Landing Page (Public)
+| Cover Page (Public)
 |--------------------------------------------------------------------------
 */
 Route::get('/', [CoverController::class, 'index'])->name('cover.index');
-Route::get('/beranda', [LandingController::class, 'index'])->name('landing.index');
 
 /*
 |--------------------------------------------------------------------------

@@ -71,7 +71,7 @@
 <body>
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
-        <a class="navbar-brand" href="{{ route('landing.index') }}">
+        <a class="navbar-brand" href="{{ route('booking.index') }}">
             <x-brand-logo :size="34" />
             <span>HÓNG ZHŌNG<span class="brand-sub">MAHJONG</span></span>
         </a>
@@ -80,11 +80,6 @@
         </button>
         <div class="collapse navbar-collapse" id="navMain">
             <ul class="navbar-nav ms-auto align-items-center gap-2">
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('landing.index') ? 'active' : '' }}" href="{{ route('landing.index') }}">
-                        <i class="bi bi-house-door me-1"></i>Beranda
-                    </a>
-                </li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('booking.index') || request()->routeIs('booking.create') ? 'active' : '' }}" href="{{ route('booking.index') }}">
                         <i class="bi bi-table me-1"></i>Pesan Meja

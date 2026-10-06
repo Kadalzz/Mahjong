@@ -89,6 +89,34 @@
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 0.35rem; }
 
 .table-icon { flex-shrink: 0; }
+
+.section-label {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cream);
+    font-size: 1.1rem;
+    text-align: center;
+}
+.feature-card {
+    background: var(--cream);
+    border-radius: 18px;
+    padding: 1.75rem;
+    height: 100%;
+    color: var(--ink);
+}
+.feature-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: var(--green);
+    color: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+}
+.feature-card h5 { font-family: 'Baloo 2', sans-serif; font-weight: 700; margin-bottom: 0.5rem; }
+.feature-card p { color: var(--ink-mute); font-size: 0.92rem; margin-bottom: 0; }
 </style>
 @endsection
 
@@ -184,6 +212,40 @@
             <p style="color:rgba(244,241,221,0.6)">Belum ada meja tersedia.</p>
         </div>
         @endforelse
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="section-label mb-4">Reservasi Lebih Mudah</div>
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-clock-history"></i></div>
+                <h5>Buka 24 Jam</h5>
+                <p>Pesan meja kapan saja, dari mana saja, tanpa perlu telepon atau datang langsung.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                <h5>Pembayaran Aman</h5>
+                <p>Transaksi diproses lewat payment gateway terpercaya, cepat dan terenkripsi.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-receipt"></i></div>
+                <h5>Invoice Online</h5>
+                <p>Bukti booking dan invoice bisa langsung dilihat di website setelah pembayaran.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-calendar2-check"></i></div>
+                <h5>Jadwal Transparan</h5>
+                <p>Lihat status setiap meja dan waiting list secara real-time sebelum memesan.</p>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
