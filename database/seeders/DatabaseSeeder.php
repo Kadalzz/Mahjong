@@ -7,18 +7,24 @@ use App\Models\Pricing;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        
+        $adminPassword = env('ADMIN_PASSWORD') ?: Str::password(16);
+
         User::create([
             'name'     => 'Admin',
-            'email'    => 'admin@mahjong.com',
-            'password' => Hash::make('admin123'),
+            'email'    => env('ADMIN_EMAIL', 'admin@mahjong.com'),
+            'password' => Hash::make($adminPassword),
             'role'     => 'admin',
         ]);
+
+        if (!env('ADMIN_PASSWORD')) {
+            $this->command->warn("Admin password (catat sekarang, tidak ditampilkan lagi): {$adminPassword}");
+        }
 
         
         $tables = [
