@@ -91,17 +91,28 @@
                     </div>
                     <span class="badge-status badge-{{ $booking->status }}">{{ $booking->status_label }}</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
                     <div class="fw-700" style="color:var(--red)">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</div>
-                    @if(in_array($booking->status, ['active', 'done']))
-                    <a href="{{ route('booking.invoice', $booking->booking_code) }}" class="btn btn-sm btn-gold">
-                        <i class="bi bi-receipt me-1"></i>Lihat Invoice
-                    </a>
-                    @else
-                    <a href="{{ route('booking.confirm', $booking->booking_code) }}" class="btn btn-sm btn-outline-secondary">
-                        Lihat Status
-                    </a>
-                    @endif
+                    <div class="d-flex gap-2">
+                        @if($booking->canBeCancelledByCustomer())
+                        <form method="POST" action="{{ route('booking.cancel', $booking->booking_code) }}"
+                              onsubmit="return confirm('Batalkan booking ini? Tindakan ini tidak bisa dibatalkan.')">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-secondary" style="color:var(--red);border-color:var(--red);">
+                                Batalkan
+                            </button>
+                        </form>
+                        @endif
+                        @if(in_array($booking->status, ['active', 'done']))
+                        <a href="{{ route('booking.invoice', $booking->booking_code) }}" class="btn btn-sm btn-gold">
+                            <i class="bi bi-receipt me-1"></i>Lihat Invoice
+                        </a>
+                        @else
+                        <a href="{{ route('booking.confirm', $booking->booking_code) }}" class="btn btn-sm btn-outline-secondary">
+                            Lihat Status
+                        </a>
+                        @endif
+                    </div>
                 </div>
             </div>
             @empty

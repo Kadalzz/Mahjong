@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Booking extends Model
 {
+    public const REFUND_WINDOW_HOURS = 24;
+
     protected $fillable = [
         'mahjong_table_id',
         'customer_name',
@@ -18,6 +20,8 @@ class Booking extends Model
         'end_time',
         'total_price',
         'status',
+        'refund_status',
+        'cancelled_at',
         'booking_code',
         'payment_order_id',
         'payment_url',
@@ -26,6 +30,7 @@ class Booking extends Model
     protected $casts = [
         'booking_date' => 'date',
         'total_price' => 'decimal:2',
+        'cancelled_at' => 'datetime',
     ];
 
     public function table(): BelongsTo
@@ -62,7 +67,6 @@ class Booking extends Model
         };
     }
 
-    
     public static function generateCode(): string
     {
         do {
@@ -70,5 +74,39 @@ class Booking extends Model
         } while (self::where('booking_code', $code)->exists());
 
         return $code;
+    }
+
+    public function getRefundStatusLabelAttribute(): ?string
+    {
+        return match ($this->refund_status) {
+            'refundable'     => 'Dana Dikembalikan',
+            'non_refundable' => 'Tidak Dikembalikan',
+            default          => null,
+        };
+    }
+
+    public function canBeCancelledByCustomer(): bool
+    {
+        if (!in_array($this->status, ['pending_payment', 'waiting', 'active'])) {
+            return false;
+        }
+
+        return now()->lt($this->startsAt());
+    }
+
+    public function startsAt(): \Carbon\Carbon
+    {
+        return \Carbon\Carbon::parse($this->booking_date->toDateString() . ' ' . $this->start_time);
+    }
+
+    public function determineRefundStatus(): ?string
+    {
+        if (!$this->transaction) {
+            return null;
+        }
+
+        $hoursUntilStart = ($this->startsAt()->timestamp - now()->timestamp) / 3600;
+
+        return $hoursUntilStart >= self::REFUND_WINDOW_HOURS ? 'refundable' : 'non_refundable';
     }
 }

@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\MahjongTable;
 use App\Models\Transaction;
+use App\Services\DokuService;
 use App\Services\TableDeviceService;
-use App\Services\XenditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 class BookingController extends Controller
 {
     public function __construct(
-        private XenditService $xendit,
+        private DokuService $doku,
         private TableDeviceService $device,
     ) {
     }
@@ -47,7 +47,7 @@ class BookingController extends Controller
     {
         $request->validate([
             'booking_date'   => 'required|date|after_or_equal:today',
-            'start_time'     => 'required',
+            'start_time'     => 'required|date_format:H:i',
             'duration_hours' => 'required|integer|min:1|max:8',
         ]);
 
@@ -74,9 +74,9 @@ class BookingController extends Controller
         $request->validate([
             'mahjong_table_id' => 'required|exists:mahjong_tables,id',
             'customer_name'    => 'required|string|max:100',
-            'customer_phone'   => 'required|string|max:20',
+            'customer_phone'   => 'required|digits_between:9,13',
             'booking_date'     => 'required|date|after_or_equal:today',
-            'start_time'       => 'required',
+            'start_time'       => 'required|date_format:H:i',
             'duration_hours'   => 'required|integer|min:1|max:8',
         ]);
 
@@ -113,7 +113,7 @@ class BookingController extends Controller
         
         if ($status !== 'waiting') {
             $orderId = 'MJG-' . $booking->id . '-' . time();
-            $invoice = $this->xendit->createInvoice($booking, $orderId);
+            $invoice = $this->doku->createInvoice($booking, $orderId);
 
             if ($invoice) {
                 $booking->update([
@@ -178,24 +178,48 @@ class BookingController extends Controller
         return view('booking.lookup', compact('bookings', 'searched'));
     }
 
-    
+    public function cancel(string $code)
+    {
+        $booking = Booking::with(['table', 'transaction'])->where('booking_code', $code)->firstOrFail();
+
+        if (!$booking->canBeCancelledByCustomer()) {
+            return back()->with('error', 'Booking ini sudah tidak bisa dibatalkan.');
+        }
+
+        $wasActive    = $booking->status === 'active';
+        $refundStatus = $booking->determineRefundStatus();
+
+        $booking->update([
+            'status'        => 'cancelled',
+            'refund_status' => $refundStatus,
+            'cancelled_at'  => now(),
+        ]);
+
+        if ($wasActive) {
+            $this->device->deactivate($booking->table, $booking);
+        }
+
+        $this->promoteWaiting($booking);
+
+        return redirect()->route('booking.confirm', $booking->booking_code)
+            ->with('success', 'Booking berhasil dibatalkan.');
+    }
+
     public function webhook(Request $request)
     {
-        $token = $request->header('X-CALLBACK-TOKEN');
-
-        if (empty($token) || !hash_equals((string) config('xendit.callback_token'), (string) $token)) {
-            Log::warning('Xendit webhook rejected: invalid callback token.');
+        if (!$this->doku->verifyWebhookSignature($request)) {
+            Log::warning('DOKU webhook rejected: invalid signature.');
             return response()->json(['status' => 'unauthorized'], 401);
         }
 
         try {
-            $payload    = $request->all();
-            $externalId = $payload['external_id'] ?? null;
-            $status     = $payload['status'] ?? null;
+            $payload       = $request->all();
+            $invoiceNumber = $payload['order']['invoice_number'] ?? null;
+            $status        = $payload['transaction']['status'] ?? null;
 
-            $booking = Booking::with('table')->where('payment_order_id', $externalId)->firstOrFail();
+            $booking = Booking::with('table')->where('payment_order_id', $invoiceNumber)->firstOrFail();
 
-            if ($status === 'PAID' || $status === 'SETTLED') {
+            if ($status === 'SUCCESS') {
                 $alreadyActive = $booking->status === 'active';
 
                 $booking->update(['status' => 'active']);
@@ -203,32 +227,30 @@ class BookingController extends Controller
                 Transaction::updateOrCreate(
                     ['booking_id' => $booking->id],
                     [
-                        'amount'                 => $payload['paid_amount'] ?? $payload['amount'] ?? $booking->total_price,
-                        'payment_method'         => $payload['payment_channel'] ?? $payload['payment_method'] ?? null,
-                        'gateway_transaction_id' => $payload['id'] ?? null,
+                        'amount'                 => $payload['order']['amount'] ?? $booking->total_price,
+                        'payment_method'         => $payload['channel']['id'] ?? $payload['service']['id'] ?? null,
+                        'gateway_transaction_id' => $payload['transaction']['original_request_id'] ?? null,
                         'gateway_status'         => $status,
                         'gateway_payload'        => $payload,
                         'paid_at'                => now(),
                     ]
                 );
 
-                
                 if (!$alreadyActive) {
                     $this->device->activate($booking->table, $booking);
                 }
-            } elseif (in_array($status, ['EXPIRED', 'FAILED'])) {
+            } elseif ($status === 'FAILED') {
                 $booking->update(['status' => 'cancelled']);
                 $this->promoteWaiting($booking);
             }
 
             return response()->json(['status' => 'ok']);
         } catch (\Exception $e) {
-            Log::error('Xendit webhook error: ' . $e->getMessage());
+            Log::error('DOKU webhook error: ' . $e->getMessage());
             return response()->json(['status' => 'error'], 500);
         }
     }
 
-    
     private function promoteWaiting(Booking $cancelledBooking): void
     {
         $waiting = Booking::where('mahjong_table_id', $cancelledBooking->mahjong_table_id)
@@ -243,7 +265,7 @@ class BookingController extends Controller
 
         if ($waiting) {
             $orderId = 'MJG-' . $waiting->id . '-' . time();
-            $invoice = $this->xendit->createInvoice($waiting, $orderId);
+            $invoice = $this->doku->createInvoice($waiting, $orderId);
 
             $waiting->update(array_filter([
                 'status'           => 'pending_payment',

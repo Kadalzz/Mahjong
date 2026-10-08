@@ -23,14 +23,17 @@ Route::post('/booking', [BookingController::class, 'store'])
     ->name('booking.store');
 Route::get('/booking/confirm/{code}', [BookingController::class, 'confirm'])->name('booking.confirm');
 Route::get('/booking/invoice/{code}', [BookingController::class, 'invoice'])->name('booking.invoice');
+Route::post('/booking/{code}/cancel', [BookingController::class, 'cancel'])
+    ->middleware('throttle:10,1')
+    ->name('booking.cancel');
 Route::get('/cek-booking', [BookingController::class, 'lookup'])
     ->middleware('throttle:10,1')
     ->name('booking.lookup');
 
 Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.index');
 
-Route::post('/xendit/webhook', [BookingController::class, 'webhook'])
-    ->name('xendit.webhook')
+Route::post('/doku/webhook', [BookingController::class, 'webhook'])
+    ->name('doku.webhook')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class]);
 
 require __DIR__ . '/auth.php';

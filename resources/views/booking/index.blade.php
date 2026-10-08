@@ -47,11 +47,6 @@
     border-color: rgba(85,20,20,0.3);
     color: var(--ink);
 }
-.table-card.unavailable {
-    opacity: 0.6;
-    cursor: not-allowed;
-    pointer-events: none;
-}
 .table-card.maintenance {
     opacity: 0.55;
     cursor: not-allowed;
@@ -155,10 +150,10 @@
     <div class="row g-4">
         @forelse($tables as $table)
         <div class="col-md-6 col-lg-4">
-            @if($table->status === 'available')
+            @if($table->status !== 'maintenance')
             <a href="{{ route('booking.create', $table) }}" class="table-card">
             @else
-            <div class="table-card {{ $table->status === 'occupied' ? 'unavailable' : 'maintenance' }}">
+            <div class="table-card maintenance">
             @endif
                 <div class="table-body">
                     <div class="table-icon-row">
@@ -192,15 +187,15 @@
                             @endif
                         </div>
                     </div>
-                    @if($table->status === 'available')
+                    @if($table->status !== 'maintenance')
                     <div class="mt-3">
                         <span class="btn btn-gold btn-sm w-100">
-                            PESAN SEKARANG
+                            {{ $table->status === 'occupied' ? 'CEK JADWAL LAIN' : 'PESAN SEKARANG' }}
                         </span>
                     </div>
                     @endif
                 </div>
-            @if($table->status === 'available')
+            @if($table->status !== 'maintenance')
             </a>
             @else
             </div>

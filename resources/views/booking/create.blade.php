@@ -108,15 +108,11 @@
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label">Jam Mulai</label>
-                            <select name="start_time" id="start_time" class="form-select @error('start_time') is-invalid @enderror" required>
-                                <option value="">-- Pilih Jam --</option>
-                                @for($h = 8; $h < 24; $h++)
-                                <option value="{{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:00"
-                                    {{ old('start_time') === str_pad($h, 2, '0', STR_PAD_LEFT).':00' ? 'selected' : '' }}>
-                                    {{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:00
-                                </option>
-                                @endfor
-                            </select>
+                            <input type="time" name="start_time" id="start_time"
+                                class="form-control @error('start_time') is-invalid @enderror"
+                                min="08:00" max="23:45" step="60"
+                                value="{{ old('start_time') }}"
+                                required>
                             @error('start_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-sm-4">
@@ -158,6 +154,9 @@
                                     class="form-control @error('customer_phone') is-invalid @enderror"
                                     style="border-radius:0 999px 999px 0 !important;"
                                     placeholder="8xx xxxx xxxx"
+                                    inputmode="numeric"
+                                    pattern="[0-9]{9,13}"
+                                    minlength="9" maxlength="13"
                                     value="{{ old('customer_phone') }}"
                                     required>
                             </div>
@@ -169,10 +168,9 @@
                 <div class="form-card">
                     <h5 class="mb-3"><span class="step-badge">3</span>Pembayaran</h5>
                     <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3" style="background:rgba(58,20,20,0.06)">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/MidtransLogo.png/320px-MidtransLogo.png"
-                             alt="Midtrans" height="24">
+                        <i class="bi bi-shield-lock-fill" style="font-size:1.5rem;color:var(--red)"></i>
                         <div style="font-size:0.85rem;color:var(--ink-mute)">
-                            Dibayar via Midtrans — GoPay, OVO, DANA, Transfer Bank, Kartu Kredit
+                            Dibayar via DOKU — Virtual Account, QRIS, Kartu Kredit, dan metode lainnya
                         </div>
                     </div>
                     <button type="submit" id="submitBtn" class="btn btn-gold btn-lg w-100" disabled>
@@ -248,9 +246,12 @@ function updateSummary() {
     document.getElementById('s-total').textContent = dur ? formatRupiah(pricePerHour * dur) : '—';
 
     if (start && dur) {
-        const [h] = start.split(':').map(Number);
-        const endH = h + dur;
-        document.getElementById('s-time').textContent = `${start} – ${String(endH).padStart(2,'0')}:00`;
+        const [h, m] = start.split(':').map(Number);
+        const totalMinutes = (h * 60 + m) + (dur * 60);
+        const endH = Math.floor(totalMinutes / 60) % 24;
+        const endM = totalMinutes % 60;
+        const endTime = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
+        document.getElementById('s-time').textContent = `${start} – ${endTime}`;
     } else {
         document.getElementById('s-time').textContent = '—';
     }
@@ -312,6 +313,10 @@ function checkAvailability() {
 
 ['booking_date', 'start_time', 'duration_hours'].forEach(id => {
     document.getElementById(id).addEventListener('change', checkAvailability);
+});
+
+document.getElementById('customer_phone').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 13);
 });
 
 updateSummary();

@@ -67,6 +67,13 @@
 @section('content')
 <div class="confirm-wrapper">
     <div class="container">
+        @if($booking->status === 'active')
+        <div id="redirectBanner" class="text-center py-2 px-3 mb-3 rounded-3" style="max-width:560px;margin:0 auto 1rem;background:#DCEFDD;color:#1f7a34;font-size:0.85rem;">
+            <i class="bi bi-check-circle-fill me-1"></i>
+            Pembayaran berhasil! Kembali ke halaman Pesan Meja dalam <span id="redirectCountdown">60</span> detik&hellip;
+            <button type="button" id="cancelRedirect" class="btn btn-sm btn-link p-0 ms-1" style="font-size:0.85rem;color:#1f7a34;text-decoration:underline;">Batal</button>
+        </div>
+        @endif
         <div class="confirm-card">
             <div class="confirm-header">
                 @if($booking->status === 'waiting')
@@ -135,6 +142,12 @@
                     <span class="info-label">Total Bayar</span>
                     <span class="info-value">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</span>
                 </div>
+                @if($booking->refund_status_label)
+                <div class="info-row">
+                    <span class="info-label">Status Refund</span>
+                    <span class="info-value">{{ $booking->refund_status_label }}</span>
+                </div>
+                @endif
 
                 <div class="mt-4 d-flex flex-column gap-2">
                     @if($booking->status === 'pending_payment' && $booking->payment_url)
@@ -145,6 +158,16 @@
                     <a href="{{ route('booking.invoice', $booking->booking_code) }}" class="btn btn-gold btn-lg w-100">
                         <i class="bi bi-receipt me-2"></i>Lihat Invoice
                     </a>
+                    @endif
+
+                    @if($booking->canBeCancelledByCustomer())
+                    <form method="POST" action="{{ route('booking.cancel', $booking->booking_code) }}"
+                          onsubmit="return confirm('Batalkan booking ini? Tindakan ini tidak bisa dibatalkan.')">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-secondary w-100" style="color:var(--red);border-color:var(--red);">
+                            <i class="bi bi-x-circle me-2"></i>Batalkan Booking
+                        </button>
+                    </form>
                     @endif
 
                     <a href="{{ route('schedule.index') }}" class="btn btn-outline-secondary">
@@ -159,3 +182,36 @@
     </div>
 </div>
 @endsection
+
+@if($booking->status === 'active')
+@section('scripts')
+<script>
+(function () {
+    let seconds = 60;
+    const el = document.getElementById('redirectCountdown');
+    const banner = document.getElementById('redirectBanner');
+    const cancelBtn = document.getElementById('cancelRedirect');
+    let cancelled = false;
+
+    const interval = setInterval(function () {
+        seconds--;
+        if (el) el.textContent = seconds;
+        if (seconds <= 0) {
+            clearInterval(interval);
+            if (!cancelled) {
+                window.location.href = "{{ route('booking.index') }}";
+            }
+        }
+    }, 1000);
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function () {
+            cancelled = true;
+            clearInterval(interval);
+            if (banner) banner.style.display = 'none';
+        });
+    }
+})();
+</script>
+@endsection
+@endif

@@ -82,6 +82,11 @@
                             <span class="badge-s-{{ $bk->status === 'pending_payment' ? 'pending' : $bk->status }}">
                                 {{ $bk->status_label }}
                             </span>
+                            @if($bk->refund_status_label)
+                            <div style="font-size:0.72rem;color:var(--ink-mute);margin-top:0.25rem;">
+                                <i class="bi bi-cash-coin me-1"></i>{{ $bk->refund_status_label }}
+                            </div>
+                            @endif
                         </td>
                         <td class="text-center">
                             @if(!in_array($bk->status, ['done', 'cancelled']))

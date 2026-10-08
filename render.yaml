@@ -53,12 +53,14 @@ services:
         value: database
       - key: MAIL_MAILER
         value: log
-      - key: XENDIT_SECRET_KEY
+      - key: DOKU_CLIENT_ID
         sync: false
-      - key: XENDIT_CALLBACK_TOKEN
+      - key: DOKU_SECRET_KEY
         sync: false
-      - key: XENDIT_API_URL
-        value: https://api.xendit.co
+      - key: DOKU_IS_PRODUCTION
+        value: "true"
+      - key: DOKU_PAYMENT_DUE_MINUTES
+        value: "60"
       - key: ESP32_BRIDGE_MODE
         value: http
       - key: ESP32_BRIDGE_HTTP_URL

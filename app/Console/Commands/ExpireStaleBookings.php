@@ -3,19 +3,18 @@
 namespace App\Console\Commands;
 
 use App\Models\Booking;
-use App\Services\XenditService;
+use App\Services\DokuService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('app:expire-stale-bookings')]
-#[Description('Cancel unpaid bookings past their Xendit invoice expiry, freeing the slot even if the payment webhook never arrives')]
+#[Description('Cancel unpaid bookings past their DOKU payment expiry, freeing the slot even if the payment webhook never arrives')]
 class ExpireStaleBookings extends Command
 {
-    
     private const STALE_AFTER_MINUTES = 70;
 
-    public function handle(XenditService $xendit): int
+    public function handle(DokuService $doku): int
     {
         $stale = Booking::with('table')
             ->where('status', 'pending_payment')
@@ -38,7 +37,7 @@ class ExpireStaleBookings extends Command
 
             if ($waiting) {
                 $orderId = 'MJG-' . $waiting->id . '-' . time();
-                $invoice = $xendit->createInvoice($waiting, $orderId);
+                $invoice = $doku->createInvoice($waiting, $orderId);
 
                 $waiting->update(array_filter([
                     'status'           => 'pending_payment',

@@ -5,15 +5,15 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Transaction;
+use App\Services\DokuService;
 use App\Services\TableDeviceService;
-use App\Services\XenditService;
 use Illuminate\Http\Request;
 
 class BookingManageController extends Controller
 {
     public function __construct(
         private TableDeviceService $device,
-        private XenditService $xendit,
+        private DokuService $doku,
     ) {
     }
 
@@ -49,20 +49,22 @@ class BookingManageController extends Controller
         ]);
 
         $oldStatus = $booking->status;
-        $booking->update(['status' => $request->status]);
 
-        
+        $updates = ['status' => $request->status];
+        if ($request->status === 'cancelled') {
+            $updates['refund_status'] = $booking->determineRefundStatus();
+            $updates['cancelled_at']  = now();
+        }
+        $booking->update($updates);
+
         if ($request->status === 'active' && $oldStatus !== 'active') {
             $this->device->activate($booking->table, $booking);
         }
 
-        
-        
-        if ($request->status === 'done' && $oldStatus === 'active') {
+        if (in_array($request->status, ['done', 'cancelled']) && $oldStatus === 'active') {
             $this->device->deactivate($booking->table, $booking);
         }
 
-        
         if ($request->status === 'done' && !$booking->transaction) {
             Transaction::create([
                 'booking_id'     => $booking->id,
@@ -73,7 +75,6 @@ class BookingManageController extends Controller
             ]);
         }
 
-        
         if ($request->status === 'cancelled' && in_array($oldStatus, ['active', 'pending_payment'])) {
             $waiting = Booking::where('mahjong_table_id', $booking->mahjong_table_id)
                 ->whereDate('booking_date', $booking->booking_date)
@@ -87,7 +88,7 @@ class BookingManageController extends Controller
 
             if ($waiting) {
                 $orderId = 'MJG-' . $waiting->id . '-' . time();
-                $invoice = $this->xendit->createInvoice($waiting, $orderId);
+                $invoice = $this->doku->createInvoice($waiting, $orderId);
 
                 $waiting->update(array_filter([
                     'status'           => 'pending_payment',
