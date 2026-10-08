@@ -66,7 +66,7 @@ Master lalu meneruskan perintah ke Client yang sesuai lewat ESP-NOW, dan Client 
 
 ESP-NOW cuma bisa komunikasi antar perangkat yang berada di channel WiFi yang sama. Master otomatis pakai channel dari router yang ia sambungkan, sedangkan Client (yang tidak konek ke access point) harus di-set manual ke channel yang sama (`WIFI_CHANNEL` di tiap `clientN.ino`). Kalau Client tidak menyala/menerima perintah sama sekali, ini penyebab paling umum — cek ulang channel-nya lewat Serial Monitor Master.
 
-**Penting:** `client2.ino` (Meja 2) sekarang masih pakai `WIFI_CHANNEL = 1`, beda dengan yang lain (`client1.ino`, `client3.ino`-`client6.ino`) yang pakai `4`. Cek channel asli yang tercetak di Serial Monitor Master Anda, lalu samakan semua file client ke angka itu — kalau beda, Meja 2 tidak akan bisa menerima perintah sama sekali.
+Semua file `clientN.ino` saat ini sudah di-set `WIFI_CHANNEL = 6`, mengikuti channel WiFi toko yang sebenarnya. Kalau router berganti channel di kemudian hari, update nilai ini di semua file client lalu flash ulang.
 
 ## Catatan keamanan
 

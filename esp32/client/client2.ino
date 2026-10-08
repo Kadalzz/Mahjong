@@ -3,7 +3,7 @@
 #include <esp_wifi.h>
 
 const int RELAY_PIN = 25;
-const int WIFI_CHANNEL = 1;
+const int WIFI_CHANNEL = 6;
 const uint8_t MEJA_ID = 2;
 const char NAMA_MEJA[10] = "Meja2";
 
