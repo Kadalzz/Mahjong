@@ -6,7 +6,7 @@
 const char* ssid     = "NAMA_WIFI_TOKO";
 const char* password = "PASSWORD_WIFI";
 
-const char* websocket_server = "192.168.1.5";
+const char* websocket_server = "192.168.1.8";
 const uint16_t websocket_port = 81;
 const char* websocket_path = "/";
 
@@ -232,7 +232,8 @@ void setup() {
     }
   }
 
-  Serial.println("Menghubungkan ke bridge WebSocket...");
+  Serial.printf("Menghubungkan ke bridge WebSocket di ws://%s:%d%s\n",
+                websocket_server, websocket_port, websocket_path);
   webSocket.begin(websocket_server, websocket_port, websocket_path);
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
