@@ -6,7 +6,7 @@
 const char* ssid     = "NAMA_WIFI_TOKO";
 const char* password = "PASSWORD_WIFI";
 
-const char* websocket_server = "192.168.1.8";
+const char* websocket_server = "172.20.10.3";
 const uint16_t websocket_port = 81;
 const char* websocket_path = "/";
 
