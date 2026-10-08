@@ -8,7 +8,7 @@ Laravel (server)  --TCP lokal-->  esp32-bridge/bridge.php  --WebSocket-->  ESP32
 
 - **`esp32-bridge/bridge.php`**: proses PHP terpisah (bukan bagian dari aplikasi Laravel) yang jadi WebSocket **server**. ESP32 Master konek ke sini sebagai client. Laravel mengirim perintah ke proses ini lewat koneksi TCP lokal (`127.0.0.1`, tidak diekspos ke jaringan).
 - **`esp32/master/master.ino`**: satu perangkat, terhubung ke WiFi lokal, konek sebagai WebSocket client ke bridge, lalu meneruskan perintah ke Client yang dituju lewat ESP-NOW.
-- **`esp32/client/client.ino`**: satu per meja, tidak perlu WiFi (cukup ESP-NOW), nyalakan/matikan relay saat dapat perintah dari Master, dan kirim ACK balik.
+- **`esp32/client/client1.ino` – `client6.ino`**: satu file per meja, tidak perlu WiFi (cukup ESP-NOW), nyalakan/matikan relay saat dapat perintah dari Master, dan kirim ACK balik.
 
 Auto-off (mematikan meja saat waktu booking habis) dijadwalkan oleh Laravel sendiri (bukan oleh firmware) - lihat `App\Jobs\DeactivateTableDevice`.
 
@@ -39,8 +39,8 @@ return [
 
 ## Langkah setup
 
-1. **Flash `client.ino`** ke tiap ESP32 meja. Sebelum flash, ganti `MEJA_ID` dan `NAMA_MEJA` supaya unik per meja. Buka Serial Monitor (115200 baud) — akan tercetak MAC address perangkat itu, catat untuk langkah berikutnya.
-2. **Isi `master.ino`**: ganti `ssid`, `password`, `websocket_server` (IP komputer yang menjalankan `bridge.php`), lalu tambahkan MAC tiap Client ke array `clientMAC[]` sesuai urutan `meja_id`-nya (perbesar `NUM_MEJA` kalau menambah meja). Lalu flash ke ESP32 Master.
+1. **Flash `client1.ino` s.d. `client6.ino`** (satu file per meja, sudah disiapkan dengan `MEJA_ID`/`NAMA_MEJA`/`RELAY_PIN` masing-masing) ke ESP32 meja yang sesuai. Buka Serial Monitor (115200 baud) — akan tercetak MAC address perangkat itu, catat untuk langkah berikutnya. Kalau nambah meja baru di luar 1-6, duplikat salah satu file lalu ganti ketiga nilai itu supaya unik.
+2. **Isi `master.ino`**: ganti `ssid`, `password`, `websocket_server` (IP komputer yang menjalankan `bridge.php`), lalu ganti MAC placeholder (`0x00...0x0N`) di array `clientMAC[]` dengan MAC asli tiap Client sesuai urutan `meja_id`-nya (perbesar `NUM_MEJA` kalau menambah meja di luar 6). Lalu flash ke ESP32 Master.
 3. Jalankan `esp32-bridge/bridge.php` di komputer yang sama dengan Laravel.
 4. Di Laravel `.env`, isi:
    ```
@@ -64,7 +64,9 @@ Master lalu meneruskan perintah ke Client yang sesuai lewat ESP-NOW, dan Client 
 
 ## Kenapa channel WiFi harus sama?
 
-ESP-NOW cuma bisa komunikasi antar perangkat yang berada di channel WiFi yang sama. Master otomatis pakai channel dari router yang ia sambungkan, sedangkan Client (yang tidak konek ke access point) harus di-set manual ke channel yang sama (`WIFI_CHANNEL` di `client.ino`). Kalau Client tidak menyala/menerima perintah sama sekali, ini penyebab paling umum — cek ulang channel-nya lewat Serial Monitor Master.
+ESP-NOW cuma bisa komunikasi antar perangkat yang berada di channel WiFi yang sama. Master otomatis pakai channel dari router yang ia sambungkan, sedangkan Client (yang tidak konek ke access point) harus di-set manual ke channel yang sama (`WIFI_CHANNEL` di tiap `clientN.ino`). Kalau Client tidak menyala/menerima perintah sama sekali, ini penyebab paling umum — cek ulang channel-nya lewat Serial Monitor Master.
+
+**Penting:** `client2.ino` (Meja 2) sekarang masih pakai `WIFI_CHANNEL = 1`, beda dengan yang lain (`client1.ino`, `client3.ino`-`client6.ino`) yang pakai `4`. Cek channel asli yang tercetak di Serial Monitor Master Anda, lalu samakan semua file client ke angka itu — kalau beda, Meja 2 tidak akan bisa menerima perintah sama sekali.
 
 ## Catatan keamanan
 

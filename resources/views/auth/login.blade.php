@@ -105,7 +105,7 @@
     <div class="login-logo">
         <span class="tile"><x-brand-logo :size="52" variant="dark" /></span>
         <h1>Hóng Zhōng Mahjong</h1>
-        <p>Login Admin & Viewer</p>
+        <p>Login Admin</p>
     </div>
 
     @if ($errors->any())
