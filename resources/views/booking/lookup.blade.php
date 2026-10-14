@@ -48,7 +48,6 @@
 
 .badge-status { padding: 0.35em 0.85em; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
 .badge-pending_payment { background: #FBF0C8; color: #8a6d1a; }
-.badge-waiting          { background: #DCE8F7; color: #2e6fba; }
 .badge-active            { background: #DCEFDD; color: #1f7a34; }
 .badge-done              { background: rgba(58,20,20,0.08); color: var(--ink-mute); }
 .badge-cancelled         { background: #F6DEDE; color: var(--red); }
@@ -87,22 +86,13 @@
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                     <div>
                         <div class="result-code">{{ $booking->booking_code }}</div>
-                        <div class="result-meta mt-1">{{ $booking->table->name }} &middot; {{ $booking->booking_date->translatedFormat('d M Y') }} &middot; {{ substr($booking->start_time, 0, 5) }}–{{ substr($booking->end_time, 0, 5) }}</div>
+                        <div class="result-meta mt-1">{{ $booking->table->name }} &middot; {{ $booking->booking_date->translatedFormat('d M Y') }} &middot; {{ $booking->time_range_label }}</div>
                     </div>
                     <span class="badge-status badge-{{ $booking->status }}">{{ $booking->status_label }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
                     <div class="fw-700" style="color:var(--red)">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</div>
                     <div class="d-flex gap-2">
-                        @if($booking->canBeCancelledByCustomer())
-                        <form method="POST" action="{{ route('booking.cancel', $booking->booking_code) }}"
-                              onsubmit="return confirm('Batalkan booking ini? Tindakan ini tidak bisa dibatalkan.')">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-outline-secondary" style="color:var(--red);border-color:var(--red);">
-                                Batalkan
-                            </button>
-                        </form>
-                        @endif
                         @if(in_array($booking->status, ['active', 'done']))
                         <a href="{{ route('booking.invoice', $booking->booking_code) }}" class="btn btn-sm btn-gold">
                             <i class="bi bi-receipt me-1"></i>Lihat Invoice

@@ -17,7 +17,6 @@
                 <select name="status" class="form-select" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
                     <option value="">Semua Status</option>
                     <option value="pending_payment" {{ request('status') === 'pending_payment' ? 'selected' : '' }}>Menunggu Pembayaran</option>
-                    <option value="waiting"         {{ request('status') === 'waiting'         ? 'selected' : '' }}>Waiting List</option>
                     <option value="active"          {{ request('status') === 'active'          ? 'selected' : '' }}>Aktif</option>
                     <option value="done"            {{ request('status') === 'done'            ? 'selected' : '' }}>Selesai</option>
                     <option value="cancelled"       {{ request('status') === 'cancelled'       ? 'selected' : '' }}>Dibatalkan</option>
@@ -71,7 +70,7 @@
                         <td style="font-size:0.875rem">
                             {{ $bk->booking_date->format('d/m/Y') }}<br>
                             <span style="color:var(--ink-mute);font-size:0.78rem">
-                                {{ substr($bk->start_time, 0, 5) }} – {{ substr($bk->end_time, 0, 5) }}
+                                {{ $bk->time_range_label }}
                             </span>
                         </td>
                         <td style="font-size:0.875rem">{{ $bk->duration_hours }} jam</td>

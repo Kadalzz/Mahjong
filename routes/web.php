@@ -23,9 +23,9 @@ Route::post('/booking', [BookingController::class, 'store'])
     ->name('booking.store');
 Route::get('/booking/confirm/{code}', [BookingController::class, 'confirm'])->name('booking.confirm');
 Route::get('/booking/invoice/{code}', [BookingController::class, 'invoice'])->name('booking.invoice');
-Route::post('/booking/{code}/cancel', [BookingController::class, 'cancel'])
-    ->middleware('throttle:10,1')
-    ->name('booking.cancel');
+Route::get('/booking/status/{code}', [BookingController::class, 'status'])
+    ->middleware('throttle:30,1')
+    ->name('booking.status');
 Route::get('/cek-booking', [BookingController::class, 'lookup'])
     ->middleware('throttle:10,1')
     ->name('booking.lookup');

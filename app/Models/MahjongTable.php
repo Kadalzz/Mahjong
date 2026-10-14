@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -30,20 +31,42 @@ class MahjongTable extends Model
     }
 
     
-    public function isAvailableAt(string $date, string $startTime, int $durationHours): bool
+    public function isAvailableAt(string $date, string $startTime, int $durationHours, ?int $exceptBookingId = null): bool
     {
-        $endTime = date('H:i', strtotime($startTime) + ($durationHours * 3600));
+        $startsAt = Booking::startDateTime($date, $startTime);
+        $endsAt   = $startsAt->copy()->addHours($durationHours);
 
         return !$this->bookings()
-            ->whereDate('booking_date', $date)
-            ->whereIn('status', ['pending_payment', 'active', 'waiting'])
-            ->where(function ($q) use ($startTime, $endTime) {
-                $q->where(function ($q2) use ($startTime, $endTime) {
-                    $q2->where('start_time', '<', $endTime)
-                       ->where('end_time', '>', $startTime);
-                });
-            })
+            ->blocking()
+            ->when($exceptBookingId, fn ($q) => $q->where('id', '!=', $exceptBookingId))
+            ->where('starts_at', '<', $endsAt)
+            ->where('ends_at', '>', $startsAt)
             ->exists();
+    }
+
+    public function bookingsOverlappingDay(string $date)
+    {
+        $dayStart = Carbon::parse($date)->startOfDay();
+
+        return $this->bookings()
+            ->blocking()
+            ->where('starts_at', '<', $dayStart->copy()->addDay())
+            ->where('ends_at', '>', $dayStart)
+            ->orderBy('starts_at');
+    }
+
+    public function busySlotsOn(string $date)
+    {
+        $dayStart = Carbon::parse($date)->startOfDay();
+
+        return $this->bookingsOverlappingDay($date)
+            ->get()
+            ->map(fn (Booking $b) => [
+                'start'  => $b->startsAt()->lt($dayStart) ? '00:00' : $b->startsAt()->format('H:i'),
+                'end'    => $b->endsAt()->gte($dayStart->copy()->addDay()) ? '24:00' : $b->endsAt()->format('H:i'),
+                'status' => $b->status,
+            ])
+            ->values();
     }
 
     public function getCurrentPricePerHour(): float

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\ActivateTableDevice;
 use App\Jobs\DeactivateTableDevice;
 use App\Models\Booking;
 use App\Models\MahjongTable;
@@ -12,12 +13,21 @@ class TableDeviceService
 {
     public function activate(MahjongTable $table, Booking $booking): bool
     {
+        $startsAt = $booking->startsAt();
+        $endsAt   = $booking->endsAt();
+
+        if (now()->gte($endsAt)) {
+            return false;
+        }
+
+        if (now()->lt($startsAt)) {
+            ActivateTableDevice::dispatch($booking)->delay($startsAt);
+            return true;
+        }
+
         $sent = $this->turnOn($table);
 
-        if ($sent) {
-            DeactivateTableDevice::dispatch($booking)
-                ->delay(now()->addHours($booking->duration_hours));
-        }
+        DeactivateTableDevice::dispatch($booking)->delay($endsAt);
 
         return $sent;
     }

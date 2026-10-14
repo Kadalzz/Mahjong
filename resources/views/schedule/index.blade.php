@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Jadwal & Waiting List')
+@section('title', 'Jadwal Meja')
 
 @section('head')
 <style>
@@ -87,32 +87,7 @@
     cursor: default;
 }
 .block-active          { background: #DCEFDD; color: #1f7a34; border: 1px solid #2f9e4450; }
-.block-waiting         { background: #DCE8F7; color: #2e6fba; border: 1px solid #2e6fba50; }
 .block-pending_payment { background: #FBF0C8; color: #8a6d1a; border: 1px solid #d4a01750; }
-
-.waiting-list-card {
-    background: var(--cream);
-    color: var(--ink);
-    border-radius: 18px;
-    overflow: hidden;
-}
-.waiting-list-card .card-header {
-    background: rgba(58,20,20,0.06);
-    border-bottom: 1px solid rgba(58,20,20,0.08);
-    padding: 1rem 1.5rem;
-    font-weight: 700;
-    color: var(--ink);
-    font-family: 'Baloo 2', sans-serif;
-}
-.booking-row {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid rgba(58,20,20,0.06);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-.booking-row:last-child { border-bottom: none; }
 </style>
 @endsection
 
@@ -120,8 +95,8 @@
 <div class="schedule-hero">
     <div class="container">
         <h2 class="mb-1" style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:2.5rem;text-transform:uppercase;">
-            <span style="color:var(--cream);">Jadwal &amp;</span>
-            <span style="color:var(--cream);text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:3px;">Waiting List</span>
+            <span style="color:var(--cream);">Jadwal</span>
+            <span style="color:var(--cream);text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:3px;">Meja</span>
         </h2>
         <p class="mb-0" style="color:rgba(244,241,221,0.7)">Pantau ketersediaan meja secara real-time</p>
     </div>
@@ -163,16 +138,15 @@
             <div class="grid-cell">
                 @foreach($table->bookings as $booking)
                     @php
-                        $bStart = substr($booking->start_time, 0, 5);
-                        $bEnd   = substr($booking->end_time, 0, 5);
-                        $slotHour = (int) substr($slot, 0, 2);
-                        $startHour = (int) substr($bStart, 0, 2);
-                        if ($slotHour === $startHour):
+                        $visibleStart = $booking->startsAt()->max($dayStart);
+                        $visibleEnd   = $booking->endsAt()->min($dayEnd);
+                        $visibleHours = $visibleStart->diffInMinutes($visibleEnd) / 60;
+                        if ((int) substr($slot, 0, 2) === (int) $visibleStart->format('H')):
                     @endphp
                         <div class="booking-block block-{{ $booking->status }}"
-                             style="height: calc({{ $booking->duration_hours * 44 }}px - 4px)"
-                             title="{{ $booking->customer_name }} | {{ $bStart }}-{{ $bEnd }}">
-                            {{ $booking->status === 'waiting' ? '⏳' : '🀄' }}
+                             style="height: calc({{ $visibleHours * 44 }}px - 4px)"
+                             title="{{ $booking->customer_name }} | {{ $booking->time_range_label }}">
+                            🀄
                             <br>{{ $booking->duration_hours }}j
                         </div>
                     @php endif; @endphp
@@ -186,46 +160,6 @@
     <div class="d-flex gap-3 mb-4 flex-wrap" style="font-size:0.8rem;color:rgba(244,241,221,0.85);font-weight:600;">
         <span><span class="badge py-1 px-2 me-1" style="background:#DCEFDD;color:#1f7a34">■</span>Aktif / Sudah Bayar</span>
         <span><span class="badge py-1 px-2 me-1" style="background:#FBF0C8;color:#8a6d1a">■</span>Menunggu Pembayaran</span>
-        <span><span class="badge py-1 px-2 me-1" style="background:#DCE8F7;color:#2e6fba">■</span>Waiting List</span>
-    </div>
-
-    <h5 class="mb-3" style="color:var(--cream);text-transform:uppercase;"><i class="bi bi-clock me-2" style="color:var(--red)"></i>Waiting List Hari Ini</h5>
-    <div class="row g-3">
-        @foreach($tables as $table)
-        @php $waiting = $table->bookings->where('status', 'waiting'); @endphp
-        @if($waiting->isNotEmpty())
-        <div class="col-md-6">
-            <div class="waiting-list-card">
-                <div class="card-header">
-                    <i class="bi bi-clock me-2 text-gold"></i>{{ $table->name }}
-                    <span class="badge ms-2 rounded-pill" style="background:#DCE8F7;color:#2e6fba">{{ $waiting->count() }} antrian</span>
-                </div>
-                @foreach($waiting as $i => $bk)
-                <div class="booking-row">
-                    <div style="width:28px;height:28px;background:#DCE8F7;color:#2e6fba;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0">
-                        {{ $i + 1 }}
-                    </div>
-                    <div class="flex-grow-1">
-                        <div style="font-weight:700;font-size:0.9rem">{{ $bk->customer_name }}</div>
-                        <div style="font-size:0.78rem;color:var(--ink-mute)">
-                            {{ substr($bk->start_time, 0, 5) }} – {{ substr($bk->end_time, 0, 5) }}
-                            &bull; {{ $bk->duration_hours }} jam
-                        </div>
-                    </div>
-                    <div style="font-size:0.8rem;color:var(--ink-mute)">{{ $bk->booking_code }}</div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-        @endif
-        @endforeach
-
-        @if($tables->every(fn($t) => $t->bookings->where('status','waiting')->isEmpty()))
-        <div class="col-12 text-center py-4" style="color:rgba(244,241,221,0.6)">
-            <i class="bi bi-check-circle fs-2 d-block mb-2" style="color:#2f9e44"></i>
-            Tidak ada waiting list untuk tanggal ini.
-        </div>
-        @endif
     </div>
 </div>
 @endsection

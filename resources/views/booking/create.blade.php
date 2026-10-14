@@ -56,7 +56,7 @@
     border-radius: 20px;
 }
 .avail-ok { background: #DCEFDD; color: #1f7a34; }
-.avail-no { background: #DCE8F7; color: #2e6fba; }
+.avail-no { background: #F6DADA; color: #9b2c2c; }
 .avail-checking { background: #FBF0C8; color: #8a6d1a; }
 .step-badge {
     width: 28px; height: 28px;
@@ -71,6 +71,29 @@
     margin-right: 0.5rem;
 }
 .form-card h5 { font-family: 'Baloo 2', sans-serif; font-weight: 700; color: var(--ink); text-transform: uppercase; }
+.btn-play-now {
+    background: var(--red);
+    color: var(--cream);
+    border: none;
+    border-radius: 999px;
+    padding: 0.6rem 1.4rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.btn-play-now:hover { background: var(--red-light); color: var(--cream); }
+.busy-chip {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.3em 0.8em;
+    border-radius: 999px;
+    margin: 0 0.35rem 0.35rem 0;
+    background: rgba(58,20,20,0.1);
+    color: var(--ink);
+}
+.busy-chip.pending { background: #FBF0C8; color: #8a6d1a; }
+.submit-hint { font-size: 0.8rem; color: var(--ink-mute); text-align: center; margin-top: 0.5rem; }
 </style>
 @endsection
 
@@ -94,7 +117,12 @@
             <div class="col-lg-8">
 
                 <div class="form-card mb-4">
-                    <h5 class="mb-4"><span class="step-badge">1</span>Pilih Waktu</h5>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                        <h5 class="mb-0"><span class="step-badge">1</span>Pilih Waktu</h5>
+                        <button type="button" id="playNowBtn" class="btn btn-play-now">
+                            <i class="bi bi-lightning-charge-fill me-1"></i>Main Sekarang
+                        </button>
+                    </div>
 
                     <div class="row g-3">
                         <div class="col-sm-4">
@@ -110,7 +138,7 @@
                             <label class="form-label">Jam Mulai</label>
                             <input type="time" name="start_time" id="start_time"
                                 class="form-control @error('start_time') is-invalid @enderror"
-                                min="08:00" max="23:45" step="60"
+                                step="60"
                                 value="{{ old('start_time') }}"
                                 required>
                             @error('start_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -130,6 +158,11 @@
                     <div class="mt-3" id="availability-result" style="display:none">
                         <span id="avail-badge" class="availability-badge"></span>
                         <span id="end-time-display" class="ms-2" style="font-size:0.85rem;color:var(--ink-mute)"></span>
+                    </div>
+
+                    <div class="mt-3">
+                        <div style="font-size:0.8rem;font-weight:700;color:var(--ink-mute);margin-bottom:0.4rem;">Jam yang sudah terisi di tanggal ini</div>
+                        <div id="busy-slots" style="font-size:0.8rem;color:var(--ink-mute)">Memuat&hellip;</div>
                     </div>
                 </div>
 
@@ -170,15 +203,13 @@
                     <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3" style="background:rgba(58,20,20,0.06)">
                         <i class="bi bi-shield-lock-fill" style="font-size:1.5rem;color:var(--red)"></i>
                         <div style="font-size:0.85rem;color:var(--ink-mute)">
-                            Dibayar via DOKU — Virtual Account, QRIS, Kartu Kredit, dan metode lainnya
+                            Dibayar via DOKU — QRIS. Selesaikan pembayaran dalam {{ \App\Models\Booking::holdMinutes() }} menit setelah memesan, atau slot akan dilepas.
                         </div>
                     </div>
                     <button type="submit" id="submitBtn" class="btn btn-gold btn-lg w-100" disabled>
                         <i class="bi bi-lock-fill me-2"></i>Lanjut ke Pembayaran
                     </button>
-                    <p class="text-center mt-2" style="font-size:0.78rem;color:var(--ink-mute)">
-                        Jika meja sudah penuh, booking akan masuk <strong>Waiting List</strong> otomatis
-                    </p>
+                    <p class="submit-hint" id="submitHint">Pilih tanggal, jam mulai, dan durasi dulu untuk melanjutkan.</p>
                 </div>
             </div>
 
@@ -208,9 +239,6 @@
                         <span style="opacity:0.75">Total</span>
                         <div class="price-display" id="s-total">—</div>
                     </div>
-                    <div id="s-waiting-info" class="mt-3 p-2 rounded-2 text-center" style="background:rgba(244,241,221,0.15);font-size:0.8rem;display:none!important">
-                        <i class="bi bi-clock me-1"></i>Slot ini penuh — akan masuk Waiting List
-                    </div>
                 </div>
             </div>
         </div>
@@ -223,9 +251,16 @@
 const pricePerHour = {{ $table->getCurrentPricePerHour() }};
 const checkUrl = '{{ route("booking.check", $table) }}';
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+const serverEpochMs = {{ now()->getTimestampMs() }};
+const serverUtcOffsetMin = {{ now()->utcOffset() }};
+const pageLoadedAt = Date.now();
 
 let checkTimeout;
 let isAvailable = false;
+
+function serverNow() {
+    return new Date(serverEpochMs + (Date.now() - pageLoadedAt) + serverUtcOffsetMin * 60000);
+}
 
 function formatRupiah(n) {
     return 'Rp ' + n.toLocaleString('id-ID');
@@ -234,6 +269,21 @@ function formatRupiah(n) {
 function formatDate(d) {
     const date = new Date(d);
     return date.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+function computeEnd(start, dur) {
+    const [h, m] = start.split(':').map(Number);
+    const total = (h * 60 + m) + (dur * 60);
+    const wrapped = total % (24 * 60);
+    const label = `${String(Math.floor(wrapped / 60)).padStart(2,'0')}:${String(wrapped % 60).padStart(2,'0')}`;
+    return total >= 24 * 60 ? `${label} (+1 hari)` : label;
+}
+
+function setSubmitState(enabled, hint) {
+    document.getElementById('submitBtn').disabled = !enabled;
+    const hintEl = document.getElementById('submitHint');
+    hintEl.textContent = hint || '';
+    hintEl.style.display = hint ? 'block' : 'none';
 }
 
 function updateSummary() {
@@ -245,16 +295,19 @@ function updateSummary() {
     document.getElementById('s-duration').textContent = dur ? dur + ' jam' : '—';
     document.getElementById('s-total').textContent = dur ? formatRupiah(pricePerHour * dur) : '—';
 
-    if (start && dur) {
-        const [h, m] = start.split(':').map(Number);
-        const totalMinutes = (h * 60 + m) + (dur * 60);
-        const endH = Math.floor(totalMinutes / 60) % 24;
-        const endM = totalMinutes % 60;
-        const endTime = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
-        document.getElementById('s-time').textContent = `${start} – ${endTime}`;
-    } else {
-        document.getElementById('s-time').textContent = '—';
+    const end = start && dur ? computeEnd(start, dur) : null;
+    document.getElementById('s-time').textContent = end ? `${start} – ${end}` : '—';
+}
+
+function renderBusy(busy) {
+    const box = document.getElementById('busy-slots');
+    if (!busy || busy.length === 0) {
+        box.innerHTML = 'Belum ada &mdash; semua jam masih kosong.';
+        return;
     }
+    box.innerHTML = busy.map(b =>
+        `<span class="busy-chip ${b.status === 'pending_payment' ? 'pending' : ''}" title="${b.status === 'pending_payment' ? 'Sedang menunggu pembayaran' : 'Sudah dibayar'}">${b.start} – ${b.end}</span>`
+    ).join('');
 }
 
 function checkAvailability() {
@@ -264,17 +317,24 @@ function checkAvailability() {
 
     updateSummary();
 
-    if (!date || !start || !dur) return;
-
     const badge = document.getElementById('avail-badge');
     const result = document.getElementById('availability-result');
     const endDisplay = document.getElementById('end-time-display');
-    const submitBtn = document.getElementById('submitBtn');
 
-    result.style.display = 'block';
-    badge.className = 'availability-badge avail-checking';
-    badge.innerHTML = '<i class="bi bi-hourglass-split"></i> Mengecek...';
-    submitBtn.disabled = true;
+    if (!date || !dur) {
+        setSubmitState(false, 'Pilih tanggal, jam mulai, dan durasi dulu untuk melanjutkan.');
+        return;
+    }
+
+    if (start) {
+        result.style.display = 'block';
+        badge.className = 'availability-badge avail-checking';
+        badge.innerHTML = '<i class="bi bi-hourglass-split"></i> Mengecek...';
+        endDisplay.textContent = '';
+    } else {
+        result.style.display = 'none';
+    }
+    setSubmitState(false, start ? 'Mengecek ketersediaan jam...' : 'Pilih jam mulai, atau tekan Main Sekarang.');
 
     clearTimeout(checkTimeout);
     checkTimeout = setTimeout(() => {
@@ -282,34 +342,46 @@ function checkAvailability() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': csrfToken,
             },
-            body: JSON.stringify({ booking_date: date, start_time: start, duration_hours: dur }),
+            body: JSON.stringify({ booking_date: date, start_time: start || null, duration_hours: dur }),
         })
         .then(r => r.json())
         .then(data => {
+            renderBusy(data.busy);
+            if (!start) return;
+
             isAvailable = data.available;
-            const waitingInfo = document.getElementById('s-waiting-info');
 
             if (data.available) {
                 badge.className = 'availability-badge avail-ok';
                 badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> Tersedia!';
-                waitingInfo.style.setProperty('display', 'none', 'important');
+                endDisplay.textContent = `Selesai pukul ${data.end_time}${data.ends_next_day ? ' (besok)' : ''}`;
+                setSubmitState(true, '');
             } else {
                 badge.className = 'availability-badge avail-no';
-                badge.innerHTML = '<i class="bi bi-clock-fill"></i> Penuh — Masuk Waiting List';
-                waitingInfo.style.removeProperty('display');
+                badge.innerHTML = '<i class="bi bi-x-circle-fill"></i> Tidak bisa dipesan';
+                endDisplay.textContent = data.message || '';
+                setSubmitState(false, data.message || 'Jam ini tidak tersedia. Pilih jam lain.');
             }
-            endDisplay.textContent = `Selesai pukul ${data.end_time}`;
-            submitBtn.disabled = false;
         })
         .catch(() => {
             badge.className = 'availability-badge avail-checking';
             badge.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Gagal cek';
-            submitBtn.disabled = true;
+            setSubmitState(false, 'Gagal mengecek ketersediaan. Periksa koneksi lalu coba lagi.');
         });
-    }, 600);
+    }, 400);
 }
+
+document.getElementById('playNowBtn').addEventListener('click', function () {
+    const now = serverNow();
+    document.getElementById('booking_date').value = now.toISOString().slice(0, 10);
+    document.getElementById('start_time').value =
+        `${String(now.getUTCHours()).padStart(2,'0')}:${String(now.getUTCMinutes()).padStart(2,'0')}`;
+    checkAvailability();
+    document.getElementById('customer_name').focus();
+});
 
 ['booking_date', 'start_time', 'duration_hours'].forEach(id => {
     document.getElementById(id).addEventListener('change', checkAvailability);
@@ -319,6 +391,6 @@ document.getElementById('customer_phone').addEventListener('input', function () 
     this.value = this.value.replace(/\D/g, '').slice(0, 13);
 });
 
-updateSummary();
+checkAvailability();
 </script>
 @endsection

@@ -97,7 +97,7 @@
                 </div>
                 <div class="invoice-row">
                     <span class="invoice-label">Waktu</span>
-                    <span class="invoice-value">{{ substr($booking->start_time, 0, 5) }} – {{ substr($booking->end_time, 0, 5) }} ({{ $booking->duration_hours }} jam)</span>
+                    <span class="invoice-value">{{ $booking->time_range_label }} ({{ $booking->duration_hours }} jam)</span>
                 </div>
                 <div class="invoice-row">
                     <span class="invoice-label">Metode Bayar</span>

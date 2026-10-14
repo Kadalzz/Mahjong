@@ -36,7 +36,19 @@
     font-size: 2rem;
 }
 .icon-success { background: #DCEFDD; border: 2px solid #2f9e4460; color: #1f7a34; }
-.icon-waiting  { background: #DCE8F7; border: 2px solid #2e6fba60; color: #2e6fba; }
+.icon-pending { background: #FBF0C8; border: 2px solid #d4a01760; color: #8a6d1a; }
+.icon-failed  { background: #F6DADA; border: 2px solid #b0303060; color: #9b2c2c; }
+.hold-timer {
+    display: inline-block;
+    font-family: monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #8a6d1a;
+    background: #FBF0C8;
+    padding: 0.25rem 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
 .booking-code {
     font-family: monospace;
     font-size: 1.6rem;
@@ -64,6 +76,13 @@
 </style>
 @endsection
 
+@php
+    $awaitingPayment = $booking->isAwaitingPayment();
+    $paymentExpired  = $booking->isPaymentExpired() || ($booking->status === 'cancelled' && $booking->refund_status === null && $booking->cancelled_at === null);
+    $needsRefund     = $booking->refund_status === 'pending_refund';
+    $secondsLeft     = $awaitingPayment ? max(0, (int) now()->diffInSeconds($booking->holdExpiresAt(), false)) : 0;
+@endphp
+
 @section('content')
 <div class="confirm-wrapper">
     <div class="container">
@@ -76,20 +95,37 @@
         @endif
         <div class="confirm-card">
             <div class="confirm-header">
-                @if($booking->status === 'waiting')
-                <div class="confirm-icon icon-waiting">
-                    <i class="bi bi-clock-fill"></i>
+                @if($awaitingPayment)
+                <div class="confirm-icon icon-pending">
+                    <i class="bi bi-qr-code-scan"></i>
                 </div>
-                <h4 class="mb-1">Masuk Waiting List!</h4>
-                <p class="text-muted mb-3" style="font-size:0.9rem">
-                    Slot yang dipilih sudah penuh. Anda akan dihubungi jika ada ketersediaan.
-                </p>
+                <h4 class="mb-1">Selesaikan Pembayaran</h4>
+                <p class="text-muted mb-2" style="font-size:0.9rem">Slot ditahan untuk Anda. Bayar dengan QRIS sebelum waktu habis.</p>
+                <div class="hold-timer" id="holdTimer">{{ sprintf('%02d:%02d', intdiv($secondsLeft, 60), $secondsLeft % 60) }}</div>
+                @elseif($needsRefund)
+                <div class="confirm-icon icon-failed">
+                    <i class="bi bi-exclamation-lg"></i>
+                </div>
+                <h4 class="mb-1">Slot Sudah Terisi</h4>
+                <p class="text-muted mb-3" style="font-size:0.9rem">Pembayaran Anda diterima setelah waktu bayar habis dan slot sudah dipesan orang lain. Tunjukkan kode ini ke kasir untuk pengembalian dana.</p>
+                @elseif($paymentExpired)
+                <div class="confirm-icon icon-failed">
+                    <i class="bi bi-x-lg"></i>
+                </div>
+                <h4 class="mb-1">Waktu Pembayaran Habis</h4>
+                <p class="text-muted mb-3" style="font-size:0.9rem">Booking ini dibatalkan karena tidak dibayar dalam {{ \App\Models\Booking::holdMinutes() }} menit. Silakan pesan ulang.</p>
+                @elseif($booking->status === 'cancelled')
+                <div class="confirm-icon icon-failed">
+                    <i class="bi bi-x-lg"></i>
+                </div>
+                <h4 class="mb-1">Booking Dibatalkan</h4>
+                <p class="text-muted mb-3" style="font-size:0.9rem">Hubungi kasir jika ada pertanyaan.</p>
                 @else
                 <div class="confirm-icon icon-success">
                     <i class="bi bi-check-lg"></i>
                 </div>
-                <h4 class="mb-1">Booking Berhasil!</h4>
-                <p class="text-muted mb-3" style="font-size:0.9rem">Silakan selesaikan pembayaran untuk mengkonfirmasi reservasi.</p>
+                <h4 class="mb-1">{{ $booking->status === 'done' ? 'Booking Selesai' : 'Booking Berhasil!' }}</h4>
+                <p class="text-muted mb-3" style="font-size:0.9rem">Meja menyala otomatis pada jam mulai main.</p>
                 @endif
 
                 <div class="booking-code">{{ $booking->booking_code }}</div>
@@ -119,7 +155,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">Waktu</span>
-                    <span class="info-value">{{ substr($booking->start_time, 0, 5) }} – {{ substr($booking->end_time, 0, 5) }}</span>
+                    <span class="info-value">{{ $booking->time_range_label }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Durasi</span>
@@ -128,13 +164,13 @@
                 <div class="info-row">
                     <span class="info-label">Status</span>
                     <span class="info-value">
-                        <span class="badge-status-{{ $booking->status === 'pending_payment' ? 'pending' : $booking->status }}
-                              px-3 py-1 rounded-pill" style="
-                              @if($booking->status === 'waiting') background:#2980b920;color:#3498db;border:1px solid #2980b940;
-                              @elseif($booking->status === 'pending_payment') background:#f39c1220;color:#f1c40f;border:1px solid #f39c1240;
+                        <span class="px-3 py-1 rounded-pill" style="
+                              @if($awaitingPayment) background:#f39c1220;color:#b7791f;border:1px solid #f39c1240;
+                              @elseif($booking->status === 'active' || $booking->status === 'done') background:#2f9e4420;color:#1f7a34;border:1px solid #2f9e4440;
+                              @else background:#b0303018;color:#9b2c2c;border:1px solid #b0303040;
                               @endif
                               font-size:0.8rem;">
-                            {{ $booking->status_label }}
+                            {{ $paymentExpired && $booking->status === 'cancelled' ? 'Waktu Bayar Habis' : $booking->status_label }}
                         </span>
                     </span>
                 </div>
@@ -142,32 +178,20 @@
                     <span class="info-label">Total Bayar</span>
                     <span class="info-value">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</span>
                 </div>
-                @if($booking->refund_status_label)
-                <div class="info-row">
-                    <span class="info-label">Status Refund</span>
-                    <span class="info-value">{{ $booking->refund_status_label }}</span>
-                </div>
-                @endif
 
                 <div class="mt-4 d-flex flex-column gap-2">
-                    @if($booking->status === 'pending_payment' && $booking->payment_url)
-                    <a href="{{ $booking->payment_url }}" class="btn btn-gold btn-lg w-100" target="_blank">
-                        <i class="bi bi-credit-card me-2"></i>Bayar Sekarang
+                    @if($awaitingPayment && $booking->payment_url)
+                    <a href="{{ $booking->payment_url }}" id="payButton" class="btn btn-gold btn-lg w-100" target="_blank" rel="noopener">
+                        <i class="bi bi-qr-code me-2"></i>Bayar dengan QRIS
                     </a>
                     @elseif(in_array($booking->status, ['active', 'done']))
                     <a href="{{ route('booking.invoice', $booking->booking_code) }}" class="btn btn-gold btn-lg w-100">
                         <i class="bi bi-receipt me-2"></i>Lihat Invoice
                     </a>
-                    @endif
-
-                    @if($booking->canBeCancelledByCustomer())
-                    <form method="POST" action="{{ route('booking.cancel', $booking->booking_code) }}"
-                          onsubmit="return confirm('Batalkan booking ini? Tindakan ini tidak bisa dibatalkan.')">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-secondary w-100" style="color:var(--red);border-color:var(--red);">
-                            <i class="bi bi-x-circle me-2"></i>Batalkan Booking
-                        </button>
-                    </form>
+                    @elseif($paymentExpired)
+                    <a href="{{ route('booking.create', $booking->mahjong_table_id) }}" class="btn btn-gold btn-lg w-100">
+                        <i class="bi bi-arrow-repeat me-2"></i>Pesan Ulang
+                    </a>
                     @endif
 
                     <a href="{{ route('schedule.index') }}" class="btn btn-outline-secondary">
@@ -183,10 +207,10 @@
 </div>
 @endsection
 
-@if($booking->status === 'active')
 @section('scripts')
 <script>
 (function () {
+    @if($booking->status === 'active')
     let seconds = 60;
     const el = document.getElementById('redirectCountdown');
     const banner = document.getElementById('redirectBanner');
@@ -211,7 +235,34 @@
             if (banner) banner.style.display = 'none';
         });
     }
+    @elseif($awaitingPayment)
+    let remaining = {{ $secondsLeft }};
+    const timer = document.getElementById('holdTimer');
+    const statusUrl = "{{ route('booking.status', $booking->booking_code) }}";
+
+    const tick = setInterval(function () {
+        remaining = Math.max(0, remaining - 1);
+        const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+        const s = String(remaining % 60).padStart(2, '0');
+        if (timer) timer.textContent = m + ':' + s;
+        if (remaining <= 0) {
+            clearInterval(tick);
+            setTimeout(function () { window.location.reload(); }, 3000);
+        }
+    }, 1000);
+
+    const poll = setInterval(function () {
+        fetch(statusUrl, { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.status !== 'pending_payment') {
+                    clearInterval(poll);
+                    window.location.reload();
+                }
+            })
+            .catch(function () {});
+    }, 4000);
+    @endif
 })();
 </script>
 @endsection
-@endif

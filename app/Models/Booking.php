@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -18,6 +20,8 @@ class Booking extends Model
         'start_time',
         'duration_hours',
         'end_time',
+        'starts_at',
+        'ends_at',
         'total_price',
         'status',
         'refund_status',
@@ -31,7 +35,29 @@ class Booking extends Model
         'booking_date' => 'date',
         'total_price' => 'decimal:2',
         'cancelled_at' => 'datetime',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Booking $booking) {
+            if (!$booking->booking_date || !$booking->start_time || !$booking->duration_hours) {
+                return;
+            }
+
+            $startsAt = self::startDateTime($booking->booking_date->toDateString(), $booking->start_time);
+
+            $booking->starts_at = $startsAt;
+            $booking->ends_at   = $startsAt->copy()->addHours((int) $booking->duration_hours);
+            $booking->end_time  = $booking->ends_at->format('H:i');
+        });
+    }
+
+    public static function startDateTime(string $date, string $startTime): Carbon
+    {
+        return Carbon::parse($date . ' ' . substr($startTime, 0, 5));
+    }
 
     public function table(): BelongsTo
     {
@@ -46,7 +72,7 @@ class Booking extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            'pending_payment' => 'Menunggu Pembayaran',
+            'pending_payment' => $this->isPaymentExpired() ? 'Waktu Bayar Habis' : 'Menunggu Pembayaran',
             'waiting'         => 'Waiting List',
             'active'          => 'Aktif',
             'done'            => 'Selesai',
@@ -81,22 +107,71 @@ class Booking extends Model
         return match ($this->refund_status) {
             'refundable'     => 'Dana Dikembalikan',
             'non_refundable' => 'Tidak Dikembalikan',
+            'pending_refund' => 'Perlu Refund Manual',
             default          => null,
         };
     }
 
-    public function canBeCancelledByCustomer(): bool
+    public static function holdMinutes(): int
     {
-        if (!in_array($this->status, ['pending_payment', 'waiting', 'active'])) {
-            return false;
-        }
-
-        return now()->lt($this->startsAt());
+        return max(1, (int) config('doku.payment_due_minutes', 5));
     }
 
-    public function startsAt(): \Carbon\Carbon
+    public static function computeEndTime(string $startTime, int $durationHours): string
     {
-        return \Carbon\Carbon::parse($this->booking_date->toDateString() . ' ' . $this->start_time);
+        [$hour, $minute] = array_map('intval', explode(':', substr($startTime, 0, 5)));
+        $endMinutes = ($hour * 60 + $minute + $durationHours * 60) % (24 * 60);
+
+        return sprintf('%02d:%02d', intdiv($endMinutes, 60), $endMinutes % 60);
+    }
+
+    public function endsNextDay(): bool
+    {
+        return !$this->endsAt()->isSameDay($this->startsAt());
+    }
+
+    public function getTimeRangeLabelAttribute(): string
+    {
+        return substr($this->start_time, 0, 5) . ' – ' . $this->endsAt()->format('H:i')
+            . ($this->endsNextDay() ? ' (+1 hari)' : '');
+    }
+
+    public function scopeBlocking(Builder $query): Builder
+    {
+        return $query->where(function ($q) {
+            $q->where('status', 'active')
+              ->orWhere(function ($q2) {
+                  $q2->where('status', 'pending_payment')
+                     ->where('created_at', '>', now()->subMinutes(self::holdMinutes()));
+              });
+        });
+    }
+
+    public function holdExpiresAt(): Carbon
+    {
+        return $this->created_at->copy()->addMinutes(self::holdMinutes());
+    }
+
+    public function isAwaitingPayment(): bool
+    {
+        return $this->status === 'pending_payment' && now()->lt($this->holdExpiresAt());
+    }
+
+    public function isPaymentExpired(): bool
+    {
+        return $this->status === 'pending_payment' && !$this->isAwaitingPayment();
+    }
+
+    public function startsAt(): Carbon
+    {
+        return $this->starts_at?->copy()
+            ?? self::startDateTime($this->booking_date->toDateString(), $this->start_time);
+    }
+
+    public function endsAt(): Carbon
+    {
+        return $this->ends_at?->copy()
+            ?? $this->startsAt()->addHours((int) $this->duration_hours);
     }
 
     public function determineRefundStatus(): ?string

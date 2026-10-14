@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Transaction;
-use App\Services\DokuService;
 use App\Services\TableDeviceService;
 use Illuminate\Http\Request;
 
@@ -13,7 +12,6 @@ class BookingManageController extends Controller
 {
     public function __construct(
         private TableDeviceService $device,
-        private DokuService $doku,
     ) {
     }
 
@@ -73,29 +71,6 @@ class BookingManageController extends Controller
                 'paid_at'        => now(),
                 'notes'          => 'Pembayaran manual oleh admin',
             ]);
-        }
-
-        if ($request->status === 'cancelled' && in_array($oldStatus, ['active', 'pending_payment'])) {
-            $waiting = Booking::where('mahjong_table_id', $booking->mahjong_table_id)
-                ->whereDate('booking_date', $booking->booking_date)
-                ->where('status', 'waiting')
-                ->where(function ($q) use ($booking) {
-                    $q->where('start_time', '<', $booking->end_time)
-                      ->where('end_time', '>', $booking->start_time);
-                })
-                ->orderBy('created_at')
-                ->first();
-
-            if ($waiting) {
-                $orderId = 'MJG-' . $waiting->id . '-' . time();
-                $invoice = $this->doku->createInvoice($waiting, $orderId);
-
-                $waiting->update(array_filter([
-                    'status'           => 'pending_payment',
-                    'payment_order_id' => $invoice['order_id'] ?? null,
-                    'payment_url'      => $invoice['invoice_url'] ?? null,
-                ]));
-            }
         }
 
         return back()->with('success', "Status booking #{$booking->booking_code} berhasil diperbarui.");

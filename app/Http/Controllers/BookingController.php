@@ -7,12 +7,15 @@ use App\Models\MahjongTable;
 use App\Models\Transaction;
 use App\Services\DokuService;
 use App\Services\TableDeviceService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
+    private const START_GRACE_MINUTES = 5;
+
     public function __construct(
         private DokuService $doku,
         private TableDeviceService $device,
@@ -47,28 +50,34 @@ class BookingController extends Controller
     {
         $request->validate([
             'booking_date'   => 'required|date|after_or_equal:today',
-            'start_time'     => 'required|date_format:H:i',
+            'start_time'     => 'nullable|date_format:H:i',
             'duration_hours' => 'required|integer|min:1|max:8',
         ]);
 
-        $available = $table->isAvailableAt(
-            $request->booking_date,
-            $request->start_time,
-            $request->duration_hours
-        );
+        $busy = $table->busySlotsOn($request->booking_date);
 
-        $endTime = date('H:i', strtotime($request->start_time) + ($request->duration_hours * 3600));
-        $price   = $table->getCurrentPricePerHour() * $request->duration_hours;
+        if (!$request->filled('start_time')) {
+            return response()->json(['available' => false, 'reason' => 'incomplete', 'busy' => $busy]);
+        }
+
+        $durationHours = (int) $request->duration_hours;
+        $problem       = $this->slotProblem($table, $request->booking_date, $request->start_time, $durationHours);
+        $price         = $table->getCurrentPricePerHour() * $durationHours;
 
         return response()->json([
-            'available' => $available,
-            'end_time'  => $endTime,
-            'price'     => $price,
+            'available'       => $problem === null,
+            'reason'          => $problem['reason'] ?? null,
+            'message'         => $problem['message'] ?? null,
+            'end_time'        => Booking::computeEndTime($request->start_time, $durationHours),
+            'ends_next_day'   => !Booking::startDateTime($request->booking_date, $request->start_time)
+                ->addHours($durationHours)
+                ->isSameDay(Carbon::parse($request->booking_date)),
+            'price'           => $price,
             'price_formatted' => 'Rp ' . number_format($price, 0, ',', '.'),
+            'busy'            => $busy,
         ]);
     }
 
-    
     public function store(Request $request)
     {
         $request->validate([
@@ -82,17 +91,14 @@ class BookingController extends Controller
 
         $durationHours = (int) $request->duration_hours;
         $startTime     = $request->start_time;
-        $endTime       = date('H:i', strtotime($startTime) + ($durationHours * 3600));
 
-        
-        
-        
-        $booking = DB::transaction(function () use ($request, $durationHours, $startTime, $endTime) {
-            $table      = MahjongTable::with('pricing')->lockForUpdate()->findOrFail($request->mahjong_table_id);
-            $totalPrice = $table->getCurrentPricePerHour() * $durationHours;
+        $result = DB::transaction(function () use ($request, $durationHours, $startTime) {
+            $table = MahjongTable::with('pricing')->lockForUpdate()->findOrFail($request->mahjong_table_id);
 
-            $isAvailable = $table->isAvailableAt($request->booking_date, $startTime, $durationHours);
-            $status      = $isAvailable ? 'pending_payment' : 'waiting';
+            $problem = $this->slotProblem($table, $request->booking_date, $startTime, $durationHours);
+            if ($problem !== null) {
+                return $problem;
+            }
 
             return Booking::create([
                 'mahjong_table_id' => $table->id,
@@ -101,36 +107,50 @@ class BookingController extends Controller
                 'booking_date'     => $request->booking_date,
                 'start_time'       => $startTime,
                 'duration_hours'   => $durationHours,
-                'end_time'         => $endTime,
-                'total_price'      => $totalPrice,
-                'status'           => $status,
+                'end_time'         => Booking::computeEndTime($startTime, $durationHours),
+                'total_price'      => $table->getCurrentPricePerHour() * $durationHours,
+                'status'           => 'pending_payment',
                 'booking_code'     => Booking::generateCode(),
             ]);
         });
 
-        $status = $booking->status;
-
-        
-        if ($status !== 'waiting') {
-            $orderId = 'MJG-' . $booking->id . '-' . time();
-            $invoice = $this->doku->createInvoice($booking, $orderId);
-
-            if ($invoice) {
-                $booking->update([
-                    'payment_order_id' => $invoice['order_id'],
-                    'payment_url'      => $invoice['invoice_url'],
-                ]);
-            }
+        if (is_array($result)) {
+            return back()->withInput()->withErrors(['start_time' => $result['message']]);
         }
+
+        $booking = $result;
+        $orderId = 'MJG-' . $booking->id . '-' . time();
+        $invoice = $this->doku->createInvoice($booking, $orderId);
+
+        if (!$invoice) {
+            $booking->update(['status' => 'cancelled']);
+
+            return back()->withInput()
+                ->with('error', 'Pembayaran sedang tidak bisa dibuat. Silakan coba lagi sebentar.');
+        }
+
+        $booking->update([
+            'payment_order_id' => $invoice['order_id'],
+            'payment_url'      => $invoice['invoice_url'],
+        ]);
 
         return redirect()->route('booking.confirm', $booking->booking_code);
     }
 
-    
     public function confirm(string $code)
     {
         $booking = Booking::with('table')->where('booking_code', $code)->firstOrFail();
         return view('booking.confirm', compact('booking'));
+    }
+
+    public function status(string $code)
+    {
+        $booking = Booking::where('booking_code', $code)->firstOrFail();
+
+        return response()->json([
+            'status'          => $booking->status,
+            'payment_expired' => $booking->isPaymentExpired(),
+        ]);
     }
 
     
@@ -178,33 +198,6 @@ class BookingController extends Controller
         return view('booking.lookup', compact('bookings', 'searched'));
     }
 
-    public function cancel(string $code)
-    {
-        $booking = Booking::with(['table', 'transaction'])->where('booking_code', $code)->firstOrFail();
-
-        if (!$booking->canBeCancelledByCustomer()) {
-            return back()->with('error', 'Booking ini sudah tidak bisa dibatalkan.');
-        }
-
-        $wasActive    = $booking->status === 'active';
-        $refundStatus = $booking->determineRefundStatus();
-
-        $booking->update([
-            'status'        => 'cancelled',
-            'refund_status' => $refundStatus,
-            'cancelled_at'  => now(),
-        ]);
-
-        if ($wasActive) {
-            $this->device->deactivate($booking->table, $booking);
-        }
-
-        $this->promoteWaiting($booking);
-
-        return redirect()->route('booking.confirm', $booking->booking_code)
-            ->with('success', 'Booking berhasil dibatalkan.');
-    }
-
     public function webhook(Request $request)
     {
         if (!$this->doku->verifyWebhookSignature($request)) {
@@ -220,28 +213,9 @@ class BookingController extends Controller
             $booking = Booking::with('table')->where('payment_order_id', $invoiceNumber)->firstOrFail();
 
             if ($status === 'SUCCESS') {
-                $alreadyActive = $booking->status === 'active';
-
-                $booking->update(['status' => 'active']);
-
-                Transaction::updateOrCreate(
-                    ['booking_id' => $booking->id],
-                    [
-                        'amount'                 => $payload['order']['amount'] ?? $booking->total_price,
-                        'payment_method'         => $payload['channel']['id'] ?? $payload['service']['id'] ?? null,
-                        'gateway_transaction_id' => $payload['transaction']['original_request_id'] ?? null,
-                        'gateway_status'         => $status,
-                        'gateway_payload'        => $payload,
-                        'paid_at'                => now(),
-                    ]
-                );
-
-                if (!$alreadyActive) {
-                    $this->device->activate($booking->table, $booking);
-                }
-            } elseif ($status === 'FAILED') {
+                $this->handlePaymentSuccess($booking, $payload);
+            } elseif ($status === 'FAILED' && $booking->status === 'pending_payment') {
                 $booking->update(['status' => 'cancelled']);
-                $this->promoteWaiting($booking);
             }
 
             return response()->json(['status' => 'ok']);
@@ -251,27 +225,68 @@ class BookingController extends Controller
         }
     }
 
-    private function promoteWaiting(Booking $cancelledBooking): void
+    private function handlePaymentSuccess(Booking $booking, array $payload): void
     {
-        $waiting = Booking::where('mahjong_table_id', $cancelledBooking->mahjong_table_id)
-            ->whereDate('booking_date', $cancelledBooking->booking_date)
-            ->where('status', 'waiting')
-            ->where(function ($q) use ($cancelledBooking) {
-                $q->where('start_time', '<', $cancelledBooking->end_time)
-                  ->where('end_time', '>', $cancelledBooking->start_time);
-            })
-            ->orderBy('created_at')
-            ->first();
+        $activated = DB::transaction(function () use ($booking, $payload) {
+            MahjongTable::lockForUpdate()->find($booking->mahjong_table_id);
+            $booking = Booking::with('table')->lockForUpdate()->find($booking->id);
 
-        if ($waiting) {
-            $orderId = 'MJG-' . $waiting->id . '-' . time();
-            $invoice = $this->doku->createInvoice($waiting, $orderId);
+            Transaction::updateOrCreate(
+                ['booking_id' => $booking->id],
+                [
+                    'amount'                 => $payload['order']['amount'] ?? $booking->total_price,
+                    'payment_method'         => $payload['channel']['id'] ?? $payload['service']['id'] ?? null,
+                    'gateway_transaction_id' => $payload['transaction']['original_request_id'] ?? null,
+                    'gateway_status'         => 'SUCCESS',
+                    'gateway_payload'        => $payload,
+                    'paid_at'                => now(),
+                ]
+            );
 
-            $waiting->update(array_filter([
-                'status'           => 'pending_payment',
-                'payment_order_id' => $invoice['order_id'] ?? null,
-                'payment_url'      => $invoice['invoice_url'] ?? null,
-            ]));
+            if ($booking->status === 'active') {
+                return null;
+            }
+
+            $expiredBySystem = $booking->status === 'cancelled' && $booking->cancelled_at === null;
+            $slotStillFree   = $booking->table->isAvailableAt(
+                $booking->booking_date->toDateString(),
+                $booking->start_time,
+                $booking->duration_hours,
+                $booking->id
+            );
+
+            if (($booking->status === 'pending_payment' || $expiredBySystem) && $slotStillFree && now()->lt($booking->endsAt())) {
+                $booking->update(['status' => 'active']);
+                return $booking;
+            }
+
+            $booking->update([
+                'status'        => 'cancelled',
+                'refund_status' => 'pending_refund',
+                'cancelled_at'  => $booking->cancelled_at ?? now(),
+            ]);
+
+            Log::warning("DOKU payment received for {$booking->booking_code} but the slot is no longer available; manual refund needed.");
+
+            return null;
+        });
+
+        if ($activated instanceof Booking) {
+            $this->device->activate($activated->table, $activated);
         }
+    }
+
+    private function slotProblem(MahjongTable $table, string $date, string $startTime, int $durationHours): ?array
+    {
+        $startsAt = Booking::startDateTime($date, $startTime);
+        if ($startsAt->lt(now()->subMinutes(self::START_GRACE_MINUTES)->startOfMinute())) {
+            return ['reason' => 'past', 'message' => 'Jam mulai sudah lewat. Pilih jam yang akan datang atau tekan Main Sekarang.'];
+        }
+
+        if (!$table->isAvailableAt($date, $startTime, $durationHours)) {
+            return ['reason' => 'conflict', 'message' => 'Jam ini bentrok dengan booking lain di meja ini. Silakan pilih jam lain.'];
+        }
+
+        return null;
     }
 }

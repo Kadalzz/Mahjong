@@ -28,8 +28,9 @@ class DashboardController extends Controller
             ->count();
 
         
-        $waitingCount = Booking::whereDate('booking_date', $today)
-            ->where('status', 'waiting')
+        $awaitingPaymentCount = Booking::whereDate('booking_date', $today)
+            ->where('status', 'pending_payment')
+            ->where('created_at', '>', now()->subMinutes(Booking::holdMinutes()))
             ->count();
 
         
@@ -66,7 +67,7 @@ class DashboardController extends Controller
             'revenueToday',
             'revenueMonth',
             'activeBookings',
-            'waitingCount',
+            'awaitingPaymentCount',
             'todayBookings',
             'occupancyRate',
             'recentBookings',

@@ -54,8 +54,8 @@
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="stat-label">Waiting List</div>
-                    <div class="stat-value mt-1">{{ $waitingCount }}</div>
+                    <div class="stat-label">Menunggu Bayar</div>
+                    <div class="stat-value mt-1">{{ $awaitingPaymentCount }}</div>
                 </div>
                 <div class="stat-icon" style="background:#FBF0C8;color:#8a6d1a">
                     <i class="bi bi-clock-history"></i>

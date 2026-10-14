@@ -57,10 +57,14 @@ services:
         sync: false
       - key: DOKU_SECRET_KEY
         sync: false
+      - key: APP_TIMEZONE
+        value: Asia/Jakarta
       - key: DOKU_IS_PRODUCTION
         value: "true"
       - key: DOKU_PAYMENT_DUE_MINUTES
-        value: "60"
+        value: "5"
+      - key: DOKU_PAYMENT_METHODS
+        value: "QRIS"
       - key: ESP32_BRIDGE_MODE
         value: http
       - key: ESP32_BRIDGE_HTTP_URL

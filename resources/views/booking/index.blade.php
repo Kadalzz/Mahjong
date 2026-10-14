@@ -238,7 +238,7 @@
             <div class="feature-card">
                 <div class="feature-icon"><i class="bi bi-calendar2-check"></i></div>
                 <h5>Jadwal Transparan</h5>
-                <p>Lihat status setiap meja dan waiting list secara real-time sebelum memesan.</p>
+                <p>Lihat jam yang sudah terisi di setiap meja secara real-time sebelum memesan.</p>
             </div>
         </div>
     </div>
