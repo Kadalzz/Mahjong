@@ -40,7 +40,7 @@ return [
 ## Langkah setup
 
 1. **Flash `client1.ino` s.d. `client6.ino`** (satu file per meja, sudah disiapkan dengan `MEJA_ID`/`NAMA_MEJA`/`RELAY_PIN` masing-masing) ke ESP32 meja yang sesuai. Buka Serial Monitor (115200 baud) — akan tercetak MAC address perangkat itu, catat untuk langkah berikutnya. Kalau nambah meja baru di luar 1-6, duplikat salah satu file lalu ganti ketiga nilai itu supaya unik.
-2. **Isi `master.ino`**: ganti `ssid`, `password`, `websocket_server` (IP komputer yang menjalankan `bridge.php`), lalu ganti MAC placeholder (`0x00...0x0N`) di array `clientMAC[]` dengan MAC asli tiap Client sesuai urutan `meja_id`-nya (perbesar `NUM_MEJA` kalau menambah meja di luar 6). Lalu flash ke ESP32 Master.
+2. **Isi `master.ino`**: salin `secrets.example.h` menjadi `secrets.h` (di-gitignore) lalu isi `ssid` dan `password` WiFi toko di sana; ganti `websocket_server` (IP komputer yang menjalankan `bridge.php`), lalu ganti MAC placeholder (`0x00...0x0N`) di array `clientMAC[]` dengan MAC asli tiap Client sesuai urutan `meja_id`-nya (perbesar `NUM_MEJA` kalau menambah meja di luar 6). Lalu flash ke ESP32 Master.
 3. Jalankan `esp32-bridge/bridge.php` di komputer yang sama dengan Laravel.
 4. Di Laravel `.env`, isi:
    ```
@@ -66,7 +66,7 @@ Master lalu meneruskan perintah ke Client yang sesuai lewat ESP-NOW, dan Client 
 
 ESP-NOW cuma bisa komunikasi antar perangkat yang berada di channel WiFi yang sama. Master otomatis pakai channel dari router yang ia sambungkan, sedangkan Client (yang tidak konek ke access point) harus di-set manual ke channel yang sama (`WIFI_CHANNEL` di tiap `clientN.ino`). Kalau Client tidak menyala/menerima perintah sama sekali, ini penyebab paling umum — cek ulang channel-nya lewat Serial Monitor Master.
 
-Semua file `clientN.ino` saat ini sudah di-set `WIFI_CHANNEL = 6`, mengikuti channel WiFi toko yang sebenarnya. Kalau router berganti channel di kemudian hari, update nilai ini di semua file client lalu flash ulang.
+Semua file `clientN.ino` saat ini sudah di-set `WIFI_CHANNEL = 11`, mengikuti channel WiFi toko yang sebenarnya (SSID "Hongzhong Mahjong"). Kalau router berganti channel di kemudian hari, update nilai ini di semua file client lalu flash ulang.
 
 ## Catatan keamanan
 
