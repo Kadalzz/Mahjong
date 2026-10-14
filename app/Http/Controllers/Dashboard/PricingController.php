@@ -18,7 +18,7 @@ class PricingController extends Controller
     public function update(Request $request, MahjongTable $table)
     {
         $request->validate([
-            'price_per_hour' => 'required|integer|min:1',
+            'price_per_hour' => 'required|numeric|min:1',
         ]);
 
         
