@@ -144,7 +144,7 @@ ufw allow 81/tcp
 ufw --force enable
 
 if [ -n "$CERTBOT_EMAIL" ]; then
-    certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$CERTBOT_EMAIL" --redirect
+    certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos -m "$CERTBOT_EMAIL" --redirect --expand
 fi
 
 echo
