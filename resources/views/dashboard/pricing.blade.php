@@ -31,7 +31,7 @@
                                 class="form-control"
                                 style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:0 999px 999px 0;"
                                 value="{{ $table->pricing?->price_per_hour ?? 0 }}"
-                                min="0" step="1000" required>
+                                min="1" step="1" required>
                         </div>
                     </div>
                     <div class="mb-3" style="font-size:0.8rem;color:var(--ink-mute)">
