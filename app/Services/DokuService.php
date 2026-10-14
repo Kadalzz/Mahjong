@@ -24,7 +24,9 @@ class DokuService
             return null;
         }
 
-        $bodyJson = json_encode([
+        $paymentMethods = config('doku.payment_methods', []);
+
+        $payload = [
             'order' => [
                 'amount'              => (int) $booking->total_price,
                 'invoice_number'      => $orderId,
@@ -40,14 +42,17 @@ class DokuService
                     'price'    => (int) $booking->total_price,
                 ]],
             ],
-            'payment' => [
-                'payment_due_date' => (int) config('doku.payment_due_minutes', 60),
-            ],
+            'payment' => array_filter([
+                'payment_due_date'    => (int) config('doku.payment_due_minutes', 60),
+                'payment_method_types' => $paymentMethods ?: null,
+            ]),
             'customer' => [
                 'name'  => $booking->customer_name,
                 'phone' => $this->formatPhone($booking->customer_phone),
             ],
-        ]);
+        ];
+
+        $bodyJson = json_encode($payload);
 
         $headers = $this->buildRequestHeaders(self::PAYMENT_PATH, $bodyJson);
 
