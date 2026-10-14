@@ -36,11 +36,12 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Meja 6 - VVIP Suite', 'price' => 100000],
         ];
 
-        foreach ($tables as $tableData) {
+        foreach ($tables as $index => $tableData) {
             $table = MahjongTable::create([
                 'name'        => $tableData['name'],
                 'capacity'    => 4,
                 'status'      => 'available',
+                'esp32_meja_id' => $index + 1,
                 'description' => 'Meja Mahjong ' . ($tableData['price'] >= 100000 ? 'Suite Premium' : ($tableData['price'] >= 75000 ? 'VIP dengan layanan khusus' : 'standar nyaman')),
             ]);
 
