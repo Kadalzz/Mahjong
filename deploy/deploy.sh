@@ -23,7 +23,17 @@ export COMPOSER_ALLOW_SUPERUSER=1
 apt-get update
 apt-get install -y nginx mysql-server git unzip curl ufw certbot python3-certbot-nginx \
     php-fpm php-cli php-mysql php-mbstring php-xml php-curl php-zip php-bcmath php-intl \
-    composer nodejs npm
+    composer
+
+if ! command -v node >/dev/null 2>&1; then
+    apt-get install -y nodejs
+fi
+
+if ! command -v npm >/dev/null 2>&1; then
+    apt-get install -y npm
+fi
+
+echo "Node: $(node -v), npm: $(npm -v)"
 
 PHP_VER="$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')"
 PHP_SOCK="/run/php/php${PHP_VER}-fpm.sock"
