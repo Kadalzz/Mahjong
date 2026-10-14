@@ -40,7 +40,7 @@ return [
 ## Langkah setup
 
 1. **Flash `client1.ino` s.d. `client6.ino`** (satu file per meja, sudah disiapkan dengan `MEJA_ID`/`NAMA_MEJA`/`RELAY_PIN` masing-masing) ke ESP32 meja yang sesuai. Buka Serial Monitor (115200 baud) — akan tercetak MAC address perangkat itu, catat untuk langkah berikutnya. Kalau nambah meja baru di luar 1-6, duplikat salah satu file lalu ganti ketiga nilai itu supaya unik.
-2. **Isi `master.ino`**: salin `secrets.example.h` menjadi `secrets.h` (di-gitignore) lalu isi `ssid` dan `password` WiFi toko di sana; ganti `websocket_server` (IP komputer yang menjalankan `bridge.php`), lalu ganti MAC placeholder (`0x00...0x0N`) di array `clientMAC[]` dengan MAC asli tiap Client sesuai urutan `meja_id`-nya (perbesar `NUM_MEJA` kalau menambah meja di luar 6). Lalu flash ke ESP32 Master.
+2. **Isi `master.ino`**: salin `secrets.example.h` menjadi `secrets.h` (di-gitignore) lalu isi `ssid`, `password` WiFi toko, dan `ws_token` (sama dengan `ESP32_WS_TOKEN` di `.env` server) di sana; ganti `websocket_server` (IP publik VPS, atau IP komputer lokal yang menjalankan `bridge.php`), lalu ganti MAC placeholder (`0x00...0x0N`) di array `clientMAC[]` dengan MAC asli tiap Client sesuai urutan `meja_id`-nya (perbesar `NUM_MEJA` kalau menambah meja di luar 6). Lalu flash ke ESP32 Master.
 3. Jalankan `esp32-bridge/bridge.php` di komputer yang sama dengan Laravel.
 4. Di Laravel `.env`, isi:
    ```
@@ -71,5 +71,5 @@ Semua file `clientN.ino` saat ini sudah di-set `WIFI_CHANNEL = 11`, mengikuti ch
 ## Catatan keamanan
 
 - ESP-NOW dikirim **tanpa enkripsi** (`peerInfo.encrypt = false`). Untuk pemakaian jangka panjang, pertimbangkan aktifkan enkripsi ESP-NOW.
-- Koneksi WebSocket antara ESP32 Master dan bridge **tidak diautentikasi** — siapa pun yang terhubung ke WiFi toko dan tahu port 81 bisa konek dan mengirim perintah langsung ke Master. Ini masih tahap prototype; untuk produksi sebaiknya tambahkan pengecekan token di level firmware Master juga, bukan cuma di kanal Laravel↔bridge.
+- Koneksi WebSocket dari ESP32 Master ke bridge wajib membawa token (`?token=...`) yang sama dengan `ws_token` di `esp32-bridge/config.php` (diisi otomatis oleh `deploy/deploy.sh` dari `ESP32_WS_TOKEN`). Koneksi tanpa token atau dengan token salah ditolak, sehingga pihak lain tidak bisa menggeser Master asli. Kalau `ws_token` kosong, pengecekan ini nonaktif (hanya untuk uji lokal).
 - Kanal Laravel↔bridge (`ESP32_BRIDGE_SECRET`) hanya melindungi loopback lokal (`127.0.0.1`), bukan komunikasi ke ESP32.

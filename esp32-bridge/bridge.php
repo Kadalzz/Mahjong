@@ -97,9 +97,23 @@ class MasterBridge
 {
     private ?ConnectionInterface $master = null;
 
-    public function setMaster(?ConnectionInterface $conn): void
+    public function setMaster(ConnectionInterface $conn): void
     {
+        if ($this->master !== null && $this->master !== $conn) {
+            $this->master->close();
+        }
+
         $this->master = $conn;
+    }
+
+    public function clearMaster(ConnectionInterface $conn): bool
+    {
+        if ($this->master !== $conn) {
+            return false;
+        }
+
+        $this->master = null;
+        return true;
     }
 
     public function isConnected(): bool
@@ -122,14 +136,21 @@ $loop = Loop::get();
 $bridge = new MasterBridge();
 
 $wsServer = new SocketServer("0.0.0.0:{$config['ws_port']}", [], $loop);
-$wsServer->on('connection', function (ConnectionInterface $conn) use ($bridge) {
+$wsToken = (string) ($config['ws_token'] ?? '');
+
+$wsServer->on('connection', function (ConnectionInterface $conn) use ($bridge, $wsToken) {
     $handshakeDone = false;
     $buffer = '';
 
-    $conn->on('data', function ($chunk) use (&$handshakeDone, &$buffer, $conn, $bridge) {
+    $conn->on('data', function ($chunk) use (&$handshakeDone, &$buffer, $conn, $bridge, $wsToken) {
         $buffer .= $chunk;
 
         if (!$handshakeDone) {
+            if (strlen($buffer) > 8192) {
+                $conn->close();
+                return;
+            }
+
             if (!str_contains($buffer, "\r\n\r\n")) {
                 return;
             }
@@ -137,6 +158,17 @@ $wsServer->on('connection', function (ConnectionInterface $conn) use ($bridge) {
             if (!preg_match('/Sec-WebSocket-Key:\s*(.+)\r\n/i', $buffer, $m)) {
                 $conn->end();
                 return;
+            }
+
+            if ($wsToken !== '') {
+                preg_match('/^GET\s+(\S+)/', $buffer, $requestLine);
+                parse_str((string) parse_url($requestLine[1] ?? '', PHP_URL_QUERY), $query);
+
+                if (!hash_equals($wsToken, (string) ($query['token'] ?? ''))) {
+                    echo "[WS] Koneksi ditolak (token salah) dari {$conn->getRemoteAddress()}\n";
+                    $conn->end("HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\n\r\n");
+                    return;
+                }
             }
 
             $accept = wsAcceptKey(trim($m[1]));
@@ -163,8 +195,7 @@ $wsServer->on('connection', function (ConnectionInterface $conn) use ($bridge) {
     });
 
     $conn->on('close', function () use (&$handshakeDone, $conn, $bridge) {
-        if ($handshakeDone) {
-            $bridge->setMaster(null);
+        if ($handshakeDone && $bridge->clearMaster($conn)) {
             echo "[WS] ESP32 Master terputus\n";
         }
     });

@@ -5,9 +5,8 @@
 
 #include "secrets.h"
 
-const char* websocket_server = "192.168.0.134";
+const char* websocket_server = "187.127.223.136";
 const uint16_t websocket_port = 81;
-const char* websocket_path = "/";
 
 #define NUM_MEJA 6
 
@@ -231,9 +230,9 @@ void setup() {
     }
   }
 
-  Serial.printf("Menghubungkan ke bridge WebSocket di ws://%s:%d%s\n",
-                websocket_server, websocket_port, websocket_path);
-  webSocket.begin(websocket_server, websocket_port, websocket_path);
+  String websocketPath = String("/?token=") + ws_token;
+  Serial.printf("Menghubungkan ke bridge WebSocket di ws://%s:%d\n", websocket_server, websocket_port);
+  webSocket.begin(websocket_server, websocket_port, websocketPath);
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
   webSocket.enableHeartbeat(15000, 3000, 2);

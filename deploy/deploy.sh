@@ -57,6 +57,11 @@ DB_NAME="$(env_value DB_DATABASE)"
 DB_USER="$(env_value DB_USERNAME)"
 DB_PASS="$(env_value DB_PASSWORD)"
 BRIDGE_SECRET="$(env_value ESP32_BRIDGE_SECRET)"
+WS_TOKEN="$(env_value ESP32_WS_TOKEN)"
+
+if [ -z "$WS_TOKEN" ]; then
+    echo "PERINGATAN: ESP32_WS_TOKEN kosong. Port 81 akan menerima koneksi Master tanpa token."
+fi
 
 if [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASS" ] || [ -z "$BRIDGE_SECRET" ]; then
     echo "DB_DATABASE, DB_USERNAME, DB_PASSWORD, atau ESP32_BRIDGE_SECRET kosong di $ENV_FILE."
@@ -86,6 +91,7 @@ return [
     'ws_port' => 81,
     'control_port' => 8090,
     'secret' => '${BRIDGE_SECRET}',
+    'ws_token' => '${WS_TOKEN}',
 ];
 PHP
 
