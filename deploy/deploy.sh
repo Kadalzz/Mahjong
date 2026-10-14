@@ -39,6 +39,10 @@ PHP_VER="$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')"
 PHP_SOCK="/run/php/php${PHP_VER}-fpm.sock"
 echo "PHP terpasang: ${PHP_VER}"
 
+if ! git config --global --get-all safe.directory | grep -qx "$APP_DIR"; then
+    git config --global --add safe.directory "$APP_DIR"
+fi
+
 if [ -d "$APP_DIR/.git" ]; then
     git -C "$APP_DIR" pull --ff-only
 else
