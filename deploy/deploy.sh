@@ -114,7 +114,7 @@ if [ ! -f "$APP_DIR/storage/.seeded" ]; then
     as_www touch "$APP_DIR/storage/.seeded"
 fi
 
-as_www php artisan storage:link || true
+[ -L "$APP_DIR/public/storage" ] || as_www php artisan storage:link
 as_www php artisan config:cache
 as_www php artisan route:cache
 as_www php artisan view:cache
