@@ -22,6 +22,8 @@ return [
 
     'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
 
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
+
     
 
     'locale' => env('APP_LOCALE', 'en'),
