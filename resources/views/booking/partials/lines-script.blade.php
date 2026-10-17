@@ -15,7 +15,8 @@ window.initBookingLines = function (config) {
         const total = h * 60 + m + hours * 60;
         const wrapped = total % (24 * 60);
         const label = `${String(Math.floor(wrapped / 60)).padStart(2, '0')}:${String(wrapped % 60).padStart(2, '0')}`;
-        return { label, nextDay: total >= 24 * 60 };
+        const days = Math.floor(total / (24 * 60));
+        return { label, days, suffix: days > 0 ? ` (+${days} hari)` : '' };
     }
 
     function renumber() {
@@ -106,7 +107,7 @@ window.initBookingLines = function (config) {
                 if (!start) return;
                 if (data.available) {
                     setStatus(row, 'ok', `<span class="availability-badge avail-ok"><i class="bi bi-check-circle-fill"></i> Tersedia</span>
-                        <span class="ms-1" style="color:var(--ink-mute)">Selesai ${data.end_time}${data.ends_next_day ? ' (besok)' : ''}</span>`);
+                        <span class="ms-1" style="color:var(--ink-mute)">Selesai ${data.end_time}${data.ends_days === 1 ? ' (besok)' : (data.ends_days > 1 ? ` (+${data.ends_days} hari)` : '')}</span>`);
                 } else {
                     setStatus(row, 'bad', `<span class="availability-badge avail-no"><i class="bi bi-x-circle-fill"></i> Bentrok</span>
                         <span class="ms-1" style="color:#9b2c2c;font-weight:700">${data.message || 'Jam ini tidak tersedia.'}</span>`);

@@ -12,6 +12,8 @@ class Booking extends Model
 {
     public const REFUND_WINDOW_HOURS = 24;
 
+    public const MAX_DURATION_HOURS = 48;
+
     protected $fillable = [
         'booking_order_id',
         'source',
@@ -134,13 +136,20 @@ class Booking extends Model
 
     public function endsNextDay(): bool
     {
-        return !$this->endsAt()->isSameDay($this->startsAt());
+        return $this->daysUntilEnd() > 0;
+    }
+
+    public function daysUntilEnd(): int
+    {
+        return (int) $this->startsAt()->startOfDay()->diffInDays($this->endsAt()->startOfDay());
     }
 
     public function getTimeRangeLabelAttribute(): string
     {
+        $days = $this->daysUntilEnd();
+
         return substr($this->start_time, 0, 5) . ' – ' . $this->endsAt()->format('H:i')
-            . ($this->endsNextDay() ? ' (+1 hari)' : '');
+            . ($days > 0 ? " (+{$days} hari)" : '');
     }
 
     public function scopeBlocking(Builder $query): Builder

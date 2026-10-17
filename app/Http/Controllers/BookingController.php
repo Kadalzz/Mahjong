@@ -46,6 +46,7 @@ class BookingController extends Controller
             'table'     => $table,
             'tables'    => $tables,
             'maxTables' => self::MAX_TABLES_PER_ORDER,
+            'maxAmount' => (int) config('doku.max_amount'),
         ]);
     }
 
@@ -54,7 +55,7 @@ class BookingController extends Controller
         $request->validate([
             'booking_date'   => 'required|date|after_or_equal:today',
             'start_time'     => 'nullable|date_format:H:i',
-            'duration_hours' => 'required|integer|min:1|max:8',
+            'duration_hours' => 'required|integer|min:1|max:' . Booking::MAX_DURATION_HOURS,
         ]);
 
         $busy = $table->busySlotsOn($request->booking_date);
@@ -73,9 +74,9 @@ class BookingController extends Controller
             'reason'          => $problem['reason'] ?? null,
             'message'         => $problem['message'] ?? null,
             'end_time'        => Booking::computeEndTime($request->start_time, $durationHours),
-            'ends_next_day'   => !Booking::startDateTime($request->booking_date, $request->start_time)
-                ->addHours($durationHours)
-                ->isSameDay(Carbon::parse($request->booking_date)),
+            'ends_days'       => (int) Carbon::parse($request->booking_date)->startOfDay()->diffInDays(
+                Booking::startDateTime($request->booking_date, $request->start_time)->addHours($durationHours)->startOfDay()
+            ),
             'price'           => $price,
             'price_formatted' => 'Rp ' . number_format($price, 0, ',', '.'),
             'busy'            => $busy,
@@ -91,10 +92,20 @@ class BookingController extends Controller
             'lines'                  => 'required|array|min:1|max:' . self::MAX_TABLES_PER_ORDER,
             'lines.*.table_id'       => 'required|integer|distinct|exists:mahjong_tables,id',
             'lines.*.start_time'     => 'required|date_format:H:i',
-            'lines.*.duration_hours' => 'required|integer|min:1|max:8',
+            'lines.*.duration_hours' => 'required|integer|min:1|max:' . Booking::MAX_DURATION_HOURS,
         ], [
             'lines.*.table_id.distinct' => 'Meja yang sama dipilih lebih dari sekali.',
         ]);
+
+        $prices = MahjongTable::with('pricing')->findMany(collect($data['lines'])->pluck('table_id'))->keyBy('id');
+        $total  = collect($data['lines'])->sum(fn ($line) => $prices[(int) $line['table_id']]->getCurrentPricePerHour() * (int) $line['duration_hours']);
+        $limit  = (int) config('doku.max_amount');
+
+        if ($limit > 0 && $total > $limit) {
+            return back()->withInput()->withErrors([
+                'lines' => 'Total melebihi batas pembayaran QRIS (Rp ' . number_format($limit, 0, ',', '.') . '). Kurangi jumlah meja atau durasi, atau hubungi kasir untuk pembayaran tunai.',
+            ]);
+        }
 
         $result = $this->orders->create($data, $data['lines'], 'customer');
 

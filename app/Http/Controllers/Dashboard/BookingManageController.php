@@ -71,7 +71,7 @@ class BookingManageController extends Controller
             'lines'                  => 'required|array|min:1|max:' . BookingController::MAX_TABLES_PER_ORDER,
             'lines.*.table_id'       => 'required|integer|distinct|exists:mahjong_tables,id',
             'lines.*.start_time'     => 'required|date_format:H:i',
-            'lines.*.duration_hours' => 'required|integer|min:1|max:8',
+            'lines.*.duration_hours' => 'required|integer|min:1|max:' . Booking::MAX_DURATION_HOURS,
         ], [
             'lines.*.table_id.distinct' => 'Meja yang sama dipilih lebih dari sekali.',
         ]);

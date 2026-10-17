@@ -235,6 +235,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+const maxAmount = {{ $maxAmount }};
 const dateInput = document.getElementById('booking_date');
 const submitBtn = document.getElementById('submitBtn');
 const submitHint = document.getElementById('submitHint');
@@ -247,17 +248,21 @@ function renderSummary(lines) {
 
     document.getElementById('s-lines').innerHTML = lines.map(l => `
         <div class="d-flex justify-content-between mb-2 gap-2">
-            <span>${escapeHtml(l.tableName)}<br><span style="opacity:0.7;font-size:0.78rem">${l.start ? `${l.start} – ${l.end.label}${l.end.nextDay ? ' (+1)' : ''}` : 'jam belum dipilih'} &bull; ${l.hours} jam</span></span>
+            <span>${escapeHtml(l.tableName)}<br><span style="opacity:0.7;font-size:0.78rem">${l.start ? `${l.start} – ${l.end.label}${l.end.suffix}` : 'jam belum dipilih'} &bull; ${l.hours} jam</span></span>
             <span class="fw-bold text-nowrap">${formatRupiah(l.price)}</span>
         </div>`).join('');
 
-    document.getElementById('s-total').textContent = formatRupiah(lines.reduce((sum, l) => sum + l.price, 0));
+    const total = lines.reduce((sum, l) => sum + l.price, 0);
+    document.getElementById('s-total').textContent = formatRupiah(total);
 
     const bad = lines.filter(l => l.state === 'bad').length;
     const incomplete = lines.filter(l => l.state === 'incomplete').length;
     const pending = lines.filter(l => l.state === 'pending' || l.state === '').length;
 
-    if (bad > 0) {
+    if (maxAmount > 0 && total > maxAmount) {
+        submitBtn.disabled = true;
+        submitHint.textContent = `Total melebihi batas pembayaran QRIS (${formatRupiah(maxAmount)}). Kurangi jumlah meja atau durasi, atau hubungi kasir untuk pembayaran tunai.`;
+    } else if (bad > 0) {
         submitBtn.disabled = true;
         submitHint.textContent = `${bad} meja bentrok. Ganti jam atau hapus meja yang ditandai merah.`;
     } else if (incomplete > 0) {

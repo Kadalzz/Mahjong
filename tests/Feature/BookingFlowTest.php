@@ -514,4 +514,41 @@ class BookingFlowTest extends TestCase
         $this->actingAs($admin)->get(route('dashboard.bookings'))->assertOk()->assertSee('Buat Booking');
         $this->actingAs($admin)->get(route('dashboard.bookings.create'))->assertOk()->assertSee('Owner')->assertSee('Tunai')->assertSee('Blokir');
     }
+
+    public function test_booking_can_last_48_hours_and_blocks_every_day_it_covers(): void
+    {
+        $this->book('20:00', 48)->assertRedirect();
+
+        $booking = Booking::latest('id')->first();
+        $this->assertSame('2026-10-16 20:00:00', $booking->ends_at->toDateTimeString());
+        $this->assertSame('20:00 – 20:00 (+2 hari)', $booking->time_range_label);
+
+        $this->book('12:00', 1, '2026-10-15')->assertSessionHasErrors('lines.0.start_time');
+        $this->book('20:00', 1, '2026-10-16')->assertRedirect();
+        $this->book('20:00', 49, '2026-10-17')->assertSessionHasErrors('lines.0.duration_hours');
+    }
+
+    public function test_order_above_the_qris_limit_is_rejected_for_customers_but_allowed_for_cash(): void
+    {
+        config(['doku.max_amount' => 10000000]);
+        $tables = collect([4, 5, 6])->map(fn ($i) => $this->makeTable("Meja {$i} - VVIP", 100000, $i));
+
+        $this->bookLines($tables->map(fn ($t) => [$t->id, '20:00', 48])->all())
+            ->assertSessionHasErrors('lines');
+        $this->assertStringContainsString('batas pembayaran QRIS', session('errors')->first('lines'));
+        $this->assertSame(0, BookingOrder::count());
+        Http::assertNothingSent();
+
+        Queue::fake();
+        $this->adminBook('cash', $tables->map(fn ($t) => [$t->id, '20:00', 48])->all())->assertRedirect(route('dashboard.bookings'));
+        $this->assertSame(14400000, (int) BookingOrder::sole()->total_price);
+    }
+
+    public function test_order_exactly_at_the_qris_limit_is_allowed(): void
+    {
+        config(['doku.max_amount' => 100000]);
+
+        $this->book('20:00', 2)->assertRedirect();
+        $this->assertSame(1, BookingOrder::count());
+    }
 }

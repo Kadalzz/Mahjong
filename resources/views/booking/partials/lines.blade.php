@@ -27,7 +27,7 @@
             <div class="col-4 col-md-3">
                 <label class="form-label">Durasi</label>
                 <select class="form-select line-duration" data-field="duration_hours" required>
-                    @for($h = 1; $h <= 8; $h++)
+                    @for($h = 1; $h <= \App\Models\Booking::MAX_DURATION_HOURS; $h++)
                     <option value="{{ $h }}" {{ (int) ($line['duration_hours'] ?? 1) === $h ? 'selected' : '' }}>{{ $h }} Jam</option>
                     @endfor
                 </select>
