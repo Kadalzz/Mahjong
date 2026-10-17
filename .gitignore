@@ -31,3 +31,4 @@ Homestead.yaml
 Thumbs.db
 
 esp32/master/secrets.h
+*.zip

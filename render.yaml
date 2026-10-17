@@ -57,6 +57,8 @@ services:
         sync: false
       - key: DOKU_SECRET_KEY
         sync: false
+      - key: TRUSTED_PROXIES
+        value: "*"
       - key: APP_TIMEZONE
         value: Asia/Jakarta
       - key: DOKU_IS_PRODUCTION

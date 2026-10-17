@@ -124,7 +124,16 @@ sed -e "s#__DOMAIN__#${DOMAIN}#g" -e "s#__APP_DIR__#${APP_DIR}#g" -e "s#__PHP_SO
 ln -sf /etc/nginx/sites-available/hzmahjong /etc/nginx/sites-enabled/hzmahjong
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
-systemctl enable --now "php${PHP_VER}-fpm"
+FPM_POOL="/etc/php/${PHP_VER}/fpm/pool.d/www.conf"
+sed -i \
+    -e 's/^pm = .*/pm = dynamic/' \
+    -e 's/^pm.max_children = .*/pm.max_children = 20/' \
+    -e 's/^pm.start_servers = .*/pm.start_servers = 4/' \
+    -e 's/^pm.min_spare_servers = .*/pm.min_spare_servers = 2/' \
+    -e 's/^pm.max_spare_servers = .*/pm.max_spare_servers = 8/' \
+    "$FPM_POOL"
+systemctl enable "php${PHP_VER}-fpm"
+systemctl restart "php${PHP_VER}-fpm"
 systemctl reload nginx
 
 for unit in hzmahjong-queue hzmahjong-bridge; do

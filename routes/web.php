@@ -16,18 +16,18 @@ Route::get('/', [CoverController::class, 'index'])->name('cover.index');
 Route::get('/pesan', [BookingController::class, 'index'])->name('booking.index');
 Route::get('/booking/table/{table}', [BookingController::class, 'create'])->name('booking.create');
 Route::post('/booking/table/{table}/availability', [BookingController::class, 'checkAvailability'])
-    ->middleware('throttle:20,1')
+    ->middleware('throttle:booking-check')
     ->name('booking.check');
 Route::post('/booking', [BookingController::class, 'store'])
-    ->middleware('throttle:5,1')
+    ->middleware('throttle:booking-store')
     ->name('booking.store');
 Route::get('/booking/confirm/{code}', [BookingController::class, 'confirm'])->name('booking.confirm');
 Route::get('/booking/invoice/{code}', [BookingController::class, 'invoice'])->name('booking.invoice');
 Route::get('/booking/status/{code}', [BookingController::class, 'status'])
-    ->middleware('throttle:30,1')
+    ->middleware('throttle:booking-status')
     ->name('booking.status');
 Route::get('/cek-booking', [BookingController::class, 'lookup'])
-    ->middleware('throttle:10,1')
+    ->middleware('throttle:booking-lookup')
     ->name('booking.lookup');
 
 Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.index');

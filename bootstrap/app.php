@@ -16,10 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
 
-        
-        
-        
-        $middleware->trustProxies(at: '*');
+        $trustedProxies = env('TRUSTED_PROXIES');
+        if ($trustedProxies) {
+            $middleware->trustProxies(at: $trustedProxies === '*' ? '*' : explode(',', $trustedProxies));
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
