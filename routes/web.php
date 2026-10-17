@@ -53,6 +53,8 @@ Route::prefix('dashboard')->name('dashboard.')->middleware(['auth', 'role:admin'
     Route::post('/tables/{table}/device', [TableController::class, 'device'])->name('tables.device');
     Route::post('/tables/{table}/pause', [TableController::class, 'pause'])->name('tables.pause');
     Route::get('/bookings', [BookingManageController::class, 'index'])->name('bookings');
+    Route::get('/bookings/create', [BookingManageController::class, 'create'])->name('bookings.create');
+    Route::post('/bookings', [BookingManageController::class, 'store'])->name('bookings.store');
     Route::put('/bookings/{booking}/status', [BookingManageController::class, 'updateStatus'])->name('bookings.status');
 });
 

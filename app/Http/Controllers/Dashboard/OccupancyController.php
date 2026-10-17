@@ -30,7 +30,7 @@ class OccupancyController extends Controller
             foreach ($tables as $table) {
                 $hoursOccupied = Booking::where('mahjong_table_id', $table->id)
                     ->whereDate('booking_date', $date)
-                    ->whereIn('status', ['active', 'done'])
+                    ->whereIn('status', ['active', 'done'])->where('source', '!=', 'block')
                     ->sum('duration_hours');
 
                 $occupancyData[$table->name][] = (int) $hoursOccupied;
@@ -46,12 +46,12 @@ class OccupancyController extends Controller
                 'total_bookings' => Booking::where('mahjong_table_id', $table->id)
                     ->whereDate('booking_date', '>=', $from)
                     ->whereDate('booking_date', '<=', $to)
-                    ->whereIn('status', ['active', 'done'])
+                    ->whereIn('status', ['active', 'done'])->where('source', '!=', 'block')
                     ->count(),
                 'total_hours'    => Booking::where('mahjong_table_id', $table->id)
                     ->whereDate('booking_date', '>=', $from)
                     ->whereDate('booking_date', '<=', $to)
-                    ->whereIn('status', ['active', 'done'])
+                    ->whereIn('status', ['active', 'done'])->where('source', '!=', 'block')
                     ->sum('duration_hours'),
             ];
         });

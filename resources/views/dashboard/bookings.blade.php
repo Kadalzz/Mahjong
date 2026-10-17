@@ -4,6 +4,12 @@
 
 @section('content')
 
+<div class="d-flex justify-content-end mb-3">
+    <a href="{{ route('dashboard.bookings.create') }}" class="btn btn-gold">
+        <i class="bi bi-plus-lg me-1"></i>Buat Booking (Owner / Tunai / Blokir)
+    </a>
+</div>
+
 <div class="card-dark mb-4">
     <div class="card-body">
         <form method="GET" class="row g-3 align-items-end">
@@ -22,12 +28,21 @@
                     <option value="cancelled"       {{ request('status') === 'cancelled'       ? 'selected' : '' }}>Dibatalkan</option>
                 </select>
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-2">
+                <label class="form-label text-muted small">Jenis</label>
+                <select name="source" class="form-select" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
+                    <option value="">Semua Jenis</option>
+                    @foreach(\App\Models\BookingOrder::SOURCES as $value => $label)
+                    <option value="{{ $value }}" {{ request('source') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-sm-2">
                 <label class="form-label text-muted small">Tanggal</label>
                 <input type="date" name="date" value="{{ request('date') }}"
                     class="form-control" style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-2">
                 <button type="submit" class="btn btn-gold w-100">
                     <i class="bi bi-search me-1"></i>Filter
                 </button>
@@ -60,7 +75,10 @@
                     @forelse($bookings as $bk)
                     <tr>
                         <td>
-                            <code style="color:var(--red);font-size:0.8rem">{{ $bk->booking_code }}</code>
+                            <code style="color:var(--red);font-size:0.8rem">{{ $bk->order?->code ?? $bk->booking_code }}</code>
+                            @if($bk->source !== 'customer')
+                            <div><span class="badge-s-{{ $bk->source === 'block' ? 'cancelled' : 'waiting' }}" style="font-size:0.68rem">{{ \App\Models\BookingOrder::SOURCES[$bk->source] ?? $bk->source }}</span></div>
+                            @endif
                         </td>
                         <td>
                             <div style="font-weight:500">{{ $bk->customer_name }}</div>

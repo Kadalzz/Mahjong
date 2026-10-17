@@ -13,6 +13,8 @@ class Booking extends Model
     public const REFUND_WINDOW_HOURS = 24;
 
     protected $fillable = [
+        'booking_order_id',
+        'source',
         'mahjong_table_id',
         'customer_name',
         'customer_phone',
@@ -64,6 +66,11 @@ class Booking extends Model
         return $this->belongsTo(MahjongTable::class, 'mahjong_table_id');
     }
 
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(BookingOrder::class, 'booking_order_id');
+    }
+
     public function transaction(): HasOne
     {
         return $this->hasOne(Transaction::class);
@@ -96,8 +103,8 @@ class Booking extends Model
     public static function generateCode(): string
     {
         do {
-            $code = 'MJG-' . strtoupper(substr(uniqid(), -6));
-        } while (self::where('booking_code', $code)->exists());
+            $code = 'MJG-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
+        } while (self::where('booking_code', $code)->exists() || BookingOrder::where('code', $code)->exists());
 
         return $code;
     }

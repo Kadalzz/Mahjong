@@ -25,6 +25,7 @@ class DashboardController extends Controller
         
         $activeBookings = Booking::whereDate('booking_date', $today)
             ->where('status', 'active')
+            ->where('source', '!=', 'block')
             ->count();
 
         
@@ -42,6 +43,7 @@ class DashboardController extends Controller
         $totalTables    = MahjongTable::where('status', '!=', 'maintenance')->count();
         $occupiedTables = Booking::whereDate('booking_date', $today)
             ->where('status', 'active')
+            ->where('source', '!=', 'block')
             ->distinct('mahjong_table_id')
             ->count('mahjong_table_id');
 

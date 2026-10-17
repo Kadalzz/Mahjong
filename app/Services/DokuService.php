@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Models\BookingOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -14,13 +15,15 @@ class DokuService
 
     private const PAYMENT_PATH = '/checkout/v1/payment';
 
-    public function createInvoice(Booking $booking, string $orderId): ?array
+    public function createInvoice(BookingOrder $order, string $orderId): ?array
     {
+        $order->loadMissing('bookings.table');
+
         $clientId = config('doku.client_id');
         $secretKey = config('doku.secret_key');
 
         if (empty($clientId) || empty($secretKey)) {
-            Log::warning("DOKU payment not created for {$booking->booking_code}: DOKU_CLIENT_ID/DOKU_SECRET_KEY is not configured.");
+            Log::warning("DOKU payment not created for {$order->code}: DOKU_CLIENT_ID/DOKU_SECRET_KEY is not configured.");
             return null;
         }
 
@@ -28,27 +31,27 @@ class DokuService
 
         $payload = [
             'order' => [
-                'amount'              => (int) $booking->total_price,
+                'amount'              => (int) $order->total_price,
                 'invoice_number'      => $orderId,
                 'currency'            => 'IDR',
-                'callback_url'        => route('booking.confirm', $booking->booking_code),
-                'callback_url_cancel' => route('booking.confirm', $booking->booking_code),
-                'callback_url_result' => route('booking.confirm', $booking->booking_code),
+                'callback_url'        => route('booking.confirm', $order->code),
+                'callback_url_cancel' => route('booking.confirm', $order->code),
+                'callback_url_result' => route('booking.confirm', $order->code),
                 'auto_redirect'       => true,
-                'line_items' => [[
+                'line_items' => $order->bookings->map(fn (Booking $booking) => [
                     'id'       => (string) $booking->mahjong_table_id,
-                    'name'     => "Reservasi {$booking->table->name} ({$booking->duration_hours} jam)",
+                    'name'     => mb_substr("{$booking->table->name} {$booking->time_range_label}", 0, 100),
                     'quantity' => 1,
                     'price'    => (int) $booking->total_price,
-                ]],
+                ])->values()->all(),
             ],
             'payment' => array_filter([
                 'payment_due_date'    => (int) config('doku.payment_due_minutes', 60),
                 'payment_method_types' => $paymentMethods ?: null,
             ]),
             'customer' => [
-                'name'  => $booking->customer_name,
-                'phone' => $this->formatPhone($booking->customer_phone),
+                'name'  => $order->customer_name,
+                'phone' => $this->formatPhone((string) $order->customer_phone),
             ],
         ];
 
@@ -61,19 +64,19 @@ class DokuService
                 ->withBody($bodyJson, 'application/json')
                 ->post($this->baseUrl() . self::PAYMENT_PATH);
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::error("DOKU connection failed for {$booking->booking_code}: " . $e->getMessage());
+            Log::error("DOKU connection failed for {$order->code}: " . $e->getMessage());
             return null;
         }
 
         if (!$response->successful()) {
-            Log::error("DOKU error for {$booking->booking_code}: " . $response->body());
+            Log::error("DOKU error for {$order->code}: " . $response->body());
             return null;
         }
 
         $url = $response->json('response.payment.url');
 
         if (empty($url)) {
-            Log::error("DOKU response missing payment url for {$booking->booking_code}: " . $response->body());
+            Log::error("DOKU response missing payment url for {$order->code}: " . $response->body());
             return null;
         }
 

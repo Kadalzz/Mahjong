@@ -88,6 +88,7 @@
 }
 .block-active          { background: #DCEFDD; color: #1f7a34; border: 1px solid #2f9e4450; }
 .block-pending_payment { background: #FBF0C8; color: #8a6d1a; border: 1px solid #d4a01750; }
+.block-blocked         { background: #E4E0D6; color: #5b5346; border: 1px dashed #5b534660; }
 </style>
 @endsection
 
@@ -143,10 +144,10 @@
                         $visibleHours = $visibleStart->diffInMinutes($visibleEnd) / 60;
                         if ((int) substr($slot, 0, 2) === (int) $visibleStart->format('H')):
                     @endphp
-                        <div class="booking-block block-{{ $booking->status }}"
+                        <div class="booking-block block-{{ $booking->source === 'block' ? 'blocked' : $booking->status }}"
                              style="height: calc({{ $visibleHours * 44 }}px - 4px)"
-                             title="{{ $booking->customer_name }} | {{ $booking->time_range_label }}">
-                            🀄
+                             title="{{ $booking->source === 'block' ? 'Tidak tersedia' : $booking->customer_name }} | {{ $booking->time_range_label }}">
+                            {{ $booking->source === 'block' ? '⛔' : '🀄' }}
                             <br>{{ $booking->duration_hours }}j
                         </div>
                     @php endif; @endphp
@@ -160,6 +161,7 @@
     <div class="d-flex gap-3 mb-4 flex-wrap" style="font-size:0.8rem;color:rgba(244,241,221,0.85);font-weight:600;">
         <span><span class="badge py-1 px-2 me-1" style="background:#DCEFDD;color:#1f7a34">■</span>Aktif / Sudah Bayar</span>
         <span><span class="badge py-1 px-2 me-1" style="background:#FBF0C8;color:#8a6d1a">■</span>Menunggu Pembayaran</span>
+        <span><span class="badge py-1 px-2 me-1" style="background:#E4E0D6;color:#5b5346">■</span>Tidak Tersedia</span>
     </div>
 </div>
 @endsection

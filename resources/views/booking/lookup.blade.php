@@ -81,24 +81,27 @@
 
     <div class="py-5" style="max-width:640px;margin:0 auto;">
         @if($searched)
-            @forelse($bookings as $booking)
+            @forelse($orders as $order)
             <div class="result-card">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                     <div>
-                        <div class="result-code">{{ $booking->booking_code }}</div>
-                        <div class="result-meta mt-1">{{ $booking->table->name }} &middot; {{ $booking->booking_date->translatedFormat('d M Y') }} &middot; {{ $booking->time_range_label }}</div>
+                        <div class="result-code">{{ $order->code }}</div>
+                        <div class="result-meta mt-1">{{ $order->booking_date->translatedFormat('d M Y') }}</div>
+                        @foreach($order->bookings as $line)
+                        <div class="result-meta">{{ $line->table->name }} &middot; {{ $line->time_range_label }}</div>
+                        @endforeach
                     </div>
-                    <span class="badge-status badge-{{ $booking->status }}">{{ $booking->status_label }}</span>
+                    <span class="badge-status badge-{{ $order->status }}">{{ $order->status_label }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
-                    <div class="fw-700" style="color:var(--red)">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</div>
+                    <div class="fw-700" style="color:var(--red)">Rp {{ number_format($order->total_price, 0, ',', '.') }}</div>
                     <div class="d-flex gap-2">
-                        @if(in_array($booking->status, ['active', 'done']))
-                        <a href="{{ route('booking.invoice', $booking->booking_code) }}" class="btn btn-sm btn-gold">
+                        @if($order->isPaid())
+                        <a href="{{ route('booking.invoice', $order->code) }}" class="btn btn-sm btn-gold">
                             <i class="bi bi-receipt me-1"></i>Lihat Invoice
                         </a>
                         @else
-                        <a href="{{ route('booking.confirm', $booking->booking_code) }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ route('booking.confirm', $order->code) }}" class="btn btn-sm btn-outline-secondary">
                             Lihat Status
                         </a>
                         @endif

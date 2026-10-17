@@ -13,6 +13,10 @@ class TableDeviceService
 {
     public function activate(MahjongTable $table, Booking $booking): bool
     {
+        if ($booking->source === 'block') {
+            return false;
+        }
+
         $startsAt = $booking->startsAt();
         $endsAt   = $booking->endsAt();
 

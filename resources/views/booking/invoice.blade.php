@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Invoice ' . $booking->booking_code)
+@section('title', 'Invoice ' . $order->code)
 
 @section('head')
 <style>
@@ -71,9 +71,9 @@
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:0.75rem;color:var(--ink-mute);">No. Invoice</div>
-                    <div class="invoice-code">{{ $booking->booking_code }}</div>
+                    <div class="invoice-code">{{ $order->code }}</div>
                     <div style="font-size:0.75rem;color:var(--ink-mute);margin-top:0.4rem;">
-                        {{ ($booking->transaction->paid_at ?? now())->translatedFormat('d F Y, H:i') }} WIB
+                        {{ ($order->bookings->first()?->transaction?->paid_at ?? now())->translatedFormat('d F Y, H:i') }} WIB
                     </div>
                 </div>
             </div>
@@ -81,44 +81,46 @@
             <div class="invoice-body">
                 <div class="invoice-row">
                     <span class="invoice-label">Pelanggan</span>
-                    <span class="invoice-value">{{ $booking->customer_name }}</span>
+                    <span class="invoice-value">{{ $order->customer_name }}</span>
                 </div>
                 <div class="invoice-row">
                     <span class="invoice-label">No. HP</span>
-                    <span class="invoice-value">{{ $booking->customer_phone }}</span>
-                </div>
-                <div class="invoice-row">
-                    <span class="invoice-label">Meja</span>
-                    <span class="invoice-value">{{ $booking->table->name }}</span>
+                    <span class="invoice-value">{{ $order->customer_phone }}</span>
                 </div>
                 <div class="invoice-row">
                     <span class="invoice-label">Tanggal</span>
-                    <span class="invoice-value">{{ $booking->booking_date->translatedFormat('l, d F Y') }}</span>
+                    <span class="invoice-value">{{ $order->booking_date->translatedFormat('l, d F Y') }}</span>
                 </div>
+                @foreach($order->bookings as $line)
                 <div class="invoice-row">
-                    <span class="invoice-label">Waktu</span>
-                    <span class="invoice-value">{{ $booking->time_range_label }} ({{ $booking->duration_hours }} jam)</span>
+                    <span class="invoice-label">
+                        <span style="color:var(--ink);font-weight:700">{{ $line->table->name }}</span><br>
+                        <span style="font-size:0.8rem">{{ $line->time_range_label }} ({{ $line->duration_hours }} jam)</span>
+                        @if($line->refund_status === 'pending_refund')
+                        <br><span style="font-size:0.75rem;color:#9b2c2c;font-weight:700">Dikembalikan — slot terisi</span>
+                        @endif
+                    </span>
+                    <span class="invoice-value">Rp {{ number_format($line->total_price, 0, ',', '.') }}</span>
                 </div>
+                @endforeach
                 <div class="invoice-row">
                     <span class="invoice-label">Metode Bayar</span>
-                    <span class="invoice-value">{{ $booking->transaction->payment_method ?? '—' }}</span>
+                    <span class="invoice-value">{{ $order->bookings->first()?->transaction?->payment_method ?? '—' }}</span>
                 </div>
                 <div class="invoice-row">
                     <span class="invoice-label">Status</span>
-                    <span class="invoice-value">
-                        <span class="badge-s-{{ $booking->status }}">{{ $booking->status_label }}</span>
-                    </span>
+                    <span class="invoice-value">{{ $order->status_label }}</span>
                 </div>
                 <div class="invoice-row invoice-total">
                     <span class="invoice-label">Total Dibayar</span>
-                    <span class="invoice-value">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</span>
+                    <span class="invoice-value">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                 </div>
 
                 <div class="mt-4 d-flex gap-2 no-print">
                     <button onclick="window.print()" class="btn btn-gold flex-grow-1">
                         <i class="bi bi-printer me-2"></i>Cetak / Simpan PDF
                     </button>
-                    <a href="{{ route('booking.confirm', $booking->booking_code) }}" class="btn btn-outline-secondary">
+                    <a href="{{ route('booking.confirm', $order->code) }}" class="btn btn-outline-secondary">
                         Kembali
                     </a>
                 </div>

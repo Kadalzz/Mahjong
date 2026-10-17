@@ -77,16 +77,17 @@
 @endsection
 
 @php
-    $awaitingPayment = $booking->isAwaitingPayment();
-    $paymentExpired  = $booking->isPaymentExpired() || ($booking->status === 'cancelled' && $booking->refund_status === null && $booking->cancelled_at === null);
-    $needsRefund     = $booking->refund_status === 'pending_refund';
-    $secondsLeft     = $awaitingPayment ? max(0, (int) now()->diffInSeconds($booking->holdExpiresAt(), false)) : 0;
+    $awaitingPayment = $order->isAwaitingPayment();
+    $needsRefund     = $order->needsRefund();
+    $isPaid          = $order->isPaid();
+    $paymentExpired  = !$needsRefund && !$isPaid && ($order->isPaymentExpired() || ($order->status === 'cancelled' && $order->bookings->every(fn ($b) => $b->cancelled_at === null)));
+    $secondsLeft     = $awaitingPayment ? max(0, (int) now()->diffInSeconds($order->holdExpiresAt(), false)) : 0;
 @endphp
 
 @section('content')
 <div class="confirm-wrapper">
     <div class="container">
-        @if($booking->status === 'active')
+        @if($order->status === 'active')
         <div id="redirectBanner" class="text-center py-2 px-3 mb-3 rounded-3" style="max-width:560px;margin:0 auto 1rem;background:#DCEFDD;color:#1f7a34;font-size:0.85rem;">
             <i class="bi bi-check-circle-fill me-1"></i>
             Pembayaran berhasil! Kembali ke halaman Pesan Meja dalam <span id="redirectCountdown">60</span> detik&hellip;
@@ -106,15 +107,15 @@
                 <div class="confirm-icon icon-failed">
                     <i class="bi bi-exclamation-lg"></i>
                 </div>
-                <h4 class="mb-1">Slot Sudah Terisi</h4>
-                <p class="text-muted mb-3" style="font-size:0.9rem">Pembayaran Anda diterima setelah waktu bayar habis dan slot sudah dipesan orang lain. Tunjukkan kode ini ke kasir untuk pengembalian dana.</p>
+                <h4 class="mb-1">{{ $isPaid ? 'Sebagian Meja Sudah Terisi' : 'Slot Sudah Terisi' }}</h4>
+                <p class="text-muted mb-3" style="font-size:0.9rem">Pembayaran Anda diterima setelah waktu bayar habis, dan {{ $isPaid ? 'sebagian meja' : 'slot' }} sudah dipesan orang lain. Tunjukkan kode ini ke kasir untuk pengembalian dana{{ $isPaid ? ' meja yang ditandai' : '' }}.</p>
                 @elseif($paymentExpired)
                 <div class="confirm-icon icon-failed">
                     <i class="bi bi-x-lg"></i>
                 </div>
                 <h4 class="mb-1">Waktu Pembayaran Habis</h4>
                 <p class="text-muted mb-3" style="font-size:0.9rem">Booking ini dibatalkan karena tidak dibayar dalam {{ \App\Models\Booking::holdMinutes() }} menit. Silakan pesan ulang.</p>
-                @elseif($booking->status === 'cancelled')
+                @elseif($order->status === 'cancelled')
                 <div class="confirm-icon icon-failed">
                     <i class="bi bi-x-lg"></i>
                 </div>
@@ -124,11 +125,11 @@
                 <div class="confirm-icon icon-success">
                     <i class="bi bi-check-lg"></i>
                 </div>
-                <h4 class="mb-1">{{ $booking->status === 'done' ? 'Booking Selesai' : 'Booking Berhasil!' }}</h4>
-                <p class="text-muted mb-3" style="font-size:0.9rem">Meja menyala otomatis pada jam mulai main.</p>
+                <h4 class="mb-1">{{ $order->status === 'done' ? 'Booking Selesai' : 'Booking Berhasil!' }}</h4>
+                <p class="text-muted mb-3" style="font-size:0.9rem">Meja menyala otomatis pada jam mulai main masing-masing.</p>
                 @endif
 
-                <div class="booking-code">{{ $booking->booking_code }}</div>
+                <div class="booking-code">{{ $order->code }}</div>
                 <p class="mt-2 mb-0" style="font-size:0.75rem;color:#555">
                     Simpan kode ini untuk referensi Anda. Lupa kode? Cari lagi lewat
                     <a href="{{ route('booking.lookup') }}" style="color:var(--red);font-weight:700;">Cek Booking</a>
@@ -138,58 +139,58 @@
 
             <div class="confirm-body">
                 <div class="info-row">
-                    <span class="info-label">Meja</span>
-                    <span class="info-value">{{ $booking->table->name }}</span>
-                </div>
-                <div class="info-row">
                     <span class="info-label">Pemesan</span>
-                    <span class="info-value">{{ $booking->customer_name }}</span>
+                    <span class="info-value">{{ $order->customer_name }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">No. HP</span>
-                    <span class="info-value">{{ $booking->customer_phone }}</span>
+                    <span class="info-value">{{ $order->customer_phone }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Tanggal</span>
-                    <span class="info-value">{{ $booking->booking_date->translatedFormat('l, d F Y') }}</span>
+                    <span class="info-value">{{ $order->booking_date->translatedFormat('l, d F Y') }}</span>
                 </div>
+                @foreach($order->bookings as $line)
                 <div class="info-row">
-                    <span class="info-label">Waktu</span>
-                    <span class="info-value">{{ $booking->time_range_label }}</span>
+                    <span class="info-label">
+                        <span style="font-weight:700;color:var(--ink)">{{ $line->table->name }}</span><br>
+                        <span style="font-size:0.8rem">{{ $line->time_range_label }} &bull; {{ $line->duration_hours }} jam</span>
+                        @if($line->refund_status === 'pending_refund')
+                        <br><span style="font-size:0.75rem;color:#9b2c2c;font-weight:700">Slot terisi orang lain — dana dikembalikan kasir</span>
+                        @endif
+                    </span>
+                    <span class="info-value">Rp {{ number_format($line->total_price, 0, ',', '.') }}</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Durasi</span>
-                    <span class="info-value">{{ $booking->duration_hours }} jam</span>
-                </div>
+                @endforeach
                 <div class="info-row">
                     <span class="info-label">Status</span>
                     <span class="info-value">
                         <span class="px-3 py-1 rounded-pill" style="
                               @if($awaitingPayment) background:#f39c1220;color:#b7791f;border:1px solid #f39c1240;
-                              @elseif($booking->status === 'active' || $booking->status === 'done') background:#2f9e4420;color:#1f7a34;border:1px solid #2f9e4440;
+                              @elseif($isPaid) background:#2f9e4420;color:#1f7a34;border:1px solid #2f9e4440;
                               @else background:#b0303018;color:#9b2c2c;border:1px solid #b0303040;
                               @endif
                               font-size:0.8rem;">
-                            {{ $paymentExpired && $booking->status === 'cancelled' ? 'Waktu Bayar Habis' : $booking->status_label }}
+                            {{ $paymentExpired ? 'Waktu Bayar Habis' : $order->status_label }}
                         </span>
                     </span>
                 </div>
                 <div class="info-row total-row">
                     <span class="info-label">Total Bayar</span>
-                    <span class="info-value">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</span>
+                    <span class="info-value">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                 </div>
 
                 <div class="mt-4 d-flex flex-column gap-2">
-                    @if($awaitingPayment && $booking->payment_url)
-                    <a href="{{ $booking->payment_url }}" id="payButton" class="btn btn-gold btn-lg w-100" target="_blank" rel="noopener">
+                    @if($awaitingPayment && $order->payment_url)
+                    <a href="{{ $order->payment_url }}" id="payButton" class="btn btn-gold btn-lg w-100" target="_blank" rel="noopener">
                         <i class="bi bi-qr-code me-2"></i>Bayar dengan QRIS
                     </a>
-                    @elseif(in_array($booking->status, ['active', 'done']))
-                    <a href="{{ route('booking.invoice', $booking->booking_code) }}" class="btn btn-gold btn-lg w-100">
+                    @elseif($isPaid)
+                    <a href="{{ route('booking.invoice', $order->code) }}" class="btn btn-gold btn-lg w-100">
                         <i class="bi bi-receipt me-2"></i>Lihat Invoice
                     </a>
                     @elseif($paymentExpired)
-                    <a href="{{ route('booking.create', $booking->mahjong_table_id) }}" class="btn btn-gold btn-lg w-100">
+                    <a href="{{ route('booking.create', $order->bookings->first()?->mahjong_table_id ?? 1) }}" class="btn btn-gold btn-lg w-100">
                         <i class="bi bi-arrow-repeat me-2"></i>Pesan Ulang
                     </a>
                     @endif
@@ -210,7 +211,7 @@
 @section('scripts')
 <script>
 (function () {
-    @if($booking->status === 'active')
+    @if($order->status === 'active')
     let seconds = 60;
     const el = document.getElementById('redirectCountdown');
     const banner = document.getElementById('redirectBanner');
@@ -238,7 +239,7 @@
     @elseif($awaitingPayment)
     let remaining = {{ $secondsLeft }};
     const timer = document.getElementById('holdTimer');
-    const statusUrl = "{{ route('booking.status', $booking->booking_code) }}";
+    const statusUrl = "{{ route('booking.status', $order->code) }}";
 
     const tick = setInterval(function () {
         remaining = Math.max(0, remaining - 1);

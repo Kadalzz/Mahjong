@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use App\Jobs\ActivateTableDevice;
 use App\Jobs\DeactivateTableDevice;
 use App\Models\Booking;
+use App\Models\BookingOrder;
+use App\Models\Transaction;
+use App\Models\User;
 use App\Models\MahjongTable;
 use App\Models\Pricing;
 use App\Services\TableDeviceService;
@@ -58,20 +61,46 @@ class BookingFlowTest extends TestCase
 
     private function book(string $start, int $hours = 1, string $date = '2026-10-14')
     {
+        return $this->bookLines([[$this->table->id, $start, $hours]], $date);
+    }
+
+    private function bookLines(array $lines, string $date = '2026-10-14')
+    {
         return $this->post(route('booking.store'), [
-            'mahjong_table_id' => $this->table->id,
-            'customer_name'    => 'Tes',
-            'customer_phone'   => '081234567890',
-            'booking_date'     => $date,
-            'start_time'       => $start,
-            'duration_hours'   => $hours,
+            'customer_name'  => 'Tes',
+            'customer_phone' => '081234567890',
+            'booking_date'   => $date,
+            'lines'          => array_map(fn ($l) => [
+                'table_id' => $l[0], 'start_time' => $l[1], 'duration_hours' => $l[2],
+            ], $lines),
         ]);
     }
 
-    private function existing(string $start, int $hours, string $status, ?Carbon $createdAt = null): Booking
+    private function makeTable(string $name, int $price, int $espId): MahjongTable
     {
+        $table = MahjongTable::create(['name' => $name, 'capacity' => 4, 'status' => 'available', 'esp32_meja_id' => $espId]);
+        Pricing::create(['mahjong_table_id' => $table->id, 'price_per_hour' => $price, 'is_active' => true]);
+
+        return $table;
+    }
+
+    private function existing(string $start, int $hours, string $status, ?Carbon $createdAt = null, ?MahjongTable $table = null): Booking
+    {
+        $table ??= $this->table;
+
+        $order = BookingOrder::create([
+            'code'             => BookingOrder::generateCode(),
+            'customer_name'    => 'Lain',
+            'customer_phone'   => '081111111111',
+            'booking_date'     => '2026-10-14',
+            'total_price'      => 50000 * $hours,
+            'status'           => $status,
+            'payment_order_id' => 'MJG-T-' . uniqid(),
+        ]);
+
         $booking = Booking::create([
-            'mahjong_table_id' => $this->table->id,
+            'booking_order_id' => $order->id,
+            'mahjong_table_id' => $table->id,
             'customer_name'    => 'Lain',
             'customer_phone'   => '081111111111',
             'booking_date'     => '2026-10-14',
@@ -80,21 +109,23 @@ class BookingFlowTest extends TestCase
             'end_time'         => Booking::computeEndTime($start, $hours),
             'total_price'      => 50000 * $hours,
             'status'           => $status,
-            'booking_code'     => Booking::generateCode(),
-            'payment_order_id' => 'MJG-T-' . uniqid(),
+            'booking_code'     => $order->code . '-1',
         ]);
 
         if ($createdAt) {
+            $order->forceFill(['created_at' => $createdAt])->save();
             $booking->forceFill(['created_at' => $createdAt])->save();
         }
 
-        return $booking;
+        return $booking->fresh('order');
     }
 
-    private function sendWebhook(Booking $booking, string $status = 'SUCCESS')
+    private function sendWebhook(Booking|BookingOrder $target, string $status = 'SUCCESS')
     {
+        $order = $target instanceof BookingOrder ? $target : $target->order;
+
         $body = json_encode([
-            'order'       => ['invoice_number' => $booking->payment_order_id, 'amount' => (int) $booking->total_price],
+            'order'       => ['invoice_number' => $order->payment_order_id, 'amount' => (int) $order->total_price],
             'transaction' => ['status' => $status, 'original_request_id' => 'req-1'],
             'channel'     => ['id' => 'QRIS'],
         ]);
@@ -118,7 +149,7 @@ class BookingFlowTest extends TestCase
     {
         $this->existing('20:00', 1, 'active');
 
-        $this->book('19:01')->assertSessionHasErrors('start_time');
+        $this->book('19:01')->assertSessionHasErrors('lines.0.start_time');
         $this->assertSame(1, Booking::count());
     }
 
@@ -139,12 +170,12 @@ class BookingFlowTest extends TestCase
         $booking = Booking::latest('id')->first();
         $this->assertSame('21:15', substr($booking->end_time, 0, 5));
         $this->assertSame('pending_payment', $booking->status);
-        $this->assertSame('https://checkout.test/pay', $booking->payment_url);
+        $this->assertSame('https://checkout.test/pay', $booking->order->payment_url);
     }
 
     public function test_start_time_in_the_past_is_rejected_but_play_now_grace_is_allowed(): void
     {
-        $this->book('18:00')->assertSessionHasErrors('start_time');
+        $this->book('18:00')->assertSessionHasErrors('lines.0.start_time');
         $this->book('18:56')->assertRedirect();
     }
 
@@ -157,9 +188,9 @@ class BookingFlowTest extends TestCase
         $this->assertSame('2026-10-15 01:30:00', $booking->ends_at->toDateTimeString());
         $this->assertTrue($booking->endsNextDay());
 
-        $this->book('00:30', 1, '2026-10-15')->assertSessionHasErrors('start_time');
+        $this->book('00:30', 1, '2026-10-15')->assertSessionHasErrors('lines.0.start_time');
         $this->book('01:30', 1, '2026-10-15')->assertRedirect();
-        $this->book('22:45', 1)->assertSessionHasErrors('start_time');
+        $this->book('22:45', 1)->assertSessionHasErrors('lines.0.start_time');
     }
 
     public function test_overnight_booking_shows_on_next_day_busy_list(): void
@@ -176,7 +207,7 @@ class BookingFlowTest extends TestCase
     public function test_unpaid_hold_blocks_slot_until_it_expires(): void
     {
         $this->existing('20:00', 1, 'pending_payment', now()->subMinutes(2));
-        $this->book('20:00')->assertSessionHasErrors('start_time');
+        $this->book('20:00')->assertSessionHasErrors('lines.0.start_time');
 
         $this->travel(4)->minutes();
         $this->book('20:00')->assertRedirect();
@@ -302,8 +333,185 @@ class BookingFlowTest extends TestCase
 
         $this->post('/booking/' . $booking->booking_code . '/cancel')->assertNotFound();
         $this->get(route('booking.create', $this->table))->assertOk()->assertSee('Main Sekarang');
-        $this->get(route('booking.confirm', $booking->booking_code))->assertOk()->assertSee('Selesaikan Pembayaran');
-        $this->getJson(route('booking.status', $booking->booking_code))->assertJsonPath('status', 'pending_payment');
+        $this->get(route('booking.confirm', $booking->order->code))->assertOk()->assertSee('Selesaikan Pembayaran');
+        $this->getJson(route('booking.status', $booking->order->code))->assertJsonPath('status', 'pending_payment');
         $this->get(route('schedule.index'))->assertOk();
+    }
+
+    public function test_customer_can_book_several_tables_in_one_order_with_different_times(): void
+    {
+        $vip = $this->makeTable('Meja 4 - VIP', 75000, 4);
+        $vvip = $this->makeTable('Meja 6 - VVIP', 100000, 6);
+
+        $this->bookLines([
+            [$this->table->id, '20:00', 2],
+            [$vip->id, '20:00', 1],
+            [$vvip->id, '21:30', 3],
+        ])->assertRedirect();
+
+        $order = BookingOrder::with('bookings')->sole();
+        $this->assertSame(3, $order->bookings->count());
+        $this->assertSame(50000 * 2 + 75000 + 100000 * 3, (int) $order->total_price);
+        $this->assertSame('pending_payment', $order->status);
+        $this->assertSame('https://checkout.test/pay', $order->payment_url);
+        $this->assertSame(['20:00', '20:00', '21:30'], $order->bookings->sortBy('mahjong_table_id')->map(fn ($b) => substr($b->start_time, 0, 5))->values()->all());
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/checkout/v1/payment')
+            && $request['order']['amount'] === 475000
+            && count($request['order']['line_items']) === 3);
+    }
+
+    public function test_one_conflicting_table_rejects_the_order_and_names_that_table(): void
+    {
+        $vip = $this->makeTable('Meja 4 - VIP', 75000, 4);
+        $this->existing('20:00', 1, 'active', table: $vip);
+
+        $this->bookLines([
+            [$this->table->id, '20:00', 1],
+            [$vip->id, '20:30', 1],
+        ])->assertSessionHasErrors(['lines.1.start_time', 'lines'])
+          ->assertSessionDoesntHaveErrors('lines.0.start_time');
+
+        $this->assertSame(1, BookingOrder::count());
+        $this->assertStringContainsString('Meja 4 - VIP', session('errors')->first('lines.1.start_time'));
+    }
+
+    public function test_more_than_six_tables_or_duplicate_tables_are_rejected(): void
+    {
+        $tables = collect(range(2, 7))->map(fn ($i) => $this->makeTable("Meja {$i}", 50000, $i));
+        $lines = $tables->push($this->table)->map(fn ($t) => [$t->id, '20:00', 1])->all();
+
+        $this->bookLines($lines)->assertSessionHasErrors('lines');
+        $this->bookLines([[$this->table->id, '20:00', 1], [$this->table->id, '22:00', 1]])->assertSessionHasErrors('lines.1.table_id');
+        $this->assertSame(0, BookingOrder::count());
+    }
+
+    public function test_paying_a_multi_table_order_activates_every_table(): void
+    {
+        Queue::fake();
+        $device = $this->partialMock(TableDeviceService::class);
+        $device->shouldReceive('turnOn')->once()->andReturn(true);
+
+        $vip = $this->makeTable('Meja 4 - VIP', 75000, 4);
+        $this->bookLines([[$this->table->id, '19:00', 1], [$vip->id, '21:00', 1]])->assertRedirect();
+        $order = BookingOrder::sole();
+
+        $this->sendWebhook($order)->assertOk();
+
+        $order->refresh();
+        $this->assertSame('active', $order->status);
+        $this->assertSame(['active', 'active'], $order->bookings->pluck('status')->all());
+        $this->assertSame(2, Transaction::count());
+        Queue::assertPushed(ActivateTableDevice::class, 1);
+        Queue::assertPushed(DeactivateTableDevice::class, 1);
+    }
+
+    public function test_late_payment_refunds_only_the_tables_that_were_taken(): void
+    {
+        Queue::fake();
+        $vip = $this->makeTable('Meja 4 - VIP', 75000, 4);
+        $this->bookLines([[$this->table->id, '20:00', 1], [$vip->id, '20:00', 1]])->assertRedirect();
+        $order = BookingOrder::sole();
+
+        $this->travel(10)->minutes();
+        $this->artisan('app:expire-stale-bookings');
+        $this->existing('20:00', 1, 'active', table: $vip);
+
+        $this->sendWebhook($order)->assertOk();
+
+        $lines = $order->fresh()->bookings->keyBy('mahjong_table_id');
+        $this->assertSame('active', $lines[$this->table->id]->status);
+        $this->assertSame('cancelled', $lines[$vip->id]->status);
+        $this->assertSame('pending_refund', $lines[$vip->id]->refund_status);
+        $this->assertSame('active', $order->fresh()->status);
+        $this->get(route('booking.confirm', $order->code))->assertOk()->assertSee('Sebagian Meja Sudah Terisi');
+    }
+
+    private function admin(): User
+    {
+        return User::factory()->create(['role' => 'admin']);
+    }
+
+    private function adminBook(string $source, array $lines, array $extra = [])
+    {
+        return $this->actingAs($this->admin())->post(route('dashboard.bookings.store'), array_merge([
+            'source'       => $source,
+            'booking_date' => '2026-10-14',
+            'lines'        => array_map(fn ($l) => ['table_id' => $l[0], 'start_time' => $l[1], 'duration_hours' => $l[2]], $lines),
+        ], $extra));
+    }
+
+    public function test_admin_owner_booking_is_free_blocks_customers_and_turns_tables_on(): void
+    {
+        Queue::fake();
+        $vip = $this->makeTable('Meja 4 - VIP', 75000, 4);
+
+        $this->adminBook('owner', [[$this->table->id, '20:00', 2], [$vip->id, '20:00', 2]])
+            ->assertRedirect(route('dashboard.bookings'));
+
+        $order = BookingOrder::with('bookings.transaction')->sole();
+        $this->assertSame('owner', $order->source);
+        $this->assertSame('Owner', $order->customer_name);
+        $this->assertSame('active', $order->status);
+        $this->assertSame(0, (int) $order->total_price);
+        $this->assertTrue($order->bookings->every(fn ($b) => $b->transaction && (int) $b->transaction->amount === 0));
+        Queue::assertPushed(ActivateTableDevice::class, 2);
+
+        $this->book('21:00')->assertSessionHasErrors('lines.0.start_time');
+        Http::assertNothingSent();
+    }
+
+    public function test_admin_cash_booking_records_revenue_at_table_price(): void
+    {
+        Queue::fake();
+
+        $this->adminBook('cash', [[$this->table->id, '20:00', 2]], ['customer_name' => 'Budi'])->assertRedirect();
+
+        $order = BookingOrder::sole();
+        $this->assertSame('cash', $order->source);
+        $this->assertSame(100000, (int) $order->total_price);
+        $this->assertSame(100000, (int) Transaction::sum('amount'));
+        $this->assertSame('cash', Transaction::first()->payment_method);
+    }
+
+    public function test_admin_block_closes_the_slot_without_turning_tables_on_or_charging(): void
+    {
+        Queue::fake();
+        $device = $this->partialMock(TableDeviceService::class);
+        $device->shouldNotReceive('turnOn');
+
+        $this->adminBook('block', [[$this->table->id, '18:30', 3]], ['notes' => 'Perbaikan lampu'])->assertRedirect();
+
+        $order = BookingOrder::sole();
+        $this->assertSame('block', $order->source);
+        $this->assertSame(0, Transaction::count());
+        Queue::assertNothingPushed();
+
+        $this->book('20:00')->assertSessionHasErrors('lines.0.start_time');
+        $this->get(route('schedule.index'))->assertOk()->assertSee('Tidak Tersedia');
+    }
+
+    public function test_admin_booking_also_respects_existing_bookings(): void
+    {
+        $this->existing('20:00', 1, 'active');
+
+        $this->adminBook('owner', [[$this->table->id, '20:30', 1]])->assertSessionHasErrors('lines.0.start_time');
+        $this->assertSame(1, BookingOrder::count());
+    }
+
+    public function test_customers_cannot_reach_the_admin_booking_form(): void
+    {
+        $this->get(route('dashboard.bookings.create'))->assertRedirect(route('login'));
+        $this->post(route('dashboard.bookings.store'), ['source' => 'owner'])->assertRedirect(route('login'));
+        $this->assertSame(0, BookingOrder::count());
+    }
+
+    public function test_admin_pages_render(): void
+    {
+        $this->existing('20:00', 1, 'active');
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->get(route('dashboard.bookings'))->assertOk()->assertSee('Buat Booking');
+        $this->actingAs($admin)->get(route('dashboard.bookings.create'))->assertOk()->assertSee('Owner')->assertSee('Tunai')->assertSee('Blokir');
     }
 }
