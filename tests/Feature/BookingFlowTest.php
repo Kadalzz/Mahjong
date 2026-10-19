@@ -361,6 +361,29 @@ class BookingFlowTest extends TestCase
             && count($request['order']['line_items']) === 3);
     }
 
+    public function test_doku_text_fields_only_contain_characters_doku_accepts(): void
+    {
+        $this->post(route('booking.store'), [
+            'customer_name'  => 'Liêm 😀 – 林',
+            'customer_phone' => '081234567890',
+            'booking_date'   => '2026-10-14',
+            'lines'          => [['table_id' => $this->table->id, 'start_time' => '23:00', 'duration_hours' => 2]],
+        ])->assertRedirect();
+
+        $allowed = "/^[a-zA-Z0-9 .\/+,=_:'@%()-]+$/";
+
+        Http::assertSent(function ($request) use ($allowed) {
+            if (!str_contains($request->url(), '/checkout/v1/payment')) {
+                return false;
+            }
+
+            $this->assertSame('Meja 1 - Reguler 23:00 - 01:00 (+1 hari)', $request['order']['line_items'][0]['name']);
+            $this->assertMatchesRegularExpression($allowed, $request['customer']['name']);
+
+            return true;
+        });
+    }
+
     public function test_one_conflicting_table_rejects_the_order_and_names_that_table(): void
     {
         $vip = $this->makeTable('Meja 4 - VIP', 75000, 4);

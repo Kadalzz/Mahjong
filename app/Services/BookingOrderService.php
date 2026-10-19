@@ -31,7 +31,7 @@ class BookingOrderService
         }
 
         if (!$table->isAvailableAt($date, $startTime, $durationHours)) {
-            return ['reason' => 'conflict', 'message' => 'Jam ini bentrok dengan booking lain di meja ini. Silakan pilih jam lain.'];
+            return ['reason' => 'conflict', 'message' => 'Waktu yang kamu pilih sudah dipesan. Yuk, pilih jam lainnya!'];
         }
 
         return null;

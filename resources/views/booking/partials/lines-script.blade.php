@@ -109,7 +109,7 @@ window.initBookingLines = function (config) {
                     setStatus(row, 'ok', `<span class="availability-badge avail-ok"><i class="bi bi-check-circle-fill"></i> Tersedia</span>
                         <span class="ms-1" style="color:var(--ink-mute)">Selesai ${data.end_time}${data.ends_days === 1 ? ' (besok)' : (data.ends_days > 1 ? ` (+${data.ends_days} hari)` : '')}</span>`);
                 } else {
-                    setStatus(row, 'bad', `<span class="availability-badge avail-no"><i class="bi bi-x-circle-fill"></i> Bentrok</span>
+                    setStatus(row, 'bad', `<span class="availability-badge avail-no"><i class="bi bi-x-circle-fill"></i> Jam Tidak Tersedia ⭐</span>
                         <span class="ms-1" style="color:#9b2c2c;font-weight:700">${data.message || 'Jam ini tidak tersedia.'}</span>`);
                 }
             })
