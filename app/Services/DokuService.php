@@ -40,7 +40,7 @@ class DokuService
                 'auto_redirect'       => true,
                 'line_items' => $order->bookings->map(fn (Booking $booking) => [
                     'id'       => (string) $booking->mahjong_table_id,
-                    'name'     => mb_substr("{$booking->table->name} {$booking->time_range_label}", 0, 100),
+                    'name'     => $this->sanitizeText("{$booking->table->name} {$booking->time_range_label}", 100, 'Reservasi meja'),
                     'quantity' => 1,
                     'price'    => (int) $booking->total_price,
                 ])->values()->all(),
@@ -50,7 +50,7 @@ class DokuService
                 'payment_method_types' => $paymentMethods ?: null,
             ]),
             'customer' => [
-                'name'  => $order->customer_name,
+                'name'  => $this->sanitizeText((string) $order->customer_name, 255, 'Customer'),
                 'phone' => $this->formatPhone((string) $order->customer_phone),
             ],
         ];
@@ -145,6 +145,18 @@ class DokuService
         return config('doku.is_production')
             ? 'https://api.doku.com'
             : 'https://api-sandbox.doku.com';
+    }
+
+    /**
+     * DOKU rejects text fields containing anything outside a-z A-Z 0-9 . - / + , = _ : ' @ % ( ) and space,
+     * so transliterate to ASCII (e.g. "–" becomes "-") and drop whatever is still not allowed.
+     */
+    private function sanitizeText(string $value, int $maxLength, string $fallback): string
+    {
+        $clean = preg_replace("/[^a-zA-Z0-9 .\/+,=_:'@%()-]/", '', Str::ascii($value));
+        $clean = trim(preg_replace('/\s+/', ' ', $clean));
+
+        return substr($clean !== '' ? $clean : $fallback, 0, $maxLength);
     }
 
     private function formatPhone(string $phone): string
