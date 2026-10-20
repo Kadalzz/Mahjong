@@ -34,8 +34,12 @@ class MahjongTable extends Model
     public function isAvailableAt(string $date, string $startTime, int $durationHours, ?int $exceptBookingId = null): bool
     {
         $startsAt = Booking::startDateTime($date, $startTime);
-        $endsAt   = $startsAt->copy()->addHours($durationHours);
 
+        return $this->isFreeBetween($startsAt, $startsAt->copy()->addHours($durationHours), $exceptBookingId);
+    }
+
+    public function isFreeBetween(Carbon $startsAt, Carbon $endsAt, ?int $exceptBookingId = null): bool
+    {
         return !$this->bookings()
             ->blocking()
             ->when($exceptBookingId, fn ($q) => $q->where('id', '!=', $exceptBookingId))
@@ -67,6 +71,25 @@ class MahjongTable extends Model
                 'status' => $b->status,
             ])
             ->values();
+    }
+
+    public function currentBlockingBooking(): ?Booking
+    {
+        return $this->bookings()
+            ->blocking()
+            ->where('starts_at', '<=', now())
+            ->where('ends_at', '>', now())
+            ->orderBy('starts_at')
+            ->first();
+    }
+
+    public function nextBlockingBooking(): ?Booking
+    {
+        return $this->bookings()
+            ->blocking()
+            ->where('starts_at', '>', now())
+            ->orderBy('starts_at')
+            ->first();
     }
 
     public function getCurrentPricePerHour(): float

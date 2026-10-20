@@ -26,6 +26,10 @@ class DeactivateTableDevice implements ShouldQueue
             return;
         }
 
+        if ($booking->source === 'staff') {
+            $booking->update(['status' => 'done']);
+        }
+
         $nextBookingRunning = Booking::where('mahjong_table_id', $booking->mahjong_table_id)
             ->where('id', '!=', $booking->id)
             ->where('status', 'active')

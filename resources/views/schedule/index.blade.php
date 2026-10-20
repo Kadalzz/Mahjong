@@ -144,11 +144,12 @@
                         $visibleHours = $visibleStart->diffInMinutes($visibleEnd) / 60;
                         if ((int) substr($slot, 0, 2) === (int) $visibleStart->format('H')):
                     @endphp
-                        <div class="booking-block block-{{ $booking->source === 'block' ? 'blocked' : $booking->status }}"
-                             style="height: calc({{ $visibleHours * 44 }}px - 4px)"
-                             title="{{ $booking->source === 'block' ? 'Tidak tersedia' : $booking->customer_name }} | {{ $booking->time_range_label }}">
-                            {{ $booking->source === 'block' ? '⛔' : '🀄' }}
-                            <br>{{ $booking->duration_hours }}j
+                        @php $closed = in_array($booking->source, ['block', 'staff'], true); @endphp
+                        <div class="booking-block block-{{ $closed ? 'blocked' : $booking->status }}"
+                             style="height: calc({{ max($visibleHours * 44, 22) }}px - 4px)"
+                             title="{{ $closed ? 'Tidak tersedia' : $booking->customer_name }} | {{ $booking->time_range_label }}">
+                            {{ $closed ? '⛔' : '🀄' }}
+                            @unless($booking->source === 'staff')<br>{{ $booking->duration_hours }}j @endunless
                         </div>
                     @php endif; @endphp
                 @endforeach

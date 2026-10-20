@@ -17,12 +17,14 @@ class Booking extends Model
     protected $fillable = [
         'booking_order_id',
         'source',
+        'created_by',
         'mahjong_table_id',
         'customer_name',
         'customer_phone',
         'booking_date',
         'start_time',
         'duration_hours',
+        'duration_minutes',
         'end_time',
         'starts_at',
         'ends_at',
@@ -46,6 +48,19 @@ class Booking extends Model
     protected static function booted(): void
     {
         static::saving(function (Booking $booking) {
+            if ($booking->duration_minutes) {
+                $startsAt = $booking->starts_at ?? now();
+                $endsAt   = $booking->ends_at ?? $startsAt->copy()->addMinutes($booking->duration_minutes)->ceilMinute();
+
+                $booking->starts_at    = $startsAt;
+                $booking->ends_at      = $endsAt;
+                $booking->booking_date = $startsAt->toDateString();
+                $booking->start_time   = $startsAt->format('H:i:s');
+                $booking->end_time     = $endsAt->format('H:i');
+
+                return;
+            }
+
             if (!$booking->booking_date || !$booking->start_time || !$booking->duration_hours) {
                 return;
             }
@@ -76,6 +91,25 @@ class Booking extends Model
     public function transaction(): HasOne
     {
         return $this->hasOne(Transaction::class);
+    }
+
+    public function getSourceLabelAttribute(): string
+    {
+        return $this->source === 'staff'
+            ? 'Jeda'
+            : (BookingOrder::SOURCES[$this->source] ?? (string) $this->source);
+    }
+
+    public function getDurationLabelAttribute(): string
+    {
+        return $this->duration_minutes
+            ? "{$this->duration_minutes} menit"
+            : "{$this->duration_hours} jam";
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function getStatusLabelAttribute(): string

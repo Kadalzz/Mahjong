@@ -196,35 +196,63 @@
 <body>
 
 <aside class="sidebar" id="sidebar">
-    <a class="sidebar-brand" href="{{ route('dashboard.index') }}">
+    <a class="sidebar-brand" href="{{ auth()->user()->landingUrl() }}">
         <x-brand-logo :size="28" />
         <span>HÓNG ZHŌNG
-            <div style="font-size:0.7rem;font-weight:400;color:rgba(244,241,221,0.5);margin-top:2px">Admin Dashboard</div>
+            <div style="font-size:0.7rem;font-weight:400;color:rgba(244,241,221,0.5);margin-top:2px">{{ auth()->user()->isAdmin() ? 'Admin Dashboard' : 'Akun Staf' }}</div>
         </span>
     </a>
 
     <nav class="sidebar-nav">
+        @php $me = auth()->user(); @endphp
+        @if($me->hasAnyPermission('dashboard', 'revenue'))
         <div class="sidebar-label">Utama</div>
+        @endif
+        @if($me->hasPermission('dashboard'))
         <a href="{{ route('dashboard.index') }}" class="sidebar-link {{ request()->routeIs('dashboard.index') ? 'active' : '' }}">
             <i class="bi bi-speedometer2"></i> Overview
         </a>
+        @endif
+        @if($me->hasPermission('revenue'))
         <a href="{{ route('dashboard.revenue') }}" class="sidebar-link {{ request()->routeIs('dashboard.revenue') ? 'active' : '' }}">
             <i class="bi bi-graph-up-arrow"></i> Revenue
         </a>
         <a href="{{ route('dashboard.occupancy') }}" class="sidebar-link {{ request()->routeIs('dashboard.occupancy') ? 'active' : '' }}">
             <i class="bi bi-bar-chart-fill"></i> Occupancy
         </a>
+        @endif
 
+        @if($me->hasAnyPermission('bookings_view', 'bookings_manage', 'bookings_create', 'tables_power', 'tables_manage', 'pricing', 'pause'))
         <div class="sidebar-label">Manajemen</div>
-        <a href="{{ route('dashboard.bookings') }}" class="sidebar-link {{ request()->routeIs('dashboard.bookings') ? 'active' : '' }}">
+        @endif
+        @if($me->hasPermission('pause'))
+        <a href="{{ route('dashboard.jeda') }}" class="sidebar-link {{ request()->routeIs('dashboard.jeda') ? 'active' : '' }}">
+            <i class="bi bi-hourglass-split"></i> Jeda Meja
+        </a>
+        @endif
+        @if($me->hasAnyPermission('bookings_view', 'bookings_manage', 'bookings_create'))
+        <a href="{{ route('dashboard.bookings') }}" class="sidebar-link {{ request()->routeIs('dashboard.bookings*') ? 'active' : '' }}">
             <i class="bi bi-journal-check"></i> Booking
         </a>
+        @endif
+        @if($me->hasAnyPermission('tables_power', 'tables_manage'))
         <a href="{{ route('dashboard.tables.index') }}" class="sidebar-link {{ request()->routeIs('dashboard.tables.*') ? 'active' : '' }}">
             <i class="bi bi-grid-3x3-gap-fill"></i> Meja
         </a>
+        @endif
+        @if($me->hasPermission('pricing'))
         <a href="{{ route('dashboard.pricing') }}" class="sidebar-link {{ request()->routeIs('dashboard.pricing') ? 'active' : '' }}">
             <i class="bi bi-tag-fill"></i> Harga
         </a>
+        @endif
+        @if($me->isAdmin())
+        <a href="{{ route('dashboard.accounts.index') }}" class="sidebar-link {{ request()->routeIs('dashboard.accounts.*') ? 'active' : '' }}">
+            <i class="bi bi-people-fill"></i> Akun
+        </a>
+        <a href="{{ route('dashboard.activity') }}" class="sidebar-link {{ request()->routeIs('dashboard.activity') ? 'active' : '' }}">
+            <i class="bi bi-clock-history"></i> Aktivitas
+        </a>
+        @endif
 
         <div class="sidebar-label">Lainnya</div>
         <a href="{{ route('booking.index') }}" class="sidebar-link" target="_blank">

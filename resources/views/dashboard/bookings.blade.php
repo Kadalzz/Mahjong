@@ -4,11 +4,13 @@
 
 @section('content')
 
+@if(auth()->user()->hasPermission('bookings_create'))
 <div class="d-flex justify-content-end mb-3">
     <a href="{{ route('dashboard.bookings.create') }}" class="btn btn-gold">
         <i class="bi bi-plus-lg me-1"></i>Buat Booking (Owner / Tunai / Blokir)
     </a>
 </div>
+@endif
 
 <div class="card-dark mb-4">
     <div class="card-body">
@@ -35,6 +37,7 @@
                     @foreach(\App\Models\BookingOrder::SOURCES as $value => $label)
                     <option value="{{ $value }}" {{ request('source') === $value ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
+                    <option value="staff" {{ request('source') === 'staff' ? 'selected' : '' }}>Jeda</option>
                 </select>
             </div>
             <div class="col-sm-2">
@@ -77,7 +80,7 @@
                         <td>
                             <code style="color:var(--red);font-size:0.8rem">{{ $bk->order?->code ?? $bk->booking_code }}</code>
                             @if($bk->source !== 'customer')
-                            <div><span class="badge-s-{{ $bk->source === 'block' ? 'cancelled' : 'waiting' }}" style="font-size:0.68rem">{{ \App\Models\BookingOrder::SOURCES[$bk->source] ?? $bk->source }}</span></div>
+                            <div><span class="badge-s-{{ $bk->source === 'block' ? 'cancelled' : 'waiting' }}" style="font-size:0.68rem">{{ $bk->source_label }}</span></div>
                             @endif
                         </td>
                         <td>
@@ -91,7 +94,7 @@
                                 {{ $bk->time_range_label }}
                             </span>
                         </td>
-                        <td style="font-size:0.875rem">{{ $bk->duration_hours }} jam</td>
+                        <td style="font-size:0.875rem">{{ $bk->duration_label }}</td>
                         <td style="color:var(--red);font-weight:700;font-size:0.875rem">
                             Rp {{ number_format($bk->total_price, 0, ',', '.') }}
                         </td>
@@ -106,7 +109,7 @@
                             @endif
                         </td>
                         <td class="text-center">
-                            @if(!in_array($bk->status, ['done', 'cancelled']))
+                            @if(!in_array($bk->status, ['done', 'cancelled']) && $bk->source !== 'staff' && auth()->user()->hasPermission('bookings_manage'))
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
                                     Ubah

@@ -4,11 +4,13 @@
 
 @section('content')
 
+@if(auth()->user()->hasPermission('tables_manage'))
 <div class="d-flex justify-content-end mb-4">
     <a href="{{ route('dashboard.tables.create') }}" class="btn btn-gold">
         <i class="bi bi-plus-lg me-1"></i>Tambah Meja
     </a>
 </div>
+@endif
 
 <div class="card-dark">
     <div class="card-header d-flex justify-content-between">
@@ -40,34 +42,9 @@
                         </td>
                         <td class="text-center">{{ $table->capacity }} pemain</td>
                         <td>
-                            @if($table->status === 'maintenance' && $table->paused_until && $table->paused_until->isFuture())
-                            <span class="badge-s-waiting" title="Jeda untuk dirapikan">
-                                <i class="bi bi-hourglass-split me-1"></i>Jeda hingga {{ $table->paused_until->format('H:i') }}
-                            </span>
-                            @else
                             <span class="badge-s-{{ $table->status === 'available' ? 'active' : ($table->status === 'occupied' ? 'cancelled' : 'waiting') }}">
                                 {{ ucfirst($table->status) }}
                             </span>
-                            @endif
-
-                            @if($table->status === 'available')
-                            <div class="dropdown mt-1">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Jeda untuk merapikan meja">
-                                    <i class="bi bi-hourglass-split"></i> Jeda
-                                </button>
-                                <ul class="dropdown-menu">
-                                    @foreach([2, 5, 10] as $minutes)
-                                    <li>
-                                        <form method="POST" action="{{ route('dashboard.tables.pause', $table) }}">
-                                            @csrf
-                                            <input type="hidden" name="minutes" value="{{ $minutes }}">
-                                            <button type="submit" class="dropdown-item">{{ $minutes }} menit</button>
-                                        </form>
-                                    </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                            @endif
                         </td>
                         <td class="text-end fw-700" style="color:var(--red)">
                             Rp {{ number_format($table->pricing?->price_per_hour ?? 0, 0, ',', '.') }}
@@ -79,6 +56,7 @@
                                 <span class="badge-s-active" title="ID Meja ESP32: {{ $table->esp32_meja_id }}" style="font-family:monospace;">
                                     <i class="bi bi-cpu me-1"></i>Meja {{ $table->esp32_meja_id }}
                                 </span>
+                                @if(auth()->user()->hasPermission('tables_power'))
                                 <div class="d-flex gap-1">
                                     <form method="POST" action="{{ route('dashboard.tables.device', $table) }}">
                                         @csrf
@@ -95,12 +73,14 @@
                                         </button>
                                     </form>
                                 </div>
+                                @endif
                             </div>
                             @else
                             <span style="font-size:0.75rem;color:var(--ink-mute)">—</span>
                             @endif
                         </td>
                         <td class="text-center">
+                            @if(auth()->user()->hasPermission('tables_manage'))
                             <div class="d-flex gap-2 justify-content-center">
                                 <a href="{{ route('dashboard.tables.edit', $table) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-pencil"></i>
@@ -113,6 +93,9 @@
                                     </button>
                                 </form>
                             </div>
+                            @else
+                            <span style="font-size:0.75rem;color:var(--ink-mute)">—</span>
+                            @endif
                         </td>
                     </tr>
                     @empty

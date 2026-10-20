@@ -30,6 +30,8 @@ class BookingManageController extends Controller
 
         if ($request->filled('source')) {
             $query->where('source', $request->source);
+        } else {
+            $query->where('source', '!=', 'staff');
         }
 
         if ($request->filled('date')) {
