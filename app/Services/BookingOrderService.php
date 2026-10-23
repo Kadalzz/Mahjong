@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\BookingOrder;
 use App\Models\MahjongTable;
 use App\Models\Transaction;
+use App\Services\Ayo\AyoSyncService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -13,8 +14,10 @@ class BookingOrderService
 {
     public const START_GRACE_MINUTES = 5;
 
-    public function __construct(private TableDeviceService $device)
-    {
+    public function __construct(
+        private TableDeviceService $device,
+        private AyoSyncService $ayo,
+    ) {
     }
 
     public function slotProblem(MahjongTable $table, string $date, string $startTime, int $durationHours, bool $allowPastStart = false): ?array
@@ -112,6 +115,24 @@ class BookingOrderService
             return $order;
         });
 
+        if ($order instanceof BookingOrder && $this->ayo->enabled()) {
+            $push = $this->ayo->pushOrder($order);
+
+            if ($push['status'] === 'conflict') {
+                $keys = array_keys($lines);
+                $errors = [];
+
+                foreach ($push['conflicts'] as $booking) {
+                    $position = (int) substr($booking->booking_code, strrpos($booking->booking_code, '-') + 1) - 1;
+                    $errors[$keys[$position] ?? 0] = "{$booking->table->name}: Jam ini baru saja dipesan lewat AYO. Silakan pilih jam lain.";
+                }
+
+                $this->discard($order);
+
+                return $errors;
+            }
+        }
+
         if ($order instanceof BookingOrder && in_array($source, ['owner', 'cash'], true)) {
             foreach ($order->bookings()->with('table')->get() as $booking) {
                 $this->device->activate($booking->table, $booking);
@@ -192,7 +213,20 @@ class BookingOrderService
     public function cancelUnpaid(BookingOrder $order): void
     {
         $order->update(['status' => 'cancelled']);
-        $order->bookings()->where('status', 'pending_payment')->update(['status' => 'cancelled']);
+
+        foreach ($order->bookings()->where('status', 'pending_payment')->get() as $booking) {
+            $booking->update(['status' => 'cancelled']);
+        }
+    }
+
+    private function discard(BookingOrder $order): void
+    {
+        foreach ($order->bookings()->get() as $booking) {
+            Transaction::where('booking_id', $booking->id)->delete();
+            $booking->update(['status' => 'cancelled']);
+        }
+
+        $order->update(['status' => 'cancelled']);
     }
 
     public function syncOrderStatus(BookingOrder $order): void

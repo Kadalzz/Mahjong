@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AyoWebhookController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\Dashboard\AccountController;
 use App\Http\Controllers\Dashboard\ActivityController;
@@ -34,6 +35,11 @@ Route::get('/cek-booking', [BookingController::class, 'lookup'])
     ->name('booking.lookup');
 
 Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.index');
+
+Route::post('/ayo/webhook', AyoWebhookController::class)
+    ->middleware('throttle:120,1')
+    ->name('ayo.webhook')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class]);
 
 Route::post('/doku/webhook', [BookingController::class, 'webhook'])
     ->name('doku.webhook')

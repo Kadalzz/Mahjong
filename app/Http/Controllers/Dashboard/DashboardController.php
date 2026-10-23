@@ -67,7 +67,10 @@ class DashboardController extends Controller
             ];
         });
 
+        $ayoIssues = Booking::ayoIssues()->count();
+
         return view('dashboard.index', compact(
+            'ayoIssues',
             'revenueToday',
             'revenueMonth',
             'activeBookings',

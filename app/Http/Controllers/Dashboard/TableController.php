@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\MahjongTable;
 use App\Models\Pricing;
+use App\Services\Ayo\AyoClient;
+use App\Services\Ayo\AyoException;
 use App\Services\TableDeviceService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 
 class TableController extends Controller
@@ -56,9 +59,20 @@ class TableController extends Controller
             ->with('success', "Meja \"{$table->name}\" berhasil ditambahkan.");
     }
 
-    public function edit(MahjongTable $table)
+    public function edit(MahjongTable $table, AyoClient $ayo)
     {
-        return view('dashboard.tables.edit', compact('table'));
+        $ayoFields = null;
+        $ayoError  = null;
+
+        if (config('ayo.enabled') && $ayo->isConfigured()) {
+            try {
+                $ayoFields = Cache::remember('ayo.fields', now()->addMinutes(10), fn () => $ayo->listFields());
+            } catch (AyoException $e) {
+                $ayoError = $e->getMessage();
+            }
+        }
+
+        return view('dashboard.tables.edit', compact('table', 'ayoFields', 'ayoError'));
     }
 
     public function update(Request $request, MahjongTable $table)
@@ -69,6 +83,7 @@ class TableController extends Controller
             'status'        => 'required|in:available,occupied,maintenance',
             'description'   => 'nullable|string|max:500',
             'esp32_meja_id' => 'nullable|integer|min:1|max:255|unique:mahjong_tables,esp32_meja_id,' . $table->id,
+            'ayo_field_id'  => 'nullable|integer|min:1|unique:mahjong_tables,ayo_field_id,' . $table->id,
         ]);
 
         

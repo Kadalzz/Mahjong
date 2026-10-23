@@ -5,6 +5,13 @@
 
 @section('content')
 
+@if(($ayoIssues ?? 0) > 0 && auth()->user()->hasAnyPermission('bookings_view', 'bookings_manage', 'bookings_create'))
+<div class="alert border-0 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#FBF0C8;color:#6b5414;border-radius:12px;">
+    <span><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>{{ $ayoIssues }} booking perlu dicek</strong>: bentrok dengan AYO atau belum berhasil dikirim ke AYO.</span>
+    <a href="{{ route('dashboard.bookings', ['ayo_issue' => 1]) }}" class="btn btn-sm btn-gold">Lihat</a>
+</div>
+@endif
+
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
         <div class="stat-card">

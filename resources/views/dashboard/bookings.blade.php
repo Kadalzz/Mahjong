@@ -4,6 +4,13 @@
 
 @section('content')
 
+@if(($ayoIssues ?? 0) > 0 && auth()->user()->hasAnyPermission('bookings_view', 'bookings_manage', 'bookings_create'))
+<div class="alert border-0 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#FBF0C8;color:#6b5414;border-radius:12px;">
+    <span><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>{{ $ayoIssues }} booking perlu dicek</strong>: bentrok dengan AYO atau belum berhasil dikirim ke AYO.</span>
+    <a href="{{ route('dashboard.bookings', ['ayo_issue' => 1]) }}" class="btn btn-sm btn-gold">Lihat</a>
+</div>
+@endif
+
 @if(auth()->user()->hasPermission('bookings_create'))
 <div class="d-flex justify-content-end mb-3">
     <a href="{{ route('dashboard.bookings.create') }}" class="btn btn-gold">
@@ -38,6 +45,7 @@
                     <option value="{{ $value }}" {{ request('source') === $value ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                     <option value="staff" {{ request('source') === 'staff' ? 'selected' : '' }}>Jeda</option>
+                    <option value="ayo" {{ request('source') === 'ayo' ? 'selected' : '' }}>Ayo</option>
                 </select>
             </div>
             <div class="col-sm-2">
@@ -80,7 +88,14 @@
                         <td>
                             <code style="color:var(--red);font-size:0.8rem">{{ $bk->order?->code ?? $bk->booking_code }}</code>
                             @if($bk->source !== 'customer')
-                            <div><span class="badge-s-{{ $bk->source === 'block' ? 'cancelled' : 'waiting' }}" style="font-size:0.68rem">{{ $bk->source_label }}</span></div>
+                            <div><span class="badge-s-{{ $bk->source === 'block' ? 'cancelled' : 'waiting' }}" style="font-size:0.68rem">{{ $bk->source_label }}{{ $bk->source === 'ayo' && $bk->ayo_status ? ' · ' . $bk->ayo_status : '' }}</span></div>
+                            @endif
+                            @if($bk->ayo_conflict)
+                            <div style="font-size:0.7rem;color:#9b2c2c;font-weight:700"><i class="bi bi-exclamation-triangle-fill"></i> Bentrok dengan AYO</div>
+                            @elseif($bk->ayoReservations->whereIn('status', ['retry', 'cancel_retry', 'failed'])->isNotEmpty())
+                            <div style="font-size:0.7rem;color:#8a6d1a;font-weight:700" title="{{ $bk->ayoReservations->pluck('last_error')->filter()->first() }}"><i class="bi bi-arrow-repeat"></i> Menunggu sinkron AYO</div>
+                            @elseif($bk->ayoReservations->where('status', 'active')->isNotEmpty())
+                            <div style="font-size:0.7rem;color:#1f7a34"><i class="bi bi-check2"></i> Tercatat di AYO</div>
                             @endif
                         </td>
                         <td>

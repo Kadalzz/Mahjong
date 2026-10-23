@@ -65,6 +65,36 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label small" style="color:var(--ink-mute)">Lapangan di AYO (opsional)</label>
+                        @if(is_array($ayoFields))
+                        <select name="ayo_field_id" class="form-select @error('ayo_field_id') is-invalid @enderror"
+                            style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;">
+                            <option value="">— Tidak disinkronkan ke AYO —</option>
+                            @foreach($ayoFields as $field)
+                            <option value="{{ $field['id'] }}" {{ (string) old('ayo_field_id', $table->ayo_field_id) === (string) $field['id'] ? 'selected' : '' }}>
+                                {{ $field['name'] }} (ID {{ $field['id'] }})
+                            </option>
+                            @endforeach
+                        </select>
+                        @else
+                        <input type="number" name="ayo_field_id" value="{{ old('ayo_field_id', $table->ayo_field_id) }}" min="1"
+                            class="form-control @error('ayo_field_id') is-invalid @enderror"
+                            style="background:rgba(58,20,20,0.06);border:none;color:var(--ink);border-radius:999px;font-family:monospace;"
+                            placeholder="ID lapangan AYO">
+                        @endif
+                        @error('ayo_field_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div style="font-size:0.75rem;color:var(--ink-mute);margin-top:0.35rem;">
+                            @if($ayoError)
+                            Daftar lapangan AYO tidak bisa dimuat ({{ $ayoError }}). Isi ID lapangan secara manual.
+                            @elseif(!is_array($ayoFields))
+                            Integrasi AYO belum aktif. ID lapangan tetap bisa disimpan untuk nanti.
+                            @else
+                            Booking di meja ini akan menutup jadwal lapangan ini di AYO, dan booking dari AYO di lapangan ini akan menutup jadwal meja ini.
+                            @endif
+                        </div>
+                    </div>
+
                     <div class="mb-4" style="font-size:0.8rem;color:var(--ink-mute)">
                         <i class="bi bi-info-circle me-1"></i>
                         Harga per jam meja ini dikelola terpisah di halaman

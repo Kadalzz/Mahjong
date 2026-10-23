@@ -17,6 +17,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        \App\Models\Booking::observe(\App\Observers\BookingObserver::class);
+
         $trustedProxies = (string) config('app.trusted_proxies');
         if ($trustedProxies !== '') {
             TrustProxies::at($trustedProxies === '*' ? '*' : array_map('trim', explode(',', $trustedProxies)));

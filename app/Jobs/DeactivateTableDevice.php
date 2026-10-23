@@ -34,6 +34,7 @@ class DeactivateTableDevice implements ShouldQueue
             ->where('id', '!=', $booking->id)
             ->where('status', 'active')
             ->where('source', '!=', 'block')
+            ->where(fn ($q) => $q->where('source', '!=', 'ayo')->orWhereIn('ayo_status', ['SUCCESS', 'FINISHED']))
             ->where('starts_at', '<=', now())
             ->where('ends_at', '>', now())
             ->exists();

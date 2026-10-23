@@ -28,7 +28,9 @@ class BookingManageController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('source')) {
+        if ($request->boolean('ayo_issue')) {
+            $query->ayoIssues();
+        } elseif ($request->filled('source')) {
             $query->where('source', $request->source);
         } else {
             $query->where('source', '!=', 'staff');
@@ -46,9 +48,10 @@ class BookingManageController extends Controller
             });
         }
 
-        $bookings = $query->paginate(20)->withQueryString();
+        $bookings  = $query->with('ayoReservations')->paginate(20)->withQueryString();
+        $ayoIssues = Booking::ayoIssues()->count();
 
-        return view('dashboard.bookings', compact('bookings'));
+        return view('dashboard.bookings', compact('bookings', 'ayoIssues'));
     }
 
     public function create()

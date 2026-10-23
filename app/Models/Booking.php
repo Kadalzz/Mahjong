@@ -18,6 +18,9 @@ class Booking extends Model
         'booking_order_id',
         'source',
         'created_by',
+        'ayo_order_detail_id',
+        'ayo_status',
+        'ayo_conflict',
         'mahjong_table_id',
         'customer_name',
         'customer_phone',
@@ -41,6 +44,7 @@ class Booking extends Model
         'booking_date' => 'date',
         'total_price' => 'decimal:2',
         'cancelled_at' => 'datetime',
+        'ayo_conflict' => 'boolean',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
     ];
@@ -95,16 +99,25 @@ class Booking extends Model
 
     public function getSourceLabelAttribute(): string
     {
-        return $this->source === 'staff'
-            ? 'Jeda'
-            : (BookingOrder::SOURCES[$this->source] ?? (string) $this->source);
+        return match ($this->source) {
+            'staff' => 'Jeda',
+            'ayo'   => 'Ayo',
+            default => BookingOrder::SOURCES[$this->source] ?? (string) $this->source,
+        };
     }
 
     public function getDurationLabelAttribute(): string
     {
-        return $this->duration_minutes
-            ? "{$this->duration_minutes} menit"
-            : "{$this->duration_hours} jam";
+        if ($this->duration_minutes && $this->duration_minutes % 60 !== 0) {
+            return "{$this->duration_minutes} menit";
+        }
+
+        return ($this->duration_minutes ? intdiv($this->duration_minutes, 60) : $this->duration_hours) . ' jam';
+    }
+
+    public function ayoReservations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AyoReservation::class);
     }
 
     public function creator(): BelongsTo
@@ -195,6 +208,14 @@ class Booking extends Model
                      ->where('created_at', '>', now()->subMinutes(self::holdMinutes()));
               });
         });
+    }
+
+    public function scopeAyoIssues(Builder $query): Builder
+    {
+        return $query->whereIn('status', ['pending_payment', 'active'])
+            ->where('ends_at', '>', now())
+            ->where(fn ($q) => $q->where('ayo_conflict', true)
+                ->orWhereHas('ayoReservations', fn ($r) => $r->whereIn('status', ['failed', 'retry', 'cancel_retry'])));
     }
 
     public function holdExpiresAt(): Carbon
