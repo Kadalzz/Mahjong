@@ -232,10 +232,32 @@ class AyoSyncService
                 $this->client->cancelReservation((int) $reservation->order_detail_id);
                 $reservation->update(['status' => 'cancelled', 'last_error' => null]);
             } catch (AyoException $e) {
-                $reservation->update(['status' => 'cancel_retry', 'last_error' => mb_substr($e->getMessage(), 0, 250)]);
+                if ($this->alreadyGone($reservation)) {
+                    $reservation->update(['status' => 'cancelled', 'last_error' => null]);
+                    continue;
+                }
+
+                $reservation->update(['status' => 'cancel_retry', 'last_error' => mb_substr($e->getMessage() ?: "AYO error {$e->status}", 0, 250)]);
                 Log::warning("AYO cancel failed for {$booking->booking_code}: {$e->getMessage()}");
             }
         }
+    }
+
+    private function alreadyGone(AyoReservation $reservation): bool
+    {
+        try {
+            $items = $this->client->listBookings(['date' => $reservation->date]);
+        } catch (AyoException) {
+            return false;
+        }
+
+        foreach ($items as $item) {
+            if ((int) ($item['order_detail_id'] ?? 0) === (int) $reservation->order_detail_id) {
+                return strtoupper((string) ($item['status'] ?? '')) === 'CANCELLED';
+            }
+        }
+
+        return true;
     }
 
     public function retryPending(): void

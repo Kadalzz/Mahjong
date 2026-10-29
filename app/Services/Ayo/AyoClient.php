@@ -51,10 +51,10 @@ class AyoClient
 
     public function cancelReservation(int $orderDetailId): array
     {
-        return $this->request('POST', 'cancel-reservation', ['order_detail_id' => $orderDetailId]);
+        return $this->request('POST', 'cancel-reservation', ['order_detail_id' => $orderDetailId], 30);
     }
 
-    private function request(string $method, string $path, array $payload): array
+    private function request(string $method, string $path, array $payload, ?int $timeout = null): array
     {
         if (!$this->isConfigured()) {
             throw new AyoException('Kredensial AYO belum diisi.');
@@ -65,7 +65,7 @@ class AyoClient
 
         try {
             $response = Http::acceptJson()
-                ->timeout((int) config('ayo.timeout', 8))
+                ->timeout($timeout ?? (int) config('ayo.timeout', 8))
                 ->withBody(json_encode($payload), 'application/json')
                 ->send($method, config('ayo.base_url') . '/' . $path);
         } catch (ConnectionException $e) {
