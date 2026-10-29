@@ -116,7 +116,7 @@
 </div>
 
 <div class="container py-4">
-    <form id="bookingForm" action="{{ route('booking.store') }}" method="POST">
+    <form id="bookingForm" action="{{ route('booking.store') }}" method="POST" autocomplete="off">
         @csrf
 
         <div class="row g-4">
@@ -151,7 +151,7 @@
                     <div class="row g-3">
                         <div class="col-sm-6">
                             <label class="form-label">Nama Lengkap</label>
-                            <input type="text" name="customer_name" id="customer_name"
+                            <input type="text" name="customer_name" id="customer_name" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"
                                 class="form-control @error('customer_name') is-invalid @enderror"
                                 placeholder="Masukkan nama lengkap"
                                 value="{{ old('customer_name') }}"
@@ -162,7 +162,7 @@
                             <label class="form-label">No. HP / WhatsApp</label>
                             <div class="input-group">
                                 <span class="input-group-text" style="background:var(--red);border:none;color:var(--cream);border-radius:999px 0 0 999px;font-weight:700;">+62</span>
-                                <input type="tel" name="customer_phone" id="customer_phone"
+                                <input type="tel" name="customer_phone" id="customer_phone" autocomplete="off"
                                     class="form-control @error('customer_phone') is-invalid @enderror"
                                     style="border-radius:0 999px 999px 0 !important;"
                                     placeholder="8xx xxxx xxxx"

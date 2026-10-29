@@ -65,10 +65,10 @@
 
 <div class="container">
     <div class="lookup-form-card">
-        <form method="GET" action="{{ route('booking.lookup') }}">
+        <form method="GET" action="{{ route('booking.lookup') }}" autocomplete="off">
             <label class="form-label small" style="color:var(--ink-mute)">Nama / Kode Booking / No. HP</label>
             <div class="input-group">
-                <input type="text" name="q" value="{{ request('q') }}"
+                <input type="text" name="q" value="{{ request('q') }}" autocomplete="off"
                     class="form-control"
                     style="border-radius:999px 0 0 999px;border:none;background:rgba(58,20,20,0.06);color:var(--ink);"
                     placeholder="Budi / MJG-XXXXXX / 08xx xxxx xxxx" required>

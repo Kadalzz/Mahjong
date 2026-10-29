@@ -172,6 +172,14 @@ class BookingFlowTest extends TestCase
             ->assertSee('value="00:30"', false);
     }
 
+    public function test_customer_name_and_phone_are_not_remembered_by_the_browser(): void
+    {
+        $this->get(route('booking.create', $this->table))->assertOk()
+            ->assertSee('id="bookingForm" action="' . route('booking.store') . '" method="POST" autocomplete="off"', false)
+            ->assertSee('id="customer_name" autocomplete="off"', false)
+            ->assertSee('id="customer_phone" autocomplete="off"', false);
+    }
+
     public function test_customer_pages_have_a_back_button_and_idle_redirect_home(): void
     {
         $this->get(route('booking.index'))->assertOk()
