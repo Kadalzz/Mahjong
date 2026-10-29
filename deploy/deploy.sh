@@ -152,7 +152,9 @@ ufw allow 443/tcp
 ufw allow 81/tcp
 ufw --force enable
 
-if [ -n "$CERTBOT_EMAIL" ]; then
+if [ -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
+    certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --redirect --expand --keep-until-expiring
+elif [ -n "$CERTBOT_EMAIL" ]; then
     certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos -m "$CERTBOT_EMAIL" --redirect --expand
 fi
 
