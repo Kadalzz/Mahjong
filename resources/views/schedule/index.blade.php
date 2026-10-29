@@ -65,30 +65,65 @@
     background: rgba(58,20,20,0.03);
     font-variant-numeric: tabular-nums;
 }
+.grid-time { height: 56px; }
 .grid-cell {
     border-right: 1px solid rgba(58,20,20,0.06);
     border-bottom: 1px solid rgba(58,20,20,0.06);
-    min-height: 44px;
+    height: 56px;
     position: relative;
 }
-.grid-cell:last-child { border-right: none; }
-.booking-block {
+.grid-cell.cell-past { background: rgba(58,20,20,0.05); }
+.cell-free-link {
     position: absolute;
-    inset: 2px;
-    border-radius: 6px;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.65rem;
     font-weight: 700;
-    text-align: center;
-    line-height: 1.3;
-    padding: 2px;
-    cursor: default;
+    color: transparent;
+    text-decoration: none;
 }
-.block-active          { background: #DCEFDD; color: #1f7a34; border: 1px solid #2f9e4450; }
+.cell-free-link:hover { background: rgba(31,122,52,0.08); color: #1f7a34; }
+.booking-block, .free-block {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.15;
+    padding: 1px 3px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.booking-block { z-index: 2; cursor: default; }
+.free-block {
+    z-index: 1;
+    background: #ffffff;
+    color: #1f7a34;
+    border: 1.5px dashed #2f9e44;
+    text-decoration: none;
+}
+a.free-block:hover { background: #e9f7ea; color: #14592a; }
+.label-short { display: none; }
+@media (max-width: 767.98px) {
+    .label-full { display: none; }
+    .label-short { display: inline; }
+    .booking-block, .free-block { font-size: 0.6rem; padding: 1px; }
+    .date-nav { padding: 1rem; }
+}
+.block-active          { background: #f2c9c9; color: #551414; border: 1px solid #55141440; }
 .block-pending_payment { background: #FBF0C8; color: #8a6d1a; border: 1px solid #d4a01750; }
 .block-blocked         { background: #E4E0D6; color: #5b5346; border: 1px dashed #5b534660; }
+.legend-chip {
+    display: inline-block; width: 22px; height: 14px; border-radius: 4px; vertical-align: middle; margin-right: 6px;
+}
 </style>
 @endsection
 
@@ -113,7 +148,7 @@
         <button onclick="changeDate()" class="btn btn-gold btn-sm">
             <i class="bi bi-search me-1"></i>Lihat
         </button>
-        <div class="ms-auto d-flex gap-2">
+        <div class="ms-auto d-flex gap-2 flex-wrap">
             @php
                 $dates = collect(range(0, 4))->map(fn($i) => today()->addDays($i));
             @endphp
@@ -126,6 +161,13 @@
         </div>
     </div>
 
+    <div class="d-flex gap-3 mb-3 flex-wrap" style="font-size:0.8rem;color:rgba(244,241,221,0.85);font-weight:600;">
+        <span><span class="legend-chip" style="background:#f2c9c9;border:1px solid #55141440"></span>Sudah Dipesan</span>
+        <span><span class="legend-chip" style="background:#FBF0C8;border:1px solid #d4a01750"></span>Menunggu Pembayaran</span>
+        <span><span class="legend-chip" style="background:#E4E0D6;border:1px dashed #5b534660"></span>Tidak Tersedia</span>
+        <span><span class="legend-chip" style="background:#fff;border:1.5px dashed #2f9e44"></span>Kosong (sisa jam) – klik untuk pesan</span>
+        <span><span class="legend-chip" style="background:#f4f1dd;border:1px solid rgba(58,20,20,0.15)"></span>Kotak polos = kosong 1 jam penuh</span>
+    </div>
     <div style="overflow-x:auto">
         <div class="table-grid" style="min-width:600px">
             <div class="grid-header">Waktu</div>
@@ -133,25 +175,32 @@
             <div class="grid-header table-name">{{ $table->name }}</div>
             @endforeach
 
-            @foreach($timeSlots as $slot)
+            @foreach($timeSlots as $h => $slot)
             <div class="grid-time">{{ $slot }}</div>
             @foreach($tables as $table)
-            <div class="grid-cell">
-                @foreach($table->bookings as $booking)
+            @php $row = $grid[$table->id][$h]; @endphp
+            <div class="grid-cell {{ $row['past'] ? 'cell-past' : '' }}">
+                @if($row['url'])
+                    <a href="{{ $row['url'] }}" class="cell-free-link" title="Kosong {{ $slot }} – pesan meja ini">+ Pesan {{ $slot }}</a>
+                @endif
+                @foreach($row['items'] as $item)
                     @php
-                        $visibleStart = $booking->startsAt()->max($dayStart);
-                        $visibleEnd   = $booking->endsAt()->min($dayEnd);
-                        $visibleHours = $visibleStart->diffInMinutes($visibleEnd) / 60;
-                        if ((int) substr($slot, 0, 2) === (int) $visibleStart->format('H')):
+                        $top    = ($item['from'] % 60) / 60 * 56;
+                        $height = max(($item['to'] - $item['from']) / 60 * 56, 20);
                     @endphp
-                        @php $closed = in_array($booking->source, ['block', 'staff'], true); @endphp
-                        <div class="booking-block block-{{ $closed ? 'blocked' : $booking->status }}"
-                             style="height: calc({{ max($visibleHours * 44, 22) }}px - 4px)"
-                             title="{{ $closed ? 'Tidak tersedia' : $booking->customer_name }} | {{ $booking->time_range_label }}">
-                            {{ $closed ? '⛔' : '🀄' }}
-                            @unless($booking->source === 'staff')<br>{{ $booking->duration_hours }}j @endunless
+                    @if($item['type'] === 'free')
+                        @if($item['url'])
+                        <a href="{{ $item['url'] }}" class="free-block" style="top:{{ $top + 1 }}px;height:{{ $height - 2 }}px" title="{{ $item['label'] }} – klik untuk pesan"><span class="label-full">{{ $item['label'] }}</span><span class="label-short">{{ $item['short'] }}</span></a>
+                        @else
+                        <div class="free-block" style="top:{{ $top + 1 }}px;height:{{ $height - 2 }}px"><span class="label-full">{{ $item['label'] }}</span><span class="label-short">{{ $item['short'] }}</span></div>
+                        @endif
+                    @else
+                        <div class="booking-block block-{{ $item['type'] }}"
+                             style="top:{{ $top + 1 }}px;height:{{ ($item['to'] - $item['from']) / 60 * 56 - 2 }}px;min-height:18px"
+                             title="{{ $item['title'] }} {{ $item['label'] }}">
+                            {{ $item['closed'] ? '⛔ ' : '' }}{{ $item['label'] }}
                         </div>
-                    @php endif; @endphp
+                    @endif
                 @endforeach
             </div>
             @endforeach
@@ -159,11 +208,6 @@
         </div>
     </div>
 
-    <div class="d-flex gap-3 mb-4 flex-wrap" style="font-size:0.8rem;color:rgba(244,241,221,0.85);font-weight:600;">
-        <span><span class="badge py-1 px-2 me-1" style="background:#DCEFDD;color:#1f7a34">■</span>Aktif / Sudah Bayar</span>
-        <span><span class="badge py-1 px-2 me-1" style="background:#FBF0C8;color:#8a6d1a">■</span>Menunggu Pembayaran</span>
-        <span><span class="badge py-1 px-2 me-1" style="background:#E4E0D6;color:#5b5346">■</span>Tidak Tersedia</span>
-    </div>
 </div>
 @endsection
 

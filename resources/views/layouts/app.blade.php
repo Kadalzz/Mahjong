@@ -60,6 +60,17 @@
             border-radius: 16px; color: var(--ink);
         }
         .text-gold { color: var(--red) !important; }
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            background: var(--cream); color: var(--red); font-weight: 800;
+            border-radius: 999px; padding: 0.4rem 0.95rem; font-size: 0.85rem;
+            text-decoration: none; margin-right: 0.75rem; white-space: nowrap;
+        }
+        .btn-back:hover { background: #fff; color: var(--red-light); }
+        @media (max-width: 575.98px) {
+            .btn-back { padding: 0.35rem 0.7rem; margin-right: 0.5rem; }
+            .navbar-brand { font-size: 0.95rem; }
+        }
         footer {
             background: var(--green-deep); border-top: 1px solid var(--border);
             padding: 2rem 0; margin-top: 4rem; color: rgba(244,241,221,0.55); font-size: 0.875rem;
@@ -70,7 +81,10 @@
 <body>
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
-        <a class="navbar-brand" href="{{ route('booking.index') }}">
+        <a href="{{ request()->routeIs('booking.index') ? route('cover.index') : route('booking.index') }}" class="btn-back" id="backButton">
+            <i class="bi bi-arrow-left"></i>Kembali
+        </a>
+        <a class="navbar-brand me-auto" href="{{ route('booking.index') }}">
             <x-brand-logo :size="34" />
             <span>HÓNG ZHŌNG<span class="brand-sub">MAHJONG</span></span>
         </a>
@@ -147,6 +161,39 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+    var back = document.getElementById('backButton');
+    if (back) {
+        back.addEventListener('click', function (e) {
+            var fromHere = document.referrer && document.referrer.indexOf(location.origin + '/') === 0 && document.referrer !== location.href;
+            if (fromHere && history.length > 1) {
+                e.preventDefault();
+                history.back();
+            }
+        });
+    }
+
+    var idleLimit = 10 * 60 * 1000;
+    var home = @json(route('cover.index'));
+    var last = Date.now();
+    function reset() {
+        last = Date.now();
+    }
+    function check() {
+        if (Date.now() - last >= idleLimit) {
+            location.href = home;
+        }
+    }
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'wheel', 'input'].forEach(function (ev) {
+        window.addEventListener(ev, reset, { passive: true });
+    });
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) check();
+    });
+    setInterval(check, 15000);
+})();
+</script>
 @yield('scripts')
 </body>
 </html>

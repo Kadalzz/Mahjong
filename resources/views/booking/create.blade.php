@@ -136,13 +136,13 @@
                             <input type="date" name="booking_date" id="booking_date"
                                 class="form-control @error('booking_date') is-invalid @enderror"
                                 min="{{ today()->toDateString() }}"
-                                value="{{ old('booking_date', today()->toDateString()) }}"
+                                value="{{ old('booking_date', $prefillDate ?? today()->toDateString()) }}"
                                 required>
                             @error('booking_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
 
-                    @include('booking.partials.lines', ['tables' => $tables, 'maxTables' => $maxTables, 'defaultTableId' => $table->id])
+                    @include('booking.partials.lines', ['tables' => $tables, 'maxTables' => $maxTables, 'defaultTableId' => $table->id, 'defaultStart' => $prefillTime ?? ''])
                 </div>
 
                 <div class="form-card mb-4">

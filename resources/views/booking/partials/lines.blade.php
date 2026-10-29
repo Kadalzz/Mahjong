@@ -1,5 +1,5 @@
 @php
-    $initialLines = old('lines') ? array_values(old('lines')) : [['table_id' => $defaultTableId ?? $tables->first()?->id, 'start_time' => '', 'duration_hours' => 1]];
+    $initialLines = old('lines') ? array_values(old('lines')) : [['table_id' => $defaultTableId ?? $tables->first()?->id, 'start_time' => $defaultStart ?? '', 'duration_hours' => 1]];
     $oldKeys = old('lines') ? array_keys(old('lines')) : [0];
 @endphp
 

@@ -30,7 +30,7 @@ class BookingController extends Controller
         return view('booking.index', compact('tables'));
     }
 
-    public function create(MahjongTable $table)
+    public function create(Request $request, MahjongTable $table)
     {
         if ($table->status === 'maintenance') {
             return redirect()->route('booking.index')
@@ -42,8 +42,13 @@ class BookingController extends Controller
             ->orderBy('id')
             ->get();
 
+        $prefillDate = (string) $request->query('tanggal', '');
+        $prefillTime = (string) $request->query('jam', '');
+
         return view('booking.create', [
-            'table'     => $table,
+            'table'       => $table,
+            'prefillDate' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $prefillDate) && $prefillDate >= today()->toDateString() ? $prefillDate : null,
+            'prefillTime' => preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $prefillTime) ? $prefillTime : null,
             'tables'    => $tables,
             'maxTables' => self::MAX_TABLES_PER_ORDER,
             'maxAmount' => (int) config('doku.max_amount'),

@@ -145,6 +145,63 @@ class BookingFlowTest extends TestCase
         ], $body);
     }
 
+    public function test_schedule_shows_exact_times_and_the_free_part_of_an_hour(): void
+    {
+        $this->partialBooking('2026-10-14 21:15', '2026-10-14 22:45');
+        $this->partialBooking('2026-10-15 00:00', '2026-10-15 00:30');
+
+        $today = $this->get(route('schedule.index', ['date' => '2026-10-14']))->assertOk();
+        $today->assertSee('21:15–22:45')
+            ->assertSee('Kosong s/d 21:15')
+            ->assertSee('Kosong mulai 22:45')
+            ->assertSee('+ Pesan 19:00')
+            ->assertDontSee('+ Pesan 18:00');
+        $today->assertSee(e(route('booking.create', ['table' => $this->table->id, 'tanggal' => '2026-10-14', 'jam' => '22:45'])), false);
+
+        $this->get(route('schedule.index', ['date' => '2026-10-15']))
+            ->assertOk()
+            ->assertSee('00:00–00:30')
+            ->assertSee('Kosong mulai 00:30');
+    }
+
+    public function test_booking_form_is_prefilled_from_the_schedule_link(): void
+    {
+        $this->get(route('booking.create', ['table' => $this->table->id, 'tanggal' => '2026-10-15', 'jam' => '00:30']))
+            ->assertOk()
+            ->assertSee('value="2026-10-15"', false)
+            ->assertSee('value="00:30"', false);
+    }
+
+    public function test_customer_pages_have_a_back_button_and_idle_redirect_home(): void
+    {
+        $this->get(route('booking.index'))->assertOk()
+            ->assertSee('id="backButton"', false)
+            ->assertSee('Kembali')
+            ->assertSee('idleLimit = 10 * 60 * 1000', false);
+
+        $this->get(route('schedule.index'))->assertOk()->assertSee('id="backButton"', false);
+    }
+
+    private function partialBooking(string $from, string $to): Booking
+    {
+        $startsAt = Carbon::parse($from);
+        $endsAt   = Carbon::parse($to);
+
+        return Booking::create([
+            'source'           => 'staff',
+            'mahjong_table_id' => $this->table->id,
+            'customer_name'    => 'Staf',
+            'customer_phone'   => '',
+            'duration_hours'   => 0,
+            'duration_minutes' => (int) $startsAt->diffInMinutes($endsAt),
+            'starts_at'        => $startsAt,
+            'ends_at'          => $endsAt,
+            'total_price'      => 0,
+            'status'           => 'active',
+            'booking_code'     => 'JDA-' . uniqid(),
+        ]);
+    }
+
     public function test_slot_overlapping_an_existing_booking_is_rejected(): void
     {
         $this->existing('20:00', 1, 'active');
