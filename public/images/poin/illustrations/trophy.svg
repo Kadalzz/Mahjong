@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="illustration/trophy">
+<path id="Vector" d="M28 28H14C14 52 24 62 40 66" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#D4A017"/>
+<path id="Vector_2" d="M92 28H106C106 52 96 62 80 66" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#D4A017"/>
+<path id="Vector_3" d="M28 12H92V46C92 66 78 80 60 80C42 80 28 66 28 46V12Z" fill="#D4A017" stroke-width="4" stroke-linejoin="round" stroke="#551414"/>
+<path id="Vector_4" d="M38 20H50V46C50 58 54 66 60 70C48 68 38 60 38 46V20Z" fill="#F4C95D"/>
+<path id="Vector_5" d="M68 80H52V96H68V80Z" fill="#D4A017" stroke-width="4" stroke="#551414"/>
+<path id="Vector_6" d="M82 96H38C35.7909 96 34 97.7909 34 100V104C34 106.209 35.7909 108 38 108H82C84.2091 108 86 106.209 86 104V100C86 97.7909 84.2091 96 82 96Z" fill="#551414"/>
+<path id="Vector_7" d="M60 26L65.5 38.5L79 39.8L68.8 48.7L72 62L60 55L48 62L51.2 48.7L41 39.8L54.5 38.5L60 26Z" fill="#F4F1DD"/>
+</g>
+</svg>

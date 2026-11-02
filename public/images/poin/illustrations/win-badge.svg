@@ -1,0 +1,32 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="242" height="262.083" viewBox="0 0 242 262.083" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="WinBadge">
+<g id="Shield" filter="url(#filter0_d_0_110)">
+<path d="M50 28H192C197.835 28 203.431 30.3179 207.556 34.4437C211.682 38.5695 214 44.1652 214 50V138C214 186 176 218 121 234C66 218 28 186 28 138V50C28 44.1652 30.3179 38.5695 34.4437 34.4437C38.5695 30.3179 44.1652 28 50 28Z" fill="url(#paint0_linear_0_110)" stroke-width="4" stroke="#F4F1DD"/>
+</g>
+<path id="Inner outline" opacity="0.4" d="M56 40H186C190.243 40 194.313 41.6857 197.314 44.6863C200.314 47.6869 202 51.7565 202 56V136C202 176 172 204 121 219C70 204 40 176 40 136V56C40 51.7565 41.6857 47.6869 44.6863 44.6863C47.6869 41.6857 51.7565 40 56 40Z" stroke-width="1.5" stroke="#3A1414"/>
+<g id="illustration/trophy">
+<path id="Vector" d="M83.6667 87.6667H67.3333C67.3333 115.667 79 127.333 97.6667 132" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#D4A017"/>
+<path id="Vector_2" d="M158.333 87.6667H174.667C174.667 115.667 163 127.333 144.333 132" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#D4A017"/>
+<path id="Vector_3" d="M83.6667 69H158.333V108.667C158.333 132 142 148.333 121 148.333C100 148.333 83.6667 132 83.6667 108.667V69Z" fill="#D4A017" stroke-width="4" stroke-linejoin="round" stroke="#551414"/>
+<path id="Vector_4" d="M95.3333 78.3333H109.333V108.667C109.333 122.667 114 132 121 136.667C107 134.333 95.3333 125 95.3333 108.667V78.3333Z" fill="#F4C95D"/>
+<path id="Vector_5" d="M130.333 148.333H111.667V167H130.333V148.333Z" fill="#D4A017" stroke-width="4" stroke="#551414"/>
+<path id="Vector_6" d="M146.667 167H95.3333C92.756 167 90.6667 169.089 90.6667 171.667V176.333C90.6667 178.911 92.756 181 95.3333 181H146.667C149.244 181 151.333 178.911 151.333 176.333V171.667C151.333 169.089 149.244 167 146.667 167Z" fill="#551414"/>
+<path id="Vector_7" d="M121 85.3333L127.417 99.9167L143.167 101.433L131.267 111.817L135 127.333L121 119.167L107 127.333L110.733 111.817L98.8333 101.433L114.583 99.9167L121 85.3333Z" fill="#F4F1DD"/>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_0_110" x="0" y="0" width="242" height="262.083" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset/>
+<feGaussianBlur stdDeviation="13"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.956863 0 0 0 0 0.788235 0 0 0 0 0.364706 0 0 0 0.7 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_110"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_0_110" result="shape"/>
+</filter>
+<linearGradient id="paint0_linear_0_110" x1="121" y1="28" x2="121" y2="234" gradientUnits="userSpaceOnUse">
+<stop stop-color="#F4F1DD"/>
+<stop offset="1" stop-color="#F4C95D"/>
+</linearGradient>
+</defs>
+</svg>

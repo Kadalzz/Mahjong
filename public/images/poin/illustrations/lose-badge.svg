@@ -1,0 +1,23 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="190" height="210.083" viewBox="0 0 190 210.083" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="LoseBadge">
+<path id="Shield" d="M24 2H166C171.835 2 177.431 4.31785 181.556 8.44365C185.682 12.5695 188 18.1652 188 24V112C188 160 150 192 95 208C40 192 2 160 2 112V24C2 18.1652 4.31785 12.5695 8.44365 8.44365C12.5695 4.31785 18.1652 2 24 2Z" fill="url(#paint0_linear_0_71)" stroke-width="4" stroke="#F4F1DD"/>
+<path id="Inner outline" opacity="0.4" d="M30 14H160C164.243 14 168.313 15.6857 171.314 18.6863C174.314 21.6869 176 25.7565 176 30V110C176 150 146 178 95 193C44 178 14 150 14 110V30C14 25.7565 15.6857 21.6869 18.6863 18.6863C21.6869 15.6857 25.7565 14 30 14Z" stroke-width="1.5" stroke="#3A1414"/>
+<g id="illustration/trophy-lose">
+<path id="Vector" d="M57.6667 61.6667H41.3333C41.3333 89.6667 53 101.333 71.6667 106" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#6B5D4A"/>
+<path id="Vector_2" d="M132.333 61.6667H148.667C148.667 89.6667 137 101.333 118.333 106" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#6B5D4A"/>
+<path id="Vector_3" d="M57.6667 43H132.333V82.6667C132.333 106 116 122.333 95 122.333C74 122.333 57.6667 106 57.6667 82.6667V43Z" fill="#6B5D4A" stroke-width="4" stroke-linejoin="round" stroke="#3A1414"/>
+<path id="Vector_4" d="M69.3333 52.3333H83.3333V82.6667C83.3333 96.6667 88 106 95 110.667C81 108.333 69.3333 99 69.3333 82.6667V52.3333Z" fill="#E6E1C4"/>
+<path id="Vector_5" d="M104.333 122.333H85.6667V141H104.333V122.333Z" fill="#6B5D4A" stroke-width="4" stroke="#3A1414"/>
+<path id="Vector_6" d="M120.667 141H69.3333C66.756 141 64.6667 143.089 64.6667 145.667V150.333C64.6667 152.911 66.756 155 69.3333 155H120.667C123.244 155 125.333 152.911 125.333 150.333V145.667C125.333 143.089 123.244 141 120.667 141Z" fill="#3A1414"/>
+<path id="Vector_7" d="M95 59.3333L101.417 73.9167L117.167 75.4333L105.267 85.8167L109 101.333L95 93.1667L81 101.333L84.7333 85.8167L72.8333 75.4333L88.5833 73.9167L95 59.3333Z" fill="#F4F1DD"/>
+<path id="Crack" d="M97.3333 40.6667L89.1667 60.5L102 74.5L88 92L99.6667 106L90.3333 122.333" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" stroke="#3A1414"/>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_71" x1="95" y1="2" x2="95" y2="208" gradientUnits="userSpaceOnUse">
+<stop stop-color="#F4F1DD"/>
+<stop offset="0.55" stop-color="#E6E1C4"/>
+<stop offset="1" stop-color="#6B5D4A"/>
+</linearGradient>
+</defs>
+</svg>

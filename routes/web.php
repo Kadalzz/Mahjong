@@ -12,10 +12,13 @@ use App\Http\Controllers\Dashboard\PricingController;
 use App\Http\Controllers\Dashboard\RevenueController;
 use App\Http\Controllers\Dashboard\TableController;
 use App\Http\Controllers\CoverController;
+use App\Http\Controllers\Dev\TokensController;
 use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CoverController::class, 'index'])->name('cover.index');
+
+Route::get('/dev/tokens', TokensController::class)->name('dev.tokens');
 
 Route::get('/pesan', [BookingController::class, 'index'])->name('booking.index');
 Route::get('/booking/table/{table}', [BookingController::class, 'create'])->name('booking.create');
