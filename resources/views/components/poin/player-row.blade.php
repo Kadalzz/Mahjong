@@ -13,7 +13,7 @@
     @else
         <p class="pn-player-row__rank t-h4">{{ $rank }}</p>
         <x-poin.avatar size="40" :src="$src" />
-        <div class="pn-player-row__name">
+        <div class="pn-player-row__name pn-truncate">
             <p class="t-title-sm">{{ $name }}</p>
             @if($meta)<p class="pn-player-row__meta t-body-sm">{{ $meta }}</p>@endif
         </div>

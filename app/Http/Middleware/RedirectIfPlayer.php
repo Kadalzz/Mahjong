@@ -11,7 +11,7 @@ class RedirectIfPlayer
     public function handle(Request $request, Closure $next): mixed
     {
         if (Auth::guard('player')->check()) {
-            return redirect()->route('poin.home');
+            return redirect()->route('poin.games');
         }
 
         return $next($request);

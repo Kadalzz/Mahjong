@@ -53,7 +53,7 @@ class PlayerAuthTest extends TestCase
 
     public function test_player_can_register_without_touching_the_staff_table(): void
     {
-        $this->post(route('poin.register'), $this->registerPayload())->assertRedirect(route('poin.home'));
+        $this->post(route('poin.register'), $this->registerPayload())->assertRedirect(route('poin.games'));
 
         $player = Player::sole();
         $this->assertSame('Rina', $player->nickname);
@@ -67,7 +67,7 @@ class PlayerAuthTest extends TestCase
     {
         $this->postJson(route('poin.register'), $this->registerPayload())
             ->assertOk()
-            ->assertJson(['redirect' => route('poin.home')]);
+            ->assertJson(['redirect' => route('poin.games')]);
     }
 
     public function test_nickname_with_at_sign_is_rejected(): void
@@ -134,7 +134,7 @@ class PlayerAuthTest extends TestCase
     {
         $player = $this->makePlayer();
 
-        $this->post(route('poin.login'), ['login' => 'rInA', 'password' => 'Rahasia123'])->assertRedirect(route('poin.home'));
+        $this->post(route('poin.login'), ['login' => 'rInA', 'password' => 'Rahasia123'])->assertRedirect(route('poin.games'));
 
         $this->assertAuthenticatedAs($player, 'player');
     }
@@ -143,7 +143,7 @@ class PlayerAuthTest extends TestCase
     {
         $player = $this->makePlayer();
 
-        $this->post(route('poin.login'), ['login' => 'RINA@example.com', 'password' => 'Rahasia123'])->assertRedirect(route('poin.home'));
+        $this->post(route('poin.login'), ['login' => 'RINA@example.com', 'password' => 'Rahasia123'])->assertRedirect(route('poin.games'));
 
         $this->assertAuthenticatedAs($player, 'player');
     }
@@ -181,14 +181,14 @@ class PlayerAuthTest extends TestCase
 
     public function test_guest_is_sent_to_the_login_screen(): void
     {
-        $this->get(route('poin.home'))->assertRedirect(route('poin.login'));
+        $this->get(route('poin.games'))->assertRedirect(route('poin.login'));
     }
 
     public function test_logged_in_player_skips_the_login_screen(): void
     {
         $this->post(route('poin.login'), ['login' => $this->makePlayer()->email, 'password' => 'Rahasia123']);
 
-        $this->get(route('poin.login'))->assertRedirect(route('poin.home'));
+        $this->get(route('poin.login'))->assertRedirect(route('poin.games'));
     }
 
     public function test_player_can_log_out(): void
@@ -210,7 +210,7 @@ class PlayerAuthTest extends TestCase
 
     public function test_staff_cannot_open_player_pages(): void
     {
-        $this->actingAs($this->staff())->get(route('poin.home'))->assertRedirect(route('poin.login'));
+        $this->actingAs($this->staff())->get(route('poin.games'))->assertRedirect(route('poin.login'));
     }
 
     public function test_staff_credentials_do_not_log_in_as_a_player(): void
@@ -231,7 +231,7 @@ class PlayerAuthTest extends TestCase
     {
         $player = $this->makePlayer();
         $this->post(route('poin.login'), ['login' => $player->email, 'password' => 'Rahasia123']);
-        $this->get(route('poin.home'))->assertOk();
+        $this->get(route('poin.games'))->assertOk();
 
         $admin = $this->staff();
         $this->actingAs($admin)->get(route('dashboard.players.index'))->assertOk()->assertSee($player->email);
@@ -244,7 +244,7 @@ class PlayerAuthTest extends TestCase
 
         Auth::forgetGuards();
 
-        $this->get(route('poin.home'))->assertRedirect(route('poin.login'));
+        $this->get(route('poin.games'))->assertRedirect(route('poin.login'));
     }
 
     public function test_only_admin_can_open_the_player_reset_pages(): void

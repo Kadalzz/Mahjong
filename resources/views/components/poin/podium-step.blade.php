@@ -2,7 +2,7 @@
 <div {{ $attributes->class(['pn-podium', "pn-podium--{$rank}"]) }}>
     @if((int) $rank === 1)<p class="t-kicker">JUARA</p>@endif
     <x-poin.avatar :size="(int) $rank === 1 ? 'podium-1' : 'podium'" :src="$src" />
-    <p class="t-title-sm">{{ $name }}</p>
+    <p class="pn-truncate t-title-sm">{{ $name }}</p>
     <div class="pn-podium__score">
         <x-poin.icon name="diamond" size="14" />
         <p @class(['pn-podium__score-value', 't-h5' => (int) $rank === 1, 't-label-strong' => (int) $rank !== 1])>{{ $score }}</p>

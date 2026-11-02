@@ -97,3 +97,59 @@ function bindForm(form) {
 }
 
 document.querySelectorAll('form[data-poin-form]').forEach(bindForm);
+
+function bindLoader(loader) {
+    const states = Object.fromEntries(
+        [...loader.querySelectorAll(':scope > [data-poin-state]')].map((element) => [element.dataset.poinState, element]),
+    );
+    let loaded = false;
+
+    const show = (name) => {
+        Object.entries(states).forEach(([key, element]) => {
+            element.hidden = key !== name;
+        });
+    };
+
+    const load = async () => {
+        show('loading');
+
+        try {
+            const response = await fetch(loader.dataset.url, {
+                headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+
+            if (response.redirected) {
+                window.location.assign(response.url);
+                return;
+            }
+
+            if (!response.ok) {
+                show('error');
+                return;
+            }
+
+            states.content.innerHTML = await response.text();
+            loaded = true;
+            show('content');
+        } catch {
+            show(navigator.onLine === false ? 'offline' : 'error');
+        }
+    };
+
+    loader.querySelectorAll('[data-poin-retry]').forEach((button) => button.addEventListener('click', load));
+    window.addEventListener('offline', () => {
+        if (!loaded) {
+            show('offline');
+        }
+    });
+    window.addEventListener('online', () => {
+        if (!loaded) {
+            load();
+        }
+    });
+
+    load();
+}
+
+document.querySelectorAll('[data-poin-loader]').forEach(bindLoader);
