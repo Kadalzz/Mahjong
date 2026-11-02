@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 class MahjongTable extends Model
 {
@@ -14,6 +15,23 @@ class MahjongTable extends Model
     protected $casts = [
         'paused_until' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (MahjongTable $table) {
+            $table->qr_code ??= Str::upper(Str::random(8));
+        });
+    }
+
+    public function displayName(): string
+    {
+        return trim(explode(' - ', (string) $this->name)[0]);
+    }
+
+    public function number(): string
+    {
+        return preg_match('/\d+/', (string) $this->name, $match) ? $match[0] : (string) $this->id;
+    }
 
     public function pricing(): HasOne
     {

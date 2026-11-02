@@ -1,0 +1,8 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="290" height="290" viewBox="0 0 290 290" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Corner brackets">
+<path id="Vector" d="M22 76V46C22 30 30 22 46 22H76" stroke-width="5" stroke-linecap="round" stroke="#D4A017"/>
+<path id="Vector_2" d="M214 22H244C260 22 268 30 268 46V76" stroke-width="5" stroke-linecap="round" stroke="#D4A017"/>
+<path id="Vector_3" d="M268 214V244C268 260 260 268 244 268H214" stroke-width="5" stroke-linecap="round" stroke="#D4A017"/>
+<path id="Vector_4" d="M76 268H46C30 268 22 260 22 244V214" stroke-width="5" stroke-linecap="round" stroke="#D4A017"/>
+</g>
+</svg>

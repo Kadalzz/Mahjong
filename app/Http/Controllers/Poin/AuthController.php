@@ -96,7 +96,7 @@ class AuthController extends Controller
         $request->session()->regenerate();
         $request->session()->put(Player::SESSION_FINGERPRINT, $player->passwordFingerprint());
 
-        $target = route('poin.games');
+        $target = $request->session()->pull('url.intended', route('poin.games'));
 
         return $request->expectsJson()
             ? response()->json(['redirect' => $target])

@@ -12,6 +12,7 @@ use App\Http\Controllers\Dashboard\PlayerController;
 use App\Http\Controllers\Dashboard\PricingController;
 use App\Http\Controllers\Dashboard\RevenueController;
 use App\Http\Controllers\Dashboard\TableController;
+use App\Http\Controllers\Dashboard\TableQrController;
 use App\Http\Controllers\CoverController;
 use App\Http\Controllers\Dev\TokensController;
 use App\Http\Controllers\ScheduleController;
@@ -72,6 +73,7 @@ Route::prefix('dashboard')->name('dashboard.')->middleware(['auth', 'active'])->
     Route::post('/tables/{table}/device', [TableController::class, 'device'])->middleware('permission:tables_power')->name('tables.device');
     Route::middleware('permission:tables_manage')->group(function () {
         Route::get('/tables/create', [TableController::class, 'create'])->name('tables.create');
+        Route::get('/tables/qr', TableQrController::class)->name('tables.qr');
         Route::post('/tables', [TableController::class, 'store'])->name('tables.store');
         Route::get('/tables/{table}/edit', [TableController::class, 'edit'])->name('tables.edit');
         Route::put('/tables/{table}', [TableController::class, 'update'])->name('tables.update');

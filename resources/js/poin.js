@@ -124,6 +124,11 @@ function bindLoader(loader) {
                 return;
             }
 
+            if (response.status === 404 && loader.dataset.notFound) {
+                window.location.assign(loader.dataset.notFound);
+                return;
+            }
+
             if (!response.ok) {
                 show('error');
                 return;
@@ -153,3 +158,172 @@ function bindLoader(loader) {
 }
 
 document.querySelectorAll('[data-poin-loader]').forEach(bindLoader);
+
+const POLL_INTERVAL = 3000;
+
+function bindPoll(page) {
+    const banner = page.querySelector('[data-poin-poll-banner]');
+    const loading = page.querySelector('[data-poin-poll-loading]');
+    const content = page.querySelector('[data-poin-poll-content]');
+    let current = null;
+
+    const setOffline = (offline) => {
+        banner.hidden = !offline;
+        page.classList.toggle('is-offline', offline);
+        page.querySelectorAll('[data-poin-needs-connection]').forEach((button) => {
+            if (offline) {
+                button.dataset.poinWasDisabled = button.disabled ? '1' : '';
+                button.disabled = true;
+            } else if (button.dataset.poinWasDisabled !== undefined) {
+                button.disabled = button.dataset.poinWasDisabled === '1';
+                delete button.dataset.poinWasDisabled;
+            }
+        });
+    };
+
+    const tick = async () => {
+        try {
+            const response = await fetch(page.dataset.url, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+
+            if (response.redirected || response.status === 403) {
+                window.location.assign(response.redirected ? response.url : '/');
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(String(response.status));
+            }
+
+            const data = await response.json();
+
+            if (data.redirect) {
+                window.location.assign(data.redirect);
+                return;
+            }
+
+            if (data.html !== current) {
+                current = data.html;
+                content.innerHTML = data.html;
+            }
+
+            loading.hidden = true;
+            content.hidden = false;
+            setOffline(false);
+        } catch {
+            setOffline(true);
+        }
+
+        window.setTimeout(tick, POLL_INTERVAL);
+    };
+
+    tick();
+}
+
+document.querySelectorAll('[data-poin-poll]').forEach(bindPoll);
+
+function parseTableCode(text) {
+    const value = text.trim();
+    const fromUrl = value.match(/\/meja\/([A-Za-z0-9]+)\/?$/);
+
+    if (fromUrl) {
+        return fromUrl[1];
+    }
+
+    return /^[A-Za-z0-9]{4,12}$/.test(value) ? value : null;
+}
+
+function bindScanner(page) {
+    const video = page.querySelector('[data-poin-video]');
+    const canvas = document.createElement('canvas');
+    let stream = null;
+    let decoder = null;
+    let scanning = false;
+
+    const show = (name) => {
+        page.querySelectorAll('[data-poin-scan-state]').forEach((element) => {
+            element.hidden = element.dataset.poinScanState !== name;
+        });
+    };
+
+    const stop = () => {
+        scanning = false;
+        stream?.getTracks().forEach((track) => track.stop());
+        stream = null;
+    };
+
+    const openTable = (code) => {
+        stop();
+        window.location.assign(`${page.dataset.tableUrl}/${encodeURIComponent(code)}`);
+    };
+
+    const readFrame = () => {
+        if (!scanning) {
+            return;
+        }
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d', { willReadFrequently: true });
+            context.drawImage(video, 0, 0);
+            const image = context.getImageData(0, 0, canvas.width, canvas.height);
+            const result = decoder(image.data, image.width, image.height);
+
+            if (result) {
+                const code = parseTableCode(result.data);
+
+                if (code) {
+                    openTable(code);
+                } else {
+                    stop();
+                    show('unknown');
+                }
+                return;
+            }
+        }
+
+        window.setTimeout(readFrame, 250);
+    };
+
+    const start = async () => {
+        show('camera');
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+            decoder ??= (await import('jsqr')).default;
+            video.srcObject = stream;
+            await video.play();
+            scanning = true;
+            readFrame();
+        } catch {
+            stop();
+            show('denied');
+        }
+    };
+
+    page.querySelectorAll('[data-poin-scan-retry]').forEach((button) => button.addEventListener('click', start));
+    page.querySelectorAll('[data-poin-scan-code]').forEach((button) => button.addEventListener('click', () => {
+        stop();
+        show('code');
+    }));
+
+    page.querySelector('[data-poin-code-form]').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const code = parseTableCode(event.target.elements.code.value);
+
+        if (code) {
+            openTable(code);
+        } else {
+            show('unknown');
+        }
+    });
+
+    if (page.dataset.initial === 'camera') {
+        start();
+    }
+}
+
+document.querySelectorAll('[data-poin-scanner]').forEach(bindScanner);

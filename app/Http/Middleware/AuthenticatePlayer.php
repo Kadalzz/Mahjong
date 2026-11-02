@@ -24,6 +24,8 @@ class AuthenticatePlayer
             $request->session()->regenerateToken();
         }
 
-        return redirect()->route('poin.login');
+        return $request->ajax() || $request->expectsJson()
+            ? redirect()->route('poin.login')
+            : redirect()->guest(route('poin.login'));
     }
 }

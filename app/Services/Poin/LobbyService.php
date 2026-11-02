@@ -1,0 +1,145 @@
+<?php
+
+namespace App\Services\Poin;
+
+use App\Models\Game;
+use App\Models\GamePlayer;
+use App\Models\MahjongTable;
+use App\Models\Player;
+use Illuminate\Support\Facades\DB;
+
+class LobbyService
+{
+    public const STALE_SECONDS = 90;
+
+    public function openGameFor(MahjongTable $table): ?Game
+    {
+        $game = Game::open()->where('mahjong_table_id', $table->id)->with('seats')->first();
+
+        if ($game?->status === Game::STATUS_LOBBY) {
+            $this->removeStaleSeats($game);
+            $game->load('seats');
+        }
+
+        return $game;
+    }
+
+    public function activeSeatFor(Player $player): ?GamePlayer
+    {
+        return GamePlayer::where('player_id', $player->id)
+            ->whereNull('left_at')
+            ->whereHas('game', fn ($q) => $q->open())
+            ->with('game')
+            ->first();
+    }
+
+    public function tableStatus(MahjongTable $table, ?Game $game, Player $player): string
+    {
+        if ($table->status === 'maintenance') {
+            return 'unavailable';
+        }
+
+        if ($game?->seats->contains('player_id', $player->id)) {
+            return 'available';
+        }
+
+        if ($game?->status === Game::STATUS_PLAYING) {
+            return 'playing';
+        }
+
+        return $game && $game->seats->count() >= Game::SEATS ? 'full' : 'available';
+    }
+
+    public function join(MahjongTable $table, Player $player): Game|string
+    {
+        return DB::transaction(function () use ($table, $player) {
+            $table = MahjongTable::whereKey($table->id)->lockForUpdate()->first();
+
+            if ($table->status === 'maintenance') {
+                return 'unavailable';
+            }
+
+            $current = $this->activeSeatFor($player);
+
+            if ($current && $current->game->mahjong_table_id === $table->id) {
+                return $current->game;
+            }
+
+            if ($current?->game->status === Game::STATUS_PLAYING) {
+                return $current->game;
+            }
+
+            if ($current) {
+                $this->leave($current->game, $player);
+            }
+
+            $game = $this->openGameFor($table);
+
+            if ($game?->status === Game::STATUS_PLAYING) {
+                return 'playing';
+            }
+
+            $game ??= Game::create(['mahjong_table_id' => $table->id, 'status' => Game::STATUS_LOBBY]);
+
+            $seat = collect(range(1, Game::SEATS))->diff($game->hasMany(GamePlayer::class)->pluck('seat'))->first();
+
+            if (!$seat) {
+                return 'full';
+            }
+
+            GamePlayer::create([
+                'game_id'      => $game->id,
+                'player_id'    => $player->id,
+                'seat'         => $seat,
+                'is_ready'     => true,
+                'last_seen_at' => now(),
+            ]);
+
+            return $game;
+        });
+    }
+
+    public function leave(Game $game, Player $player): void
+    {
+        DB::transaction(function () use ($game, $player) {
+            $game->hasMany(GamePlayer::class)->where('player_id', $player->id)->delete();
+            $this->closeIfEmpty($game);
+        });
+    }
+
+    public function start(Game $game): bool
+    {
+        return DB::transaction(function () use ($game) {
+            $game = Game::whereKey($game->id)->lockForUpdate()->with('seats')->first();
+
+            if (!$game->isReadyToStart()) {
+                return false;
+            }
+
+            $game->update(['status' => Game::STATUS_PLAYING, 'started_at' => now()]);
+
+            return true;
+        });
+    }
+
+    public function touch(Game $game, Player $player): void
+    {
+        GamePlayer::where('game_id', $game->id)->where('player_id', $player->id)->update(['last_seen_at' => now()]);
+    }
+
+    private function removeStaleSeats(Game $game): void
+    {
+        GamePlayer::where('game_id', $game->id)
+            ->where('last_seen_at', '<', now()->subSeconds(self::STALE_SECONDS))
+            ->delete();
+
+        $this->closeIfEmpty($game);
+    }
+
+    private function closeIfEmpty(Game $game): void
+    {
+        if ($game->status === Game::STATUS_LOBBY && !GamePlayer::where('game_id', $game->id)->exists()) {
+            $game->update(['status' => Game::STATUS_FINISHED, 'ended_at' => now()]);
+        }
+    }
+}

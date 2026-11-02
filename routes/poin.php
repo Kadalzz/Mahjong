@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Poin\AuthController;
+use App\Http\Controllers\Poin\GameController;
 use App\Http\Controllers\Poin\PageController;
 use App\Http\Middleware\AuthenticatePlayer;
 use App\Http\Middleware\RedirectIfPlayer;
@@ -26,6 +27,19 @@ if ($pointsDomain) {
             Route::get('/konten/pilih-game', [PageController::class, 'gamesContent'])->name('games.content');
             Route::get('/mcr', [PageController::class, 'mcr'])->name('mcr');
             Route::post('/keluar', [AuthController::class, 'logout'])->name('logout');
+
+            Route::get('/scan', [GameController::class, 'scan'])->name('scan');
+            Route::get('/meja/{code}', [GameController::class, 'table'])->name('table');
+            Route::get('/konten/meja/{code}', [GameController::class, 'tableContent'])->name('table.content');
+            Route::post('/meja/{code}/masuk', [GameController::class, 'join'])->name('table.join');
+
+            Route::get('/lobby/{game}', [GameController::class, 'lobby'])->name('lobby');
+            Route::get('/lobby/{game}/status', [GameController::class, 'lobbyStatus'])->name('lobby.status');
+            Route::post('/lobby/{game}/start', [GameController::class, 'start'])->name('lobby.start');
+            Route::post('/lobby/{game}/keluar', [GameController::class, 'leave'])->name('lobby.leave');
+
+            Route::get('/game/{game}', [GameController::class, 'game'])->name('game');
+            Route::get('/game/{game}/status', [GameController::class, 'gameStatus'])->name('game.status');
         });
     });
 }

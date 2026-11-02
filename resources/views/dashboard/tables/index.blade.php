@@ -5,7 +5,10 @@
 @section('content')
 
 @if(auth()->user()->hasPermission('tables_manage'))
-<div class="d-flex justify-content-end mb-4">
+<div class="d-flex justify-content-end gap-2 mb-4">
+    <a href="{{ route('dashboard.tables.qr') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-qr-code me-1"></i>QR Meja
+    </a>
     <a href="{{ route('dashboard.tables.create') }}" class="btn btn-gold">
         <i class="bi bi-plus-lg me-1"></i>Tambah Meja
     </a>
