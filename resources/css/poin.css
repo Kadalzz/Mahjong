@@ -190,7 +190,14 @@
     --size-banner-glyph: 22px;
     --size-lock-glyph: 26px;
     --size-spinner: 48px;
-    --size-spinner-button: 20px;
+    --size-spinner-button: 24px;
+    --size-submit-spinner-x: 64px;
+    --size-watermark-width: 350px;
+    --size-watermark-height: 235px;
+    --size-watermark-x: 20px;
+    --size-watermark-bottom-login: 147px;
+    --size-watermark-bottom-register: 120px;
+    --line-height-h1: 38px;
     --size-skeleton: 16px;
     --size-skeleton-width: 100px;
     --size-seat: 84px;
@@ -879,6 +886,41 @@ body {
 .pn-spinner--button { width: var(--size-spinner-button); height: var(--size-spinner-button); }
 .pn-spinner__layer { position: absolute; inset: 0; width: 100%; height: 100%; }
 .pn-spinner__ring { animation: pn-spin var(--motion-spinner); }
+
+.pn-banner[hidden], .pn-spinner[hidden] { display: none; }
+.pn-submit { position: relative; width: 100%; }
+.pn-submit__spinner { position: absolute; top: 50%; left: var(--size-submit-spinner-x); transform: translateY(-50%); }
+
+.pn-auth {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2-5);
+    width: 100%;
+    max-width: var(--screen-width);
+    min-height: 100dvh;
+    margin-inline: auto;
+    overflow: hidden;
+    padding: var(--grid-top-inset) var(--grid-margin) var(--grid-bottom-inset);
+    background: linear-gradient(to bottom, var(--brand-green), var(--brand-green-deep));
+    text-align: center;
+}
+.pn-auth__title { color: var(--neutral-white); line-height: var(--line-height-h1); }
+.pn-auth__subtitle { color: var(--alpha-cream-65); }
+.pn-auth__form { position: relative; display: flex; flex: 1 0 auto; flex-direction: column; gap: var(--space-2-5); text-align: left; }
+.pn-auth__spacer { flex: 1 0 var(--space-6); }
+.pn-auth__switch { color: var(--alpha-cream-70); text-align: center; text-decoration: none; }
+.pn-watermark {
+    position: absolute;
+    left: var(--size-watermark-x);
+    width: var(--size-watermark-width);
+    height: var(--size-watermark-height);
+    max-width: none;
+    pointer-events: none;
+}
+.pn-auth--login .pn-watermark { bottom: var(--size-watermark-bottom-login); }
+.pn-auth--register .pn-watermark { bottom: var(--size-watermark-bottom-register); }
+.pn-auth.has-state .pn-watermark { display: none; }
 
 @keyframes pn-pulse {
     0%, 100% { opacity: 1; }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Dashboard\BookingManageController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\OccupancyController;
 use App\Http\Controllers\Dashboard\PauseController;
+use App\Http\Controllers\Dashboard\PlayerController;
 use App\Http\Controllers\Dashboard\PricingController;
 use App\Http\Controllers\Dashboard\RevenueController;
 use App\Http\Controllers\Dashboard\TableController;
@@ -15,6 +16,8 @@ use App\Http\Controllers\CoverController;
 use App\Http\Controllers\Dev\TokensController;
 use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
+
+require __DIR__ . '/poin.php';
 
 Route::get('/', [CoverController::class, 'index'])->name('cover.index');
 
@@ -98,6 +101,9 @@ Route::prefix('dashboard')->name('dashboard.')->middleware(['auth', 'active'])->
         Route::put('/accounts/{user}', [AccountController::class, 'update'])->name('accounts.update');
         Route::post('/accounts/{user}/toggle', [AccountController::class, 'toggle'])->name('accounts.toggle');
         Route::get('/activity', [ActivityController::class, 'index'])->name('activity');
+        Route::get('/players', [PlayerController::class, 'index'])->name('players.index');
+        Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])->name('players.edit');
+        Route::put('/players/{player}', [PlayerController::class, 'update'])->name('players.update');
     });
 });
 

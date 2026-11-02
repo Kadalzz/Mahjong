@@ -107,7 +107,7 @@
             <x-poin.button :kind="$kind" state="pressed">Pressed</x-poin.button>
             <x-poin.button :kind="$kind" disabled>Disabled</x-poin.button>
         @endforeach
-        <x-poin.button loading>Menyimpan…</x-poin.button>
+        <x-poin.submit-button loading>Memproses…</x-poin.submit-button>
 
         <h2 class="t-h3">Icon Button</h2>
         <div class="flex gap-4">

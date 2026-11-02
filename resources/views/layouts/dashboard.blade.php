@@ -249,6 +249,9 @@
         <a href="{{ route('dashboard.accounts.index') }}" class="sidebar-link {{ request()->routeIs('dashboard.accounts.*') ? 'active' : '' }}">
             <i class="bi bi-people-fill"></i> Akun
         </a>
+        <a href="{{ route('dashboard.players.index') }}" class="sidebar-link {{ request()->routeIs('dashboard.players.*') ? 'active' : '' }}">
+            <i class="bi bi-controller"></i> Pemain
+        </a>
         <a href="{{ route('dashboard.activity') }}" class="sidebar-link {{ request()->routeIs('dashboard.activity') ? 'active' : '' }}">
             <i class="bi bi-clock-history"></i> Aktivitas
         </a>

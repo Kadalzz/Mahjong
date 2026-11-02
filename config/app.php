@@ -18,6 +18,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'points_domain' => env('POINTS_DOMAIN'),
+
     
 
     'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),

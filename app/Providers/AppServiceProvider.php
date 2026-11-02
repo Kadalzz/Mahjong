@@ -37,6 +37,13 @@ class AppServiceProvider extends ServiceProvider
             ? 'session:' . $request->session()->getId()
             : 'ip:' . $request->ip();
 
+        RateLimiter::for('poin-login', fn (Request $request) => [
+            Limit::perMinute(5)->by('poin-login|' . $request->ip() . '|' . mb_strtolower((string) $request->input('login'))),
+            Limit::perMinute(60)->by('poin-login-ip|' . $request->ip()),
+        ]);
+
+        RateLimiter::for('poin-register', fn (Request $request) => Limit::perMinute(20)->by('poin-register|' . $request->ip()));
+
         RateLimiter::for('booking-check', fn (Request $request) => [
             Limit::perMinute(60)->by('check|' . $visitor($request)),
             Limit::perMinute(1200)->by('check-ip|' . $request->ip()),
