@@ -8,7 +8,7 @@
     <x-poin.ornament />
     <span class="pn-page__spacer"></span>
     <div class="pn-coming">
-        <x-poin.mahjong-tile tone="dim-large" class="pn-tile--large" />
+        <span class="pn-tile-large"><span class="pn-tile-large__dot"></span></span>
         <x-poin.badge type="outline">COMING SOON</x-poin.badge>
         <p class="pn-coming__title t-display-hero">MCR</p>
         <p class="pn-muted t-body-lg text-center">Permainan MCR sedang disiapkan. Nantikan segera di Hóng Zhōng Mahjong.</p>
