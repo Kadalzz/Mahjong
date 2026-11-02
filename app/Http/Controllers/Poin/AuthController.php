@@ -24,13 +24,13 @@ class AuthController extends Controller
         $request->merge(['nickname_key' => Player::nicknameKey($nickname), 'email' => mb_strtolower(trim((string) $request->input('email')))]);
 
         $data = $request->validate([
-            'nickname'     => ['required', 'string', 'max:30', 'not_regex:/@/'],
+            'nickname'     => ['required', 'string', 'max:' . Player::NICKNAME_MAX, 'not_regex:/@/'],
             'nickname_key' => [Rule::unique('players', 'nickname_key')],
             'email'        => ['required', 'email', 'max:150', Rule::unique('players', 'email')],
-            'password'     => ['required', 'string', 'min:8', 'max:100'],
+            'password'     => Player::PASSWORD_RULES,
         ], [
             'nickname.required'   => 'Nama pemain wajib diisi.',
-            'nickname.max'        => 'Nama pemain maksimal 30 karakter.',
+            'nickname.max'        => 'Nama pemain maksimal ' . Player::NICKNAME_MAX . ' karakter.',
             'nickname.not_regex'  => 'Nama pemain tidak boleh mengandung @.',
             'nickname_key.unique' => 'Nama pemain sudah dipakai. Coba yang lain.',
             'email.required'      => 'Email wajib diisi.',
@@ -38,7 +38,8 @@ class AuthController extends Controller
             'email.max'           => 'Email maksimal 150 karakter.',
             'email.unique'        => 'Email sudah terdaftar. Silakan masuk.',
             'password.required'   => 'Kata sandi wajib diisi.',
-            'password.min'        => 'Kata sandi minimal 8 karakter.',
+            'password.min'        => Player::PASSWORD_MESSAGE,
+            'password.regex'      => Player::PASSWORD_MESSAGE,
             'password.max'        => 'Kata sandi maksimal 100 karakter.',
         ]);
 

@@ -22,7 +22,7 @@ class PlayerAuthTest extends TestCase
 
     private function registerPayload(array $overrides = []): array
     {
-        return array_merge(['nickname' => 'Rina', 'email' => 'rina@example.com', 'password' => 'rahasia123'], $overrides);
+        return array_merge(['nickname' => 'Rina', 'email' => 'rina@example.com', 'password' => 'Rahasia123'], $overrides);
     }
 
     private function makePlayer(array $overrides = []): Player
@@ -47,6 +47,7 @@ class PlayerAuthTest extends TestCase
 
         $this->get(route('poin.login'))->assertOk()
             ->assertSee('Masuk untuk mulai bermain dan mengumpulkan poin.')
+            ->assertSee('EMAIL / NAMA PEMAIN *')
             ->assertSee('Belum punya akun? Daftar');
     }
 
@@ -56,7 +57,7 @@ class PlayerAuthTest extends TestCase
 
         $player = Player::sole();
         $this->assertSame('Rina', $player->nickname);
-        $this->assertTrue(Hash::check('rahasia123', $player->password));
+        $this->assertTrue(Hash::check('Rahasia123', $player->password));
         $this->assertSame(0, User::count());
         $this->assertTrue(Auth::guard('player')->check());
         $this->assertFalse(Auth::guard('web')->check());
@@ -74,6 +75,39 @@ class PlayerAuthTest extends TestCase
         $this->postJson(route('poin.register'), $this->registerPayload(['nickname' => 'ri@na']))
             ->assertStatus(422)
             ->assertJsonValidationErrors('nickname');
+    }
+
+    public function test_nickname_is_limited_to_fifteen_characters(): void
+    {
+        $this->postJson(route('poin.register'), $this->registerPayload(['nickname' => str_repeat('a', 16)]))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('nickname');
+
+        $this->postJson(route('poin.register'), $this->registerPayload(['nickname' => str_repeat('a', 15)]))->assertOk();
+    }
+
+    public function test_password_needs_letters_a_number_and_an_uppercase_letter(): void
+    {
+        foreach (['Ab1', 'rahasia123', 'RahasiaSaja', '12345678', 'RAHASIA123x'] as $i => $password) {
+            $response = $this->postJson(route('poin.register'), $this->registerPayload(['password' => $password]));
+
+            if ($password === 'RAHASIA123x') {
+                $response->assertOk();
+            } else {
+                $response->assertStatus(422)->assertJsonValidationErrors('password');
+            }
+        }
+    }
+
+    public function test_admin_reset_follows_the_same_password_rule(): void
+    {
+        $player = $this->makePlayer();
+
+        $this->actingAs($this->staff())
+            ->put(route('dashboard.players.update', $player), ['password' => 'lemah1234'])
+            ->assertSessionHasErrors('password');
+
+        $this->assertTrue(Hash::check('Rahasia123', $player->fresh()->password));
     }
 
     public function test_duplicate_nickname_is_rejected_regardless_of_case(): void
@@ -100,7 +134,7 @@ class PlayerAuthTest extends TestCase
     {
         $player = $this->makePlayer();
 
-        $this->post(route('poin.login'), ['login' => 'rInA', 'password' => 'rahasia123'])->assertRedirect(route('poin.home'));
+        $this->post(route('poin.login'), ['login' => 'rInA', 'password' => 'Rahasia123'])->assertRedirect(route('poin.home'));
 
         $this->assertAuthenticatedAs($player, 'player');
     }
@@ -109,7 +143,7 @@ class PlayerAuthTest extends TestCase
     {
         $player = $this->makePlayer();
 
-        $this->post(route('poin.login'), ['login' => 'RINA@example.com', 'password' => 'rahasia123'])->assertRedirect(route('poin.home'));
+        $this->post(route('poin.login'), ['login' => 'RINA@example.com', 'password' => 'Rahasia123'])->assertRedirect(route('poin.home'));
 
         $this->assertAuthenticatedAs($player, 'player');
     }
@@ -152,14 +186,14 @@ class PlayerAuthTest extends TestCase
 
     public function test_logged_in_player_skips_the_login_screen(): void
     {
-        $this->post(route('poin.login'), ['login' => $this->makePlayer()->email, 'password' => 'rahasia123']);
+        $this->post(route('poin.login'), ['login' => $this->makePlayer()->email, 'password' => 'Rahasia123']);
 
         $this->get(route('poin.login'))->assertRedirect(route('poin.home'));
     }
 
     public function test_player_can_log_out(): void
     {
-        $this->post(route('poin.login'), ['login' => $this->makePlayer()->email, 'password' => 'rahasia123']);
+        $this->post(route('poin.login'), ['login' => $this->makePlayer()->email, 'password' => 'Rahasia123']);
 
         $this->post(route('poin.logout'))->assertRedirect(route('poin.login'));
 
@@ -168,7 +202,7 @@ class PlayerAuthTest extends TestCase
 
     public function test_player_cannot_open_the_staff_dashboard(): void
     {
-        $this->post(route('poin.login'), ['login' => $this->makePlayer()->email, 'password' => 'rahasia123']);
+        $this->post(route('poin.login'), ['login' => $this->makePlayer()->email, 'password' => 'Rahasia123']);
 
         $this->get(route('dashboard.index'))->assertRedirect(route('login'));
         $this->get(route('dashboard.players.index'))->assertRedirect(route('login'));
@@ -196,16 +230,16 @@ class PlayerAuthTest extends TestCase
     public function test_admin_can_reset_a_player_password_and_old_sessions_end(): void
     {
         $player = $this->makePlayer();
-        $this->post(route('poin.login'), ['login' => $player->email, 'password' => 'rahasia123']);
+        $this->post(route('poin.login'), ['login' => $player->email, 'password' => 'Rahasia123']);
         $this->get(route('poin.home'))->assertOk();
 
         $admin = $this->staff();
         $this->actingAs($admin)->get(route('dashboard.players.index'))->assertOk()->assertSee($player->email);
         $this->get(route('dashboard.players.edit', $player))->assertOk();
-        $this->put(route('dashboard.players.update', $player), ['password' => 'barubaru123'])
+        $this->put(route('dashboard.players.update', $player), ['password' => 'Barubaru123'])
             ->assertRedirect(route('dashboard.players.index'));
 
-        $this->assertTrue(Hash::check('barubaru123', $player->fresh()->password));
+        $this->assertTrue(Hash::check('Barubaru123', $player->fresh()->password));
         $this->assertDatabaseHas('activity_logs', ['action' => 'player_password_reset']);
 
         Auth::forgetGuards();
@@ -218,9 +252,9 @@ class PlayerAuthTest extends TestCase
         $player = $this->makePlayer();
 
         $this->actingAs($this->staff('staff'))
-            ->put(route('dashboard.players.update', $player), ['password' => 'barubaru123'])
+            ->put(route('dashboard.players.update', $player), ['password' => 'Barubaru123'])
             ->assertForbidden();
 
-        $this->assertTrue(Hash::check('rahasia123', $player->fresh()->password));
+        $this->assertTrue(Hash::check('Rahasia123', $player->fresh()->password));
     }
 }

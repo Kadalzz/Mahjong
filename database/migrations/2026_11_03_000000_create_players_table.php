@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('players', function (Blueprint $table) {
             $table->id();
-            $table->string('nickname', 30);
-            $table->string('nickname_key', 120)->unique();
+            $table->string('nickname', 15);
+            $table->string('nickname_key', 60)->unique();
             $table->string('email', 150)->unique();
             $table->string('password');
             $table->timestamps();

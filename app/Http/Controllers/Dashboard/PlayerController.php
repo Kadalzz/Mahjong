@@ -33,7 +33,10 @@ class PlayerController extends Controller
     public function update(Request $request, Player $player)
     {
         $data = $request->validate([
-            'password' => ['required', 'string', 'min:8', 'max:100'],
+            'password' => Player::PASSWORD_RULES,
+        ], [
+            'password.min'   => Player::PASSWORD_MESSAGE,
+            'password.regex' => Player::PASSWORD_MESSAGE,
         ]);
 
         $player->update(['password' => $data['password']]);
