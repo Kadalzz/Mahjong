@@ -163,6 +163,7 @@
     --opacity-input-disabled: 0.5;
     --opacity-skeleton-low: 0.4;
 
+    --size-input: 46px;
     --size-button: 56px;
     --size-button-compact: 52px;
     --size-icon-button: 40px;
@@ -415,7 +416,8 @@ body {
 .pn-field__label, .pn-field__helper { color: var(--neutral-white); }
 .pn-field__input {
     width: 100%;
-    padding: var(--space-3) var(--space-4);
+    height: var(--size-input);
+    padding-inline: var(--space-4);
     background: var(--alpha-cream-7);
     border: var(--stroke-hairline) solid var(--alpha-gold-50);
     border-radius: var(--radius-md);
@@ -425,12 +427,12 @@ body {
 }
 .pn-field__input::placeholder { color: var(--alpha-cream-45); opacity: 1; }
 .pn-field__input:focus, .pn-field.is-focus .pn-field__input {
-    padding: calc(var(--space-3) - var(--stroke-hairline)) calc(var(--space-4) - var(--stroke-hairline));
+    padding-inline: calc(var(--space-4) - var(--stroke-hairline));
     border: var(--stroke-base) solid var(--accent-gold-light);
     filter: var(--filter-glow-primary);
 }
 .pn-field.is-error .pn-field__input {
-    padding: calc(var(--space-3) - var(--stroke-hairline)) calc(var(--space-4) - var(--stroke-hairline));
+    padding-inline: calc(var(--space-4) - var(--stroke-hairline));
     border: var(--stroke-base) solid var(--brand-red-light);
 }
 .pn-field.is-disabled .pn-field__input { border-color: var(--alpha-gold-25); }
