@@ -733,6 +733,7 @@ body {
     color: var(--text-ink);
 }
 .pn-seat--you { border: var(--stroke-emphasis) solid var(--accent-gold); }
+.pn-seat__name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .pn-player-row {
     display: flex;

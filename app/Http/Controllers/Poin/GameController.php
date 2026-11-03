@@ -98,6 +98,14 @@ class GameController extends Controller
         return response()->json(['html' => view('poin.partials.lobby', compact('game', 'player'))->render()]);
     }
 
+    public function ready(Request $request, Game $game): RedirectResponse
+    {
+        $this->authorizeSeat($request, $game);
+        $this->lobby->setReady($game, $request->user('player'), $request->boolean('ready'));
+
+        return redirect()->to($this->gameUrl($game->fresh()));
+    }
+
     public function start(Request $request, Game $game): RedirectResponse
     {
         $this->authorizeSeat($request, $game);

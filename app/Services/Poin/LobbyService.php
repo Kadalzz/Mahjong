@@ -91,7 +91,7 @@ class LobbyService
                 'game_id'      => $game->id,
                 'player_id'    => $player->id,
                 'seat'         => $seat,
-                'is_ready'     => true,
+                'is_ready'     => false,
                 'last_seen_at' => now(),
             ]);
 
@@ -119,6 +119,21 @@ class LobbyService
             $game->update(['status' => Game::STATUS_PLAYING, 'started_at' => now()]);
 
             return true;
+        });
+    }
+
+    public function setReady(Game $game, Player $player, bool $ready): void
+    {
+        DB::transaction(function () use ($game, $player, $ready) {
+            $game = Game::whereKey($game->id)->lockForUpdate()->first();
+
+            if ($game->status !== Game::STATUS_LOBBY) {
+                return;
+            }
+
+            GamePlayer::where('game_id', $game->id)
+                ->where('player_id', $player->id)
+                ->update(['is_ready' => $ready, 'last_seen_at' => now()]);
         });
     }
 

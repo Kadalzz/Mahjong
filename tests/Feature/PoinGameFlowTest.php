@@ -40,10 +40,14 @@ class PoinGameFlowTest extends TestCase
         return $this->actingAs($player, 'player');
     }
 
-    private function fullLobby(): Game
+    private function fullLobby(bool $ready = true): Game
     {
         foreach (['Satu', 'Dua', 'Tiga', 'Empat'] as $name) {
             $this->as($this->player($name))->post(route('poin.table.join', $this->table->qr_code));
+
+            if ($ready) {
+                $this->post(route('poin.lobby.ready', Game::sole()), ['ready' => 1]);
+            }
         }
 
         return Game::sole();
@@ -104,13 +108,54 @@ class PoinGameFlowTest extends TestCase
             ->assertSee('Masuk Lobby Meja 1');
     }
 
-    public function test_players_get_seats_in_order_and_are_ready_when_they_join(): void
+    public function test_players_get_seats_in_order_and_are_not_ready_when_they_join(): void
     {
-        $game = $this->fullLobby();
+        $game = $this->fullLobby(ready: false);
 
         $this->assertSame([1, 2, 3, 4], $game->seats->pluck('seat')->all());
-        $this->assertTrue($game->seats->every(fn ($seat) => $seat->is_ready));
+        $this->assertTrue($game->seats->every(fn ($seat) => !$seat->is_ready));
         $this->assertSame(Game::STATUS_LOBBY, $game->status);
+    }
+
+    public function test_players_toggle_ready_and_a_full_table_waits_for_everyone(): void
+    {
+        $game = $this->fullLobby(ready: false);
+        $last = $game->seats->last()->player;
+
+        $this->as($last)->post(route('poin.lobby.ready', $game), ['ready' => 1])->assertRedirect(route('poin.lobby', $game));
+        $this->assertTrue($game->seats()->where('player_id', $last->id)->sole()->is_ready);
+
+        $html = $this->get(route('poin.lobby.status', $game))->json('html');
+        $this->assertStringContainsString('Menunggu semua pemain Ready (1/4)', $html);
+        $this->assertStringContainsString('Batal Ready', $html);
+
+        $this->post(route('poin.lobby.start', $game))->assertRedirect(route('poin.lobby', $game));
+        $this->assertSame(Game::STATUS_LOBBY, $game->fresh()->status);
+
+        $this->post(route('poin.lobby.ready', $game), ['ready' => 0]);
+        $this->assertFalse($game->seats()->where('player_id', $last->id)->sole()->is_ready);
+    }
+
+    public function test_lobby_seats_show_the_other_players_nicknames(): void
+    {
+        $game = $this->fullLobby(ready: false);
+
+        $html = $this->as($game->seats->first()->player)->get(route('poin.lobby.status', $game))->json('html');
+
+        foreach (['Kamu', 'Dua', 'Tiga', 'Empat'] as $name) {
+            $this->assertStringContainsString($name, $html);
+        }
+        $this->assertStringNotContainsString('>Satu<', $html);
+    }
+
+    public function test_ready_cannot_change_after_the_game_starts(): void
+    {
+        $game = $this->fullLobby();
+        app(LobbyService::class)->start($game);
+        $player = $game->seats->first()->player;
+
+        $this->as($player)->post(route('poin.lobby.ready', $game), ['ready' => 0])->assertRedirect(route('poin.game', $game));
+        $this->assertTrue($game->seats()->where('player_id', $player->id)->sole()->is_ready);
     }
 
     public function test_fifth_player_is_refused_when_the_table_is_full(): void
@@ -155,7 +200,7 @@ class PoinGameFlowTest extends TestCase
         $html = $this->get(route('poin.lobby.status', $game))->assertOk()->json('html');
 
         $this->assertStringContainsString('Giliran berjalan searah jarum jam: P1, P2, P3, lalu P4.', $html);
-        $this->assertStringContainsString('Menunggu semua pemain Ready (1/4)', $html);
+        $this->assertStringContainsString('Menunggu semua pemain Ready (0/4)', $html);
         $this->assertStringContainsString('Kamu', $html);
         $this->assertStringContainsString('disabled', $html);
     }

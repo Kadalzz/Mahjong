@@ -35,6 +35,7 @@ if ($pointsDomain) {
 
             Route::get('/lobby/{game}', [GameController::class, 'lobby'])->name('lobby');
             Route::get('/lobby/{game}/status', [GameController::class, 'lobbyStatus'])->name('lobby.status');
+            Route::post('/lobby/{game}/siap', [GameController::class, 'ready'])->name('lobby.ready');
             Route::post('/lobby/{game}/start', [GameController::class, 'start'])->name('lobby.start');
             Route::post('/lobby/{game}/keluar', [GameController::class, 'leave'])->name('lobby.leave');
 
