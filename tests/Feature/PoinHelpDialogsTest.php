@@ -37,6 +37,8 @@ class PoinHelpDialogsTest extends TestCase
 
     public function test_help_page_explains_points_and_forgotten_passwords_to_guests(): void
     {
+        config(['app.points_staff_whatsapp' => '']);
+
         $this->get(route('poin.help'))->assertOk()
             ->assertSee('href="' . route('poin.login') . '"', false)
             ->assertSeeInOrder([
@@ -53,6 +55,13 @@ class PoinHelpDialogsTest extends TestCase
                 'Temui staf atau admin venue untuk mengatur ulang sandimu.',
             ])
             ->assertDontSee('Hubungi Staf Venue');
+    }
+
+    public function test_login_links_forgotten_passwords_to_the_help_page(): void
+    {
+        $this->get(route('poin.login'))->assertOk()
+            ->assertSee('Lupa sandi?')
+            ->assertSee('href="' . route('poin.help') . '"', false);
     }
 
     public function test_help_page_returns_players_to_their_profile_and_links_the_staff(): void

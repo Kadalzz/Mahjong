@@ -988,6 +988,7 @@ body {
 .pn-auth__form { position: relative; display: flex; flex: 1 0 auto; flex-direction: column; gap: var(--space-2-5); text-align: left; }
 .pn-auth__spacer { flex: 1 0 var(--space-6); }
 .pn-auth__switch { color: var(--alpha-cream-70); text-align: center; text-decoration: none; }
+.pn-auth__help { align-self: flex-end; color: var(--alpha-cream-70); text-decoration: underline; }
 .pn-watermark {
     position: absolute;
     left: var(--size-watermark-x);
