@@ -37,24 +37,42 @@ class PageController extends Controller
         return view('poin.mcr');
     }
 
-    public function leaderboard(Request $request, LeaderboardService $leaderboard)
+    public function leaderboard(Request $request)
     {
-        $period = in_array($request->query('periode'), LeaderboardService::PERIODS, true)
-            ? $request->query('periode')
-            : LeaderboardService::PERIOD_YEAR;
-
-        $ranking = $leaderboard->ranking($period);
+        $period = $this->period($request);
 
         return view('poin.leaderboard', [
             'period'   => $period,
+            'player'   => Auth::guard('player')->user(),
             'kicker'   => match ($period) {
                 LeaderboardService::PERIOD_MONTH => 'BULAN INI',
                 LeaderboardService::PERIOD_WEEK  => 'MINGGU INI',
                 default                          => 'MUSIM ' . now()->year,
             },
-            'podium'   => $ranking->take(3),
-            'others'   => $ranking->slice(3),
-            'updated'  => $leaderboard->lastUpdatedLabel($period),
         ]);
+    }
+
+    public function leaderboardContent(Request $request, LeaderboardService $leaderboard)
+    {
+        $period = $this->period($request);
+        $player = Auth::guard('player')->user();
+        $ranking = $leaderboard->ranking($period);
+        $mine = $player ? $leaderboard->playerRow($player, $period) : null;
+
+        return view('poin.partials.leaderboard', [
+            'player'  => $player,
+            'podium'  => $ranking->take(3),
+            'others'  => $ranking->slice(3),
+            'updated' => $leaderboard->lastUpdatedLabel($period),
+            'mine'    => $mine,
+            'myMeta'  => $mine ? $leaderboard->meta($mine, true) : null,
+        ]);
+    }
+
+    private function period(Request $request): string
+    {
+        return in_array($request->query('periode'), LeaderboardService::PERIODS, true)
+            ? $request->query('periode')
+            : LeaderboardService::PERIOD_YEAR;
     }
 }

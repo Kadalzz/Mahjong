@@ -124,6 +124,9 @@ class PoinPagesTest extends TestCase
 
         $this->get(route('poin.leaderboard'))->assertOk()
             ->assertSee('MUSIM 2026 · URUT POIN &amp; JUMLAH MENANG', false)
+            ->assertSee('Leaderboard gagal dimuat');
+
+        $this->get(route('poin.leaderboard.content'))->assertOk()
             ->assertSee('JUARA')
             ->assertSee('Dewi')
             ->assertSee('1 main · 0 menang')
@@ -153,6 +156,7 @@ class PoinPagesTest extends TestCase
 
         $this->get(route('poin.leaderboard', ['periode' => 'bulan']))->assertSee('BULAN INI · URUT POIN', false)->assertDontSee('Tahun</p>', false);
         $this->get(route('poin.leaderboard', ['periode' => 'minggu']))->assertSee('MINGGU INI · URUT POIN', false);
+        $this->get(route('poin.leaderboard.content', ['periode' => 'bulan']))->assertSee('Bulan')->assertDontSee('Tahun');
     }
 
     public function test_leaderboard_never_shows_player_emails(): void
@@ -160,12 +164,15 @@ class PoinPagesTest extends TestCase
         $player = $this->player('Rina');
         $this->score($player, 5);
 
-        $this->get(route('poin.leaderboard'))->assertDontSee($player->email);
+        $this->get(route('poin.leaderboard.content'))->assertDontSee($player->email);
         $this->get(route('poin.home.content'))->assertDontSee($player->email);
     }
 
     public function test_empty_leaderboard_explains_itself(): void
     {
-        $this->get(route('poin.leaderboard'))->assertOk()->assertSee('Belum ada poin musim ini');
+        $this->get(route('poin.leaderboard.content'))->assertOk()
+            ->assertSee('Belum ada poin musim ini')
+            ->assertSee('Mainkan satu ronde di meja venue untuk masuk ke leaderboard.')
+            ->assertSee('Masuk untuk ikut bermain');
     }
 }

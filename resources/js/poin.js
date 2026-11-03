@@ -224,6 +224,128 @@ function bindPoll(page) {
 
 document.querySelectorAll('[data-poin-poll]').forEach(bindPoll);
 
+function bindWatch(page) {
+    const tick = async () => {
+        try {
+            const response = await fetch(page.dataset.url, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+
+            if (response.redirected || response.status === 403) {
+                window.location.assign(response.redirected ? response.url : '/');
+                return;
+            }
+
+            if (response.ok) {
+                const data = await response.json();
+
+                if (data.redirect) {
+                    window.location.assign(data.redirect);
+                    return;
+                }
+            }
+        } catch {
+        }
+
+        window.setTimeout(tick, POLL_INTERVAL);
+    };
+
+    window.setTimeout(tick, POLL_INTERVAL);
+}
+
+document.querySelectorAll('[data-poin-watch]').forEach(bindWatch);
+
+function bindFlow(page) {
+    const steps = [...page.querySelectorAll('[data-poin-step]')];
+    let lastForm = null;
+    let busy = false;
+
+    const show = (name) => {
+        page.classList.remove('is-sheet-open');
+        steps.forEach((step) => {
+            step.hidden = step.dataset.poinStep !== name;
+        });
+    };
+
+    const hasStep = (name) => steps.some((step) => step.dataset.poinStep === name);
+
+    const setButtonBusy = (form, state) => {
+        const button = form.querySelector('button[type="submit"]');
+
+        if (!button || !form.dataset.poinBusyLabel) {
+            return;
+        }
+
+        button.dataset.poinIdle ??= button.textContent;
+        button.disabled = state;
+        button.classList.toggle('is-disabled', state);
+        button.textContent = state ? form.dataset.poinBusyLabel : button.dataset.poinIdle;
+    };
+
+    const run = async (form) => {
+        if (busy) {
+            return;
+        }
+
+        busy = true;
+        lastForm = form;
+
+        if (hasStep('saving')) {
+            show('saving');
+        } else {
+            page.classList.remove('is-sheet-open');
+            setButtonBusy(form, true);
+        }
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+
+            if (response.status === 419) {
+                window.location.reload();
+                return;
+            }
+
+            if (response.ok) {
+                const data = await response.json();
+                window.location.assign(data.redirect);
+                return;
+            }
+
+            throw new Error(String(response.status));
+        } catch {
+            busy = false;
+            setButtonBusy(form, false);
+            show('failed');
+        }
+    };
+
+    page.querySelectorAll('form[data-poin-action]').forEach((form) => form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        run(form);
+    }));
+    page.querySelectorAll('[data-poin-action-retry]').forEach((button) => button.addEventListener('click', () => {
+        if (lastForm) {
+            run(lastForm);
+        }
+    }));
+    page.querySelectorAll('[data-poin-step-back]').forEach((button) => button.addEventListener('click', () => show('main')));
+    page.querySelectorAll('[data-poin-sheet-open]').forEach((button) => button.addEventListener('click', () => page.classList.add('is-sheet-open')));
+    page.querySelectorAll('[data-poin-sheet-close]').forEach((button) => button.addEventListener('click', () => page.classList.remove('is-sheet-open')));
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            page.classList.remove('is-sheet-open');
+        }
+    });
+}
+
+document.querySelectorAll('[data-poin-flow]').forEach(bindFlow);
+
 function parseTableCode(text) {
     const value = text.trim();
     const fromUrl = value.match(/\/meja\/([A-Za-z0-9]+)\/?$/);

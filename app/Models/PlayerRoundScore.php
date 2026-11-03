@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PlayerRoundScore extends Model
 {
-    protected $fillable = ['player_id', 'points', 'is_winner', 'played_at'];
+    protected $fillable = ['player_id', 'game_round_id', 'points', 'is_winner', 'played_at'];
 
     protected function casts(): array
     {

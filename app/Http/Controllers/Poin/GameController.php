@@ -4,15 +4,17 @@ namespace App\Http\Controllers\Poin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Game;
+use App\Models\GamePlayer;
 use App\Models\MahjongTable;
 use App\Services\Poin\LobbyService;
+use App\Services\Poin\RoundService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class GameController extends Controller
 {
-    public function __construct(private LobbyService $lobby)
+    public function __construct(private LobbyService $lobby, private RoundService $rounds)
     {
     }
 
@@ -21,7 +23,7 @@ class GameController extends Controller
         $seat = $this->lobby->activeSeatFor($request->user('player'));
 
         if ($seat) {
-            return redirect()->to($this->gameUrl($seat->game));
+            return redirect()->to($this->rounds->urlFor($seat->game, $seat));
         }
 
         return view('poin.scan', ['unknown' => $request->query('status') === 'unknown']);
@@ -64,19 +66,20 @@ class GameController extends Controller
             return redirect()->route('poin.scan', ['status' => 'unknown']);
         }
 
-        $result = $this->lobby->join($table, $request->user('player'));
+        $player = $request->user('player');
+        $result = $this->lobby->join($table, $player);
 
         return $result instanceof Game
-            ? redirect()->to($this->gameUrl($result))
+            ? redirect()->to($this->rounds->urlFor($result, $result->seats()->where('player_id', $player->id)->first()))
             : redirect()->route('poin.table', $table->qr_code);
     }
 
     public function lobby(Request $request, Game $game)
     {
-        $this->authorizeSeat($request, $game);
+        $seat = $this->seatFor($request, $game);
 
         if ($game->status !== Game::STATUS_LOBBY) {
-            return redirect()->to($this->gameUrl($game));
+            return redirect()->to($this->rounds->urlFor($game, $seat));
         }
 
         return view('poin.lobby', ['game' => $game]);
@@ -84,10 +87,10 @@ class GameController extends Controller
 
     public function lobbyStatus(Request $request, Game $game): JsonResponse
     {
-        $this->authorizeSeat($request, $game);
+        $seat = $this->seatFor($request, $game);
 
         if ($game->status !== Game::STATUS_LOBBY) {
-            return response()->json(['redirect' => $this->gameUrl($game)]);
+            return response()->json(['redirect' => $this->rounds->urlFor($game, $seat)]);
         }
 
         $player = $request->user('player');
@@ -100,23 +103,23 @@ class GameController extends Controller
 
     public function ready(Request $request, Game $game): RedirectResponse
     {
-        $this->authorizeSeat($request, $game);
+        $seat = $this->seatFor($request, $game);
         $this->lobby->setReady($game, $request->user('player'), $request->boolean('ready'));
 
-        return redirect()->to($this->gameUrl($game->fresh()));
+        return redirect()->to($this->rounds->urlFor($game->fresh(), $seat));
     }
 
     public function start(Request $request, Game $game): RedirectResponse
     {
-        $this->authorizeSeat($request, $game);
+        $seat = $this->seatFor($request, $game);
         $this->lobby->start($game);
 
-        return redirect()->to($this->gameUrl($game->fresh()));
+        return redirect()->to($this->rounds->urlFor($game->fresh(), $seat));
     }
 
     public function leave(Request $request, Game $game): RedirectResponse
     {
-        $this->authorizeSeat($request, $game);
+        $this->seatFor($request, $game);
 
         if ($game->status === Game::STATUS_LOBBY) {
             $this->lobby->leave($game, $request->user('player'));
@@ -127,10 +130,10 @@ class GameController extends Controller
 
     public function game(Request $request, Game $game)
     {
-        $this->authorizeSeat($request, $game);
+        $seat = $this->seatFor($request, $game);
 
-        if ($game->status !== Game::STATUS_PLAYING) {
-            return redirect()->to($this->gameUrl($game));
+        if ($game->status !== Game::STATUS_PLAYING || $this->rounds->hasUnseenResult($game, $seat)) {
+            return redirect()->to($this->rounds->urlFor($game, $seat));
         }
 
         return view('poin.game', ['game' => $game->load('table')]);
@@ -138,18 +141,16 @@ class GameController extends Controller
 
     public function gameStatus(Request $request, Game $game): JsonResponse
     {
-        $this->authorizeSeat($request, $game);
+        $seat = $this->seatFor($request, $game);
 
-        if ($game->status !== Game::STATUS_PLAYING) {
-            return response()->json(['redirect' => $this->gameUrl($game)]);
+        if ($game->status !== Game::STATUS_PLAYING || $this->rounds->hasUnseenResult($game, $seat)) {
+            return response()->json(['redirect' => $this->rounds->urlFor($game, $seat)]);
         }
 
-        $player = $request->user('player');
-        $this->lobby->touch($game, $player);
-        $game->load('seats');
-        $seat = $game->seats->firstWhere('player_id', $player->id);
+        $this->lobby->touch($game, $request->user('player'));
+        $points = $this->rounds->standings($game)->firstWhere('player_id', $seat->player_id)->points;
 
-        return response()->json(['html' => view('poin.partials.game', compact('game', 'seat'))->render()]);
+        return response()->json(['html' => view('poin.partials.game', compact('game', 'seat', 'points'))->render()]);
     }
 
     private function findTable(string $code): ?MahjongTable
@@ -157,20 +158,11 @@ class GameController extends Controller
         return MahjongTable::where('qr_code', strtoupper($code))->first();
     }
 
-    private function authorizeSeat(Request $request, Game $game): void
+    private function seatFor(Request $request, Game $game): GamePlayer
     {
-        abort_unless(
-            $game->seats()->where('player_id', $request->user('player')->id)->exists(),
-            403,
-        );
-    }
+        $seat = $game->seats()->where('player_id', $request->user('player')->id)->first();
+        abort_unless($seat, 403);
 
-    private function gameUrl(Game $game): string
-    {
-        return match ($game->status) {
-            Game::STATUS_LOBBY   => route('poin.lobby', $game),
-            Game::STATUS_PLAYING => route('poin.game', $game),
-            default              => route('poin.games'),
-        };
+        return $seat;
     }
 }

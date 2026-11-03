@@ -3,6 +3,7 @@
 use App\Http\Controllers\Poin\AuthController;
 use App\Http\Controllers\Poin\GameController;
 use App\Http\Controllers\Poin\PageController;
+use App\Http\Controllers\Poin\RoundController;
 use App\Http\Middleware\AuthenticatePlayer;
 use App\Http\Middleware\RedirectIfPlayer;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,7 @@ if ($pointsDomain) {
         Route::get('/', [PageController::class, 'landing'])->name('home');
         Route::get('/konten/beranda', [PageController::class, 'landingContent'])->name('home.content');
         Route::get('/leaderboard', [PageController::class, 'leaderboard'])->name('leaderboard');
+        Route::get('/konten/leaderboard', [PageController::class, 'leaderboardContent'])->name('leaderboard.content');
 
         Route::middleware(RedirectIfPlayer::class)->group(function () {
             Route::get('/daftar', [AuthController::class, 'showRegister'])->name('register');
@@ -41,6 +43,16 @@ if ($pointsDomain) {
 
             Route::get('/game/{game}', [GameController::class, 'game'])->name('game');
             Route::get('/game/{game}/status', [GameController::class, 'gameStatus'])->name('game.status');
+
+            Route::get('/game/{game}/menang', [RoundController::class, 'win'])->name('round.win');
+            Route::get('/game/{game}/menang/status', [RoundController::class, 'winStatus'])->name('round.win.status');
+            Route::post('/game/{game}/ronde', [RoundController::class, 'store'])->name('round.store');
+            Route::get('/game/{game}/hasil', [RoundController::class, 'result'])->name('round.result');
+            Route::get('/game/{game}/hasil/status', [RoundController::class, 'resultStatus'])->name('round.result.status');
+            Route::post('/game/{game}/lanjut', [RoundController::class, 'continue'])->name('round.continue');
+            Route::post('/game/{game}/batal', [RoundController::class, 'undo'])->name('round.undo');
+            Route::post('/game/{game}/berhenti', [RoundController::class, 'stop'])->name('round.stop');
+            Route::get('/game/{game}/selesai', [RoundController::class, 'summary'])->name('round.summary');
         });
     });
 }

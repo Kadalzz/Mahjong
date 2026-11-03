@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GamePlayer extends Model
 {
-    protected $fillable = ['game_id', 'player_id', 'seat', 'is_ready', 'last_seen_at', 'left_at'];
+    protected $fillable = ['game_id', 'player_id', 'seat', 'is_ready', 'seen_round', 'last_seen_at', 'left_at'];
 
     protected function casts(): array
     {

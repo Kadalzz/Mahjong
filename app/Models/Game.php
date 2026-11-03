@@ -32,6 +32,16 @@ class Game extends Model
         return $this->hasMany(GamePlayer::class)->whereNull('left_at')->orderBy('seat');
     }
 
+    public function rounds(): HasMany
+    {
+        return $this->hasMany(GameRound::class)->orderBy('number');
+    }
+
+    public function lastRound(): ?GameRound
+    {
+        return GameRound::where('game_id', $this->id)->where('number', $this->current_round - 1)->first();
+    }
+
     public function scopeOpen(Builder $query): Builder
     {
         return $query->whereIn('status', [self::STATUS_LOBBY, self::STATUS_PLAYING]);
