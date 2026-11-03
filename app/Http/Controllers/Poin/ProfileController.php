@@ -61,7 +61,7 @@ class ProfileController extends Controller
             'foto' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:' . Player::AVATAR_MAX_KB, 'dimensions:min_width=1,min_height=1'],
         ], [
             'foto.file'       => 'Foto gagal diunggah. Periksa koneksi lalu coba lagi.',
-            'foto.uploaded'   => 'Foto gagal diunggah. Periksa koneksi lalu coba lagi.',
+            'foto.uploaded'   => 'Foto terlalu besar untuk diunggah. Gunakan foto maksimal 5 MB.',
             'foto.mimes'      => 'Format foto harus JPG atau PNG.',
             'foto.mimetypes'  => 'Format foto harus JPG atau PNG.',
             'foto.dimensions' => 'Format foto harus JPG atau PNG.',

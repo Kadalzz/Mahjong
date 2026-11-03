@@ -107,6 +107,28 @@ document.querySelectorAll('form[data-poin-form]').forEach(bindForm);
 
 const PHOTO_TYPES = ['image/jpeg', 'image/png'];
 const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+const PHOTO_MAX_SIDE = 512;
+const PHOTO_QUALITY = 0.85;
+
+async function shrinkPhoto(file) {
+    try {
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, PHOTO_MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        const context = canvas.getContext('2d');
+        context.fillStyle = '#fff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', PHOTO_QUALITY));
+
+        return blob ? new File([blob], 'foto.jpg', { type: 'image/jpeg' }) : file;
+    } catch {
+        return file;
+    }
+}
 
 function bindPhoto(form) {
     const inputs = [...form.querySelectorAll('[data-poin-photo-input]')];
@@ -129,8 +151,8 @@ function bindPhoto(form) {
         image.src = objectUrl;
     };
 
-    inputs.forEach((input) => input.addEventListener('change', () => {
-        const file = input.files[0];
+    inputs.forEach((input) => input.addEventListener('change', async () => {
+        let file = input.files[0];
 
         if (!file) {
             return;
@@ -140,6 +162,18 @@ function bindPhoto(form) {
             input.value = '';
             form.poinFail(PHOTO_TYPES.includes(file.type) ? 'Ukuran foto maksimal 5 MB.' : 'Format foto harus JPG atau PNG.', false);
             return;
+        }
+
+        const small = await shrinkPhoto(file);
+
+        if (small !== file) {
+            try {
+                const transfer = new DataTransfer();
+                transfer.items.add(small);
+                input.files = transfer.files;
+                file = small;
+            } catch {
+            }
         }
 
         inputs.forEach((other) => {
