@@ -26,7 +26,7 @@
         </div>
     </div>
     @if($row)
-        <x-poin.player-row size="compact" highlight :rank="$row->rank" name="Kamu" :meta="$meta" :score="$row->points" />
+        <x-poin.player-row size="compact" highlight :rank="$row->rank" name="Kamu" :meta="$meta" :score="$row->points" :src="auth('player')->user()->avatarUrl()" />
     @endif
     <span class="pn-page__spacer"></span>
     <x-poin.button :href="route('poin.leaderboard')">Lihat Leaderboard</x-poin.button>

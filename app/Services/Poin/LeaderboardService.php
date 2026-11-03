@@ -24,8 +24,8 @@ class LeaderboardService
             ->join('players', 'players.id', '=', 'player_round_scores.player_id')
             ->where('player_round_scores.played_at', '>=', $this->periodStart($period))
             ->when($before, fn ($query) => $query->where('player_round_scores.played_at', '<', $before))
-            ->groupBy('players.id', 'players.nickname', 'players.nickname_key')
-            ->selectRaw('players.id as player_id, players.nickname, SUM(points) as points, COUNT(*) as plays, SUM(CASE WHEN is_winner THEN 1 ELSE 0 END) as wins')
+            ->groupBy('players.id', 'players.nickname', 'players.nickname_key', 'players.avatar_path')
+            ->selectRaw('players.id as player_id, players.nickname, players.avatar_path, SUM(points) as points, COUNT(*) as plays, SUM(CASE WHEN is_winner THEN 1 ELSE 0 END) as wins')
             ->orderByDesc('points')
             ->orderByDesc('wins')
             ->orderBy('players.nickname_key')
@@ -37,6 +37,7 @@ class LeaderboardService
                 'rank'      => $index + 1,
                 'player_id' => (int) $row->player_id,
                 'nickname'  => $row->nickname,
+                'avatar'    => Player::avatarUrlFor($row->avatar_path),
                 'points'    => (int) $row->points,
                 'plays'     => (int) $row->plays,
                 'wins'      => (int) $row->wins,

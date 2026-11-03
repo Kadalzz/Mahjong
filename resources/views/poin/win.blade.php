@@ -37,7 +37,7 @@
         <header class="pn-app-bar">
             <x-poin.icon-button label="Kembali" disabled />
             <h1 class="t-title-lg">Poin Menang</h1>
-            <a href="#" aria-label="Profil" class="pn-icon-link"><x-poin.avatar size="40" /></a>
+            <x-poin.profile-link />
         </header>
         <x-poin.ornament />
         <div class="flex justify-center"><x-poin.badge type="outline">RONDE {{ $game->current_round }}</x-poin.badge></div>
@@ -59,7 +59,7 @@
         <header class="pn-app-bar">
             <x-poin.icon-button label="Kembali" data-poin-step-back />
             <h1 class="t-title-lg">Poin Menang</h1>
-            <a href="#" aria-label="Profil" class="pn-icon-link"><x-poin.avatar size="40" /></a>
+            <x-poin.profile-link />
         </header>
         <x-poin.ornament />
         <div class="flex justify-center"><x-poin.badge type="outline">RONDE {{ $game->current_round }}</x-poin.badge></div>

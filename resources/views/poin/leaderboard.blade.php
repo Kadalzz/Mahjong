@@ -5,7 +5,7 @@
 @section('content')
 <main class="pn-page pn-page--gap-3 pn-page--board">
     <img class="pn-rays" src="{{ asset('images/poin/illustrations/rays.svg') }}" alt="">
-    <x-poin.app-bar title="Leaderboard" :back="$player ? route('poin.games') : route('poin.home')" :profile="$player ? '#' : null" class="pn-layer" />
+    <x-poin.app-bar title="Leaderboard" :back="$player ? route('poin.games') : route('poin.home')" :profile="(bool) $player" class="pn-layer" />
     <p class="pn-layer t-kicker text-center">{{ $kicker }} · URUT POIN &amp; JUMLAH MENANG</p>
     <x-poin.segmented class="pn-layer">
         <x-poin.tab :selected="$period === 'tahun'" :href="route('poin.leaderboard', ['periode' => 'tahun'])">Tahun Ini</x-poin.tab>

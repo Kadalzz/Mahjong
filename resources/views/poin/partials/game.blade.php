@@ -6,7 +6,7 @@
 </div>
 <span class="pn-page__spacer"></span>
 <div class="pn-player-card">
-    <x-poin.avatar size="96" />
+    <x-poin.avatar size="96" :src="$seat->player->avatarUrl()" />
     <div class="pn-player-card__info">
         <p class="pn-truncate t-h4">Kamu · {{ $seat->player->nickname }}</p>
         <p class="pn-player-card__points t-body-bold">{{ $points }} poin</p>

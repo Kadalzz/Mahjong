@@ -4,7 +4,7 @@
 
 @section('content')
 <main class="pn-page pn-page--gap-3-5" data-poin-scanner data-table-url="{{ url('/meja') }}" data-initial="{{ $unknown ? 'unknown' : 'camera' }}">
-    <x-poin.app-bar title="Scan Meja" :back="route('poin.games')" profile="#" />
+    <x-poin.app-bar title="Scan Meja" :back="route('poin.games')" profile />
     <p class="t-kicker text-center">MAIN HANYA DI MEJA VENUE</p>
     <x-poin.ornament />
 

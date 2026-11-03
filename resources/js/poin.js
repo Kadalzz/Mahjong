@@ -34,21 +34,26 @@ function bindForm(form) {
     const bannerText = banner.querySelector('.pn-banner__message');
     const idleLabel = label.textContent;
     const screen = form.closest('.pn-auth');
+    const busyLabel = form.dataset.busyLabel ?? 'Memproses…';
+    const retryLabel = form.dataset.retryLabel ?? 'Coba Lagi';
+    const connectionError = form.dataset.connectionError ?? CONNECTION_ERROR;
 
     const setBusy = (busy) => {
         button.disabled = busy;
         button.classList.toggle('is-disabled', busy);
         spinner.hidden = !busy;
-        label.textContent = busy ? 'Memproses…' : idleLabel;
-        screen.classList.toggle('has-state', busy || !banner.hidden);
+        label.textContent = busy ? busyLabel : idleLabel;
+        screen?.classList.toggle('has-state', busy || !banner.hidden);
     };
 
     const fail = (message, retry) => {
         bannerText.textContent = message;
         banner.hidden = false;
         setBusy(false);
-        label.textContent = retry ? 'Coba Lagi' : idleLabel;
+        label.textContent = retry ? retryLabel : idleLabel;
     };
+
+    form.poinFail = fail;
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -72,14 +77,16 @@ function bindForm(form) {
 
             if (response.status === 422) {
                 const data = await response.json();
-                let shown = false;
+                const unplaced = [];
                 Object.entries(data.errors ?? {}).forEach(([name, messages]) => {
                     const target = name === 'nickname_key' ? 'nickname' : name;
-                    shown = showFieldError(form, target, messages[0]) || shown;
+                    if (!showFieldError(form, target, messages[0])) {
+                        unplaced.push(messages[0]);
+                    }
                 });
                 setBusy(false);
-                if (!shown) {
-                    fail(CONNECTION_ERROR, true);
+                if (unplaced.length || !data.errors) {
+                    fail(unplaced[0] ?? connectionError, !unplaced.length);
                 }
                 return;
             }
@@ -89,14 +96,87 @@ function bindForm(form) {
                 return;
             }
 
-            fail(response.status === 429 ? THROTTLE_ERROR : CONNECTION_ERROR, response.status !== 429);
+            fail(response.status === 429 ? THROTTLE_ERROR : connectionError, response.status !== 429);
         } catch {
-            fail(CONNECTION_ERROR, true);
+            fail(connectionError, true);
         }
     });
 }
 
 document.querySelectorAll('form[data-poin-form]').forEach(bindForm);
+
+const PHOTO_TYPES = ['image/jpeg', 'image/png'];
+const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+
+function bindPhoto(form) {
+    const inputs = [...form.querySelectorAll('[data-poin-photo-input]')];
+    const preview = form.querySelector('[data-poin-photo-preview]');
+    let objectUrl = null;
+
+    const showPreview = (file) => {
+        if (objectUrl) {
+            URL.revokeObjectURL(objectUrl);
+        }
+        objectUrl = URL.createObjectURL(file);
+        let image = preview.querySelector('.pn-avatar__image');
+        if (!image) {
+            preview.replaceChildren();
+            image = document.createElement('img');
+            image.className = 'pn-avatar__image';
+            image.alt = '';
+            preview.append(image);
+        }
+        image.src = objectUrl;
+    };
+
+    inputs.forEach((input) => input.addEventListener('change', () => {
+        const file = input.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        if (!PHOTO_TYPES.includes(file.type) || file.size > PHOTO_MAX_BYTES) {
+            input.value = '';
+            form.poinFail(PHOTO_TYPES.includes(file.type) ? 'Ukuran foto maksimal 5 MB.' : 'Format foto harus JPG atau PNG.', false);
+            return;
+        }
+
+        inputs.forEach((other) => {
+            other.disabled = other !== input;
+            if (other !== input) {
+                other.value = '';
+            }
+        });
+        form.querySelector('[data-poin-banner]').hidden = true;
+        form.querySelector('[data-poin-removed]')?.remove();
+        showPreview(file);
+    }));
+}
+
+document.querySelectorAll('form[data-poin-photo]').forEach(bindPhoto);
+
+function bindPasswordRules(form) {
+    const fresh = form.elements.sandi_baru;
+    const repeat = form.elements.ulangi_sandi;
+    const rules = {
+        length: () => fresh.value.length >= 8,
+        mix: () => /\p{L}/u.test(fresh.value) && /\d/.test(fresh.value),
+        match: () => fresh.value !== '' && fresh.value === repeat.value,
+    };
+
+    const update = () => {
+        form.querySelectorAll('[data-poin-rule]').forEach((item) => {
+            item.classList.toggle('is-met', rules[item.dataset.poinRule]());
+        });
+    };
+
+    fresh.addEventListener('input', update);
+    repeat.addEventListener('input', update);
+    update();
+}
+
+document.querySelectorAll('form[data-poin-password-rules]').forEach(bindPasswordRules);
 
 function bindLoader(loader) {
     const states = Object.fromEntries(

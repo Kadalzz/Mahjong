@@ -12,7 +12,7 @@
         @foreach([2, 1, 3] as $place)
             @php $step = $podium->firstWhere('rank', $place); @endphp
             @if($step)
-                <x-poin.podium-step :rank="$place" :name="$step->nickname" :score="$step->points" class="pn-rise" />
+                <x-poin.podium-step :rank="$place" :name="$step->nickname" :score="$step->points" :src="$step->avatar" class="pn-rise" />
             @else
                 <span class="pn-podium pn-podium--empty"></span>
             @endif
@@ -31,9 +31,9 @@
     </div>
     <span class="pn-board-gap"></span>
     @if($mine)
-        <x-poin.player-row size="compact" highlight :rank="$mine->rank" name="Kamu" :meta="$myMeta" :score="$mine->points" />
+        <x-poin.player-row size="compact" highlight :rank="$mine->rank" name="Kamu" :meta="$myMeta" :score="$mine->points" :src="$player->avatarUrl()" />
     @elseif($player)
-        <x-poin.player-row size="compact" highlight rank="–" name="Kamu" meta="Belum ada poin di periode ini" score="0" />
+        <x-poin.player-row size="compact" highlight rank="–" name="Kamu" meta="Belum ada poin di periode ini" score="0" :src="$player->avatarUrl()" />
     @else
         <x-poin.button :href="route('poin.login')">Masuk untuk ikut bermain</x-poin.button>
     @endif

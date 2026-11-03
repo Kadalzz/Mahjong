@@ -3,6 +3,7 @@
 use App\Http\Controllers\Poin\AuthController;
 use App\Http\Controllers\Poin\GameController;
 use App\Http\Controllers\Poin\PageController;
+use App\Http\Controllers\Poin\ProfileController;
 use App\Http\Controllers\Poin\RoundController;
 use App\Http\Middleware\AuthenticatePlayer;
 use App\Http\Middleware\RedirectIfPlayer;
@@ -29,6 +30,17 @@ if ($pointsDomain) {
             Route::get('/konten/pilih-game', [PageController::class, 'gamesContent'])->name('games.content');
             Route::get('/mcr', [PageController::class, 'mcr'])->name('mcr');
             Route::post('/keluar', [AuthController::class, 'logout'])->name('logout');
+
+            Route::get('/profil', [ProfileController::class, 'show'])->name('profile');
+            Route::get('/konten/profil', [ProfileController::class, 'content'])->name('profile.content');
+            Route::get('/profil/foto', [ProfileController::class, 'photo'])->name('profile.photo');
+            Route::post('/profil/foto', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+            Route::post('/profil/foto/hapus', [ProfileController::class, 'removePhoto'])->name('profile.photo.remove');
+            Route::post('/profil/foto/urungkan', [ProfileController::class, 'restorePhoto'])->name('profile.photo.restore');
+            Route::get('/profil/username', [ProfileController::class, 'username'])->name('profile.username');
+            Route::post('/profil/username', [ProfileController::class, 'updateUsername']);
+            Route::get('/profil/sandi', [ProfileController::class, 'password'])->name('profile.password');
+            Route::post('/profil/sandi', [ProfileController::class, 'updatePassword'])->middleware('throttle:10,1');
 
             Route::get('/scan', [GameController::class, 'scan'])->name('scan');
             Route::get('/meja/{code}', [GameController::class, 'table'])->name('table');

@@ -24,7 +24,7 @@ class AuthController extends Controller
         $request->merge(['nickname_key' => Player::nicknameKey($nickname), 'email' => mb_strtolower(trim((string) $request->input('email')))]);
 
         $data = $request->validate([
-            'nickname'     => ['required', 'string', 'max:' . Player::NICKNAME_MAX, 'not_regex:/@/'],
+            'nickname'     => Player::NICKNAME_RULES,
             'nickname_key' => [Rule::unique('players', 'nickname_key')],
             'email'        => ['required', 'email', 'max:150', Rule::unique('players', 'email')],
             'password'     => Player::PASSWORD_RULES,

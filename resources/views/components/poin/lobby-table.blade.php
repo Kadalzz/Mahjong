@@ -15,6 +15,6 @@
             $seat = $seats->get($number);
             $you = $seat?->player_id === $player->id;
         @endphp
-        <x-poin.player-seat :name="$seat?->player->nickname ?? 'P' . $number" :you="$you" :status="$seat?->is_ready ? 'ready' : 'waiting'" class="pn-lobby-table__seat pn-lobby-table__seat--p{{ $number }}" />
+        <x-poin.player-seat :name="$seat?->player->nickname ?? 'P' . $number" :you="$you" :src="$seat?->player->avatarUrl()" :status="$seat?->is_ready ? 'ready' : 'waiting'" class="pn-lobby-table__seat pn-lobby-table__seat--p{{ $number }}" />
     @endforeach
 </div>

@@ -10,7 +10,7 @@
             <x-poin.icon-button type="submit" label="Kembali" />
         </form>
         <h1 class="t-title-lg">Lobby</h1>
-        <a href="#" aria-label="Profil" class="pn-icon-link"><x-poin.avatar size="40" /></a>
+        <x-poin.profile-link />
     </header>
     <x-poin.status-banner tone="warning" data-poin-poll-banner hidden>Koneksi terputus. Menyambungkan kembali…</x-poin.status-banner>
     <div class="pn-poll-loading" data-poin-poll-loading>

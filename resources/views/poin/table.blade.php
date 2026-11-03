@@ -4,7 +4,7 @@
 
 @section('content')
 <main class="pn-page pn-page--gap-4">
-    <x-poin.app-bar title="Scan Meja" :back="route('poin.scan')" profile="#" />
+    <x-poin.app-bar title="Scan Meja" :back="route('poin.scan')" profile />
     <x-poin.loader :url="route('poin.table.content', $code)" class="pn-page__body pn-page--gap-4" :not-found="route('poin.scan', ['status' => 'unknown'])"
         offline-desc="Meja belum bisa diperiksa. Sambungkan internet lalu coba lagi." :secondary-href="route('poin.scan')" secondary-label="Scan Ulang">
         <x-slot:loading>

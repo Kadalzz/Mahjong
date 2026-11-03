@@ -133,6 +133,7 @@ class RoundService
                 'label'     => $seat->seat_label,
                 'player_id' => $seat->player_id,
                 'nickname'  => $seat->player->nickname,
+                'avatar'    => $seat->player->avatarUrl(),
                 'points'    => (int) ($totals[$seat->player_id]->points ?? 0),
                 'wins'      => (int) ($totals[$seat->player_id]->wins ?? 0),
                 'delta'     => $deltas[$seat->player_id] ?? null,
