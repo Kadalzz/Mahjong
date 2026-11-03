@@ -70,7 +70,7 @@ class PoinRoundFlowTest extends TestCase
             ->assertSee('Kamu Menang!')
             ->assertSee('Pilih dari mana kamu menang: dari pemain lain atau dari deck.')
             ->assertSee('Pilih Sumber Kemenangan')
-            ->assertSee('P1 MENANG DARI')
+            ->assertSee('SATU MENANG DARI')
             ->assertSee('Win From')
             ->assertSee('Deck')
             ->assertSee('Dua')
@@ -93,7 +93,7 @@ class PoinRoundFlowTest extends TestCase
         $this->get(route('poin.round.result', $this->game))->assertOk()
             ->assertSee('Poin Menang')
             ->assertSee('RONDE 1')
-            ->assertSee('KAMU MENANG · DARI P2')
+            ->assertSee('KAMU MENANG · DARI DUA')
             ->assertSee('Kamu')
             ->assertSee('+4')
             ->assertSee('Lanjutkan Permainan')
@@ -118,7 +118,8 @@ class PoinRoundFlowTest extends TestCase
         $this->get(route('poin.round.result', $this->game))->assertOk()
             ->assertSee('Yah, Kamu Kalah')
             ->assertSee('Satu menang dari Deck. Poinmu berkurang −2.')
-            ->assertSee('P2 · Kamu')
+            ->assertSee('Dua · Kamu')
+            ->assertDontSee('P2 · Kamu')
             ->assertSee('+6');
     }
 
@@ -243,6 +244,17 @@ class PoinRoundFlowTest extends TestCase
             ->assertSee('Naik 1 posisi · 2 main · 1 menang');
 
         $this->get(route('poin.leaderboard'))->assertSee('aria-label="Profil"', false);
+    }
+
+    public function test_a_signed_in_player_without_points_still_sees_their_row(): void
+    {
+        $this->win(1, 'deck');
+        $newcomer = Player::create(['nickname' => 'Baru', 'email' => 'baru@example.com', 'password' => 'Rahasia123']);
+
+        $this->as($newcomer)->get(route('poin.leaderboard.content'))->assertOk()
+            ->assertSee('Kamu')
+            ->assertSee('Belum ada poin di periode ini')
+            ->assertDontSee('Scan Meja');
     }
 
     public function test_logged_in_empty_leaderboard_offers_a_table_scan(): void

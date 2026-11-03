@@ -33,7 +33,7 @@
     @if($mine)
         <x-poin.player-row size="compact" highlight :rank="$mine->rank" name="Kamu" :meta="$myMeta" :score="$mine->points" />
     @elseif($player)
-        <x-poin.button :href="route('poin.scan')">Scan Meja</x-poin.button>
+        <x-poin.player-row size="compact" highlight rank="–" name="Kamu" meta="Belum ada poin di periode ini" score="0" />
     @else
         <x-poin.button :href="route('poin.login')">Masuk untuk ikut bermain</x-poin.button>
     @endif

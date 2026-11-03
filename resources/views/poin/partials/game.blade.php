@@ -8,7 +8,7 @@
 <div class="pn-player-card">
     <x-poin.avatar size="96" />
     <div class="pn-player-card__info">
-        <p class="t-h4">Kamu · {{ $seat->seat_label }}</p>
+        <p class="pn-truncate t-h4">Kamu · {{ $seat->player->nickname }}</p>
         <p class="pn-player-card__points t-body-bold">{{ $points }} poin</p>
     </div>
 </div>

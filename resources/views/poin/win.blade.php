@@ -19,10 +19,10 @@
     <button type="button" class="pn-sheet-dim" data-poin-sheet-close aria-label="Tutup"></button>
     <div class="pn-sheet" data-poin-sheet role="dialog" aria-modal="true" aria-labelledby="pn-win-from">
         <div class="pn-sheet__handle-row"><span class="pn-sheet__handle"></span></div>
-        <p class="pn-sheet__kicker t-kicker">{{ $seat->seat_label }} MENANG DARI</p>
+        <p class="pn-sheet__kicker t-kicker">{{ Str::upper($seat->player->nickname) }} MENANG DARI</p>
         <h2 id="pn-win-from" class="pn-sheet__title t-h2">Win From</h2>
         <div class="pn-sheet__options">
-            @foreach(array_merge([['value' => 'deck', 'initial' => 'D', 'label' => 'Deck']], $options->map(fn ($other) => ['value' => $other->seat, 'initial' => $other->seat_label, 'label' => $other->player->nickname])->all()) as $option)
+            @foreach(array_merge([['value' => 'deck', 'initial' => 'D', 'label' => 'Deck']], $options->map(fn ($other) => ['value' => $other->seat, 'initial' => Str::upper(mb_substr($other->player->nickname, 0, 1)), 'label' => $other->player->nickname])->all()) as $option)
                 <form method="POST" action="{{ route('poin.round.store', $game) }}" data-poin-action>
                     @csrf
                     <input type="hidden" name="ronde" value="{{ $game->current_round }}">

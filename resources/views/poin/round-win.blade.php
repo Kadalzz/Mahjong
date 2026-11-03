@@ -19,7 +19,7 @@
         </header>
         <x-poin.ornament />
         <div class="flex justify-center"><x-poin.badge type="outline">RONDE {{ $round->number }}</x-poin.badge></div>
-        <p class="t-kicker text-center">KAMU MENANG · DARI {{ $discarder ? $discarder->label : 'DECK' }}</p>
+        <p class="t-kicker text-center">KAMU MENANG · DARI {{ $discarder ? Str::upper($discarder->nickname) : 'DECK' }}</p>
         <div class="pn-scoreboard">
             @foreach($standings as $row)
                 @php $you = $row->player_id === $seat->player_id; @endphp

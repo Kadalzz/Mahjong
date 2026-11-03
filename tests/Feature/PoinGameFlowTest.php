@@ -242,7 +242,7 @@ class PoinGameFlowTest extends TestCase
 
         $html = $this->get(route('poin.game.status', $game))->json('html');
 
-        foreach (['RONDE 1', 'POSISI PEMAIN', 'Kamu · P2', 'SAYA MENANG', 'Tekan tombol saat kamu menang', 'Tombol aktif lagi setelah tersambung.'] as $text) {
+        foreach (['RONDE 1', 'POSISI PEMAIN', 'Kamu · ' . $seat->player->nickname,'SAYA MENANG', 'Tekan tombol saat kamu menang', 'Tombol aktif lagi setelah tersambung.'] as $text) {
             $this->assertStringContainsString($text, $html);
         }
     }

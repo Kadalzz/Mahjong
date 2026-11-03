@@ -18,7 +18,7 @@
                 @foreach($standings->sortBy('seat') as $row)
                     <x-poin.score-chip
                         :tone="$row->delta > 0 ? 'win' : 'lose'"
-                        :label="$row->player_id === $seat->player_id ? $row->label . ' · Kamu' : $row->label"
+                        :label="$row->player_id === $seat->player_id ? $row->nickname . ' · Kamu' : $row->nickname"
                         :value="$row->delta > 0 ? '+' . $row->delta : (string) $row->delta"
                     />
                 @endforeach
