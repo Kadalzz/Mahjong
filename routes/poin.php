@@ -17,6 +17,7 @@ if ($pointsDomain) {
         Route::get('/konten/beranda', [PageController::class, 'landingContent'])->name('home.content');
         Route::get('/leaderboard', [PageController::class, 'leaderboard'])->name('leaderboard');
         Route::get('/konten/leaderboard', [PageController::class, 'leaderboardContent'])->name('leaderboard.content');
+        Route::get('/bantuan', [PageController::class, 'help'])->name('help');
 
         Route::middleware(RedirectIfPlayer::class)->group(function () {
             Route::get('/daftar', [AuthController::class, 'showRegister'])->name('register');

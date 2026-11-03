@@ -13,7 +13,7 @@
         <x-poin.input label="SANDI BARU" name="sandi_baru" type="password" placeholder="••••••••••" autocomplete="new-password" maxlength="100" :error="$errors->first('sandi_baru')" />
         <x-poin.input label="ULANGI SANDI BARU" name="ulangi_sandi" type="password" placeholder="••••••••••" autocomplete="new-password" maxlength="100" :error="$errors->first('ulangi_sandi')" />
         <ul class="pn-checklist">
-            @foreach(['length' => 'Minimal 8 karakter', 'mix' => 'Mengandung huruf dan angka', 'match' => 'Sama dengan ulangi sandi'] as $rule => $text)
+            @foreach(['length' => 'Minimal 8 karakter', 'mix' => 'Mengandung huruf dan angka', 'upper' => 'Minimal satu huruf besar', 'match' => 'Sama dengan ulangi sandi'] as $rule => $text)
                 <li class="pn-checklist__item" data-poin-rule="{{ $rule }}"><x-poin.icon name="check" size="16" tone="white" /><span class="t-caption">{{ $text }}</span></li>
             @endforeach
         </ul>

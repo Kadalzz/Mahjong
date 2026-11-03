@@ -28,4 +28,7 @@
         </x-slot:loading>
     </x-poin.loader>
 </main>
+@push('dialogs')
+    <x-poin.dialog-overlay id="pn-logout-dialog" title="Keluar dari akun?" desc="Kamu perlu masuk lagi untuk bermain dan mengumpulkan poin." confirm="Ya, keluar" :action="route('poin.logout')" />
+@endpush
 @endsection

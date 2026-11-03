@@ -12,5 +12,6 @@
 </head>
 <body>
     @yield('content')
+    @stack('dialogs')
 </body>
 </html>

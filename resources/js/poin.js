@@ -162,6 +162,7 @@ function bindPasswordRules(form) {
     const rules = {
         length: () => fresh.value.length >= 8,
         mix: () => /\p{L}/u.test(fresh.value) && /\d/.test(fresh.value),
+        upper: () => /\p{Lu}/u.test(fresh.value),
         match: () => fresh.value !== '' && fresh.value === repeat.value,
     };
 
@@ -425,6 +426,42 @@ function bindFlow(page) {
 }
 
 document.querySelectorAll('[data-poin-flow]').forEach(bindFlow);
+
+let dialogOpener = null;
+
+function closeDialog(dialog) {
+    dialog.hidden = true;
+    document.body.classList.remove('has-dialog');
+    dialogOpener?.focus();
+    dialogOpener = null;
+}
+
+document.addEventListener('click', (event) => {
+    const opener = event.target.closest('[data-poin-dialog-open]');
+
+    if (opener) {
+        const dialog = document.getElementById(opener.dataset.poinDialogOpen);
+        dialogOpener = opener;
+        dialog.hidden = false;
+        document.body.classList.add('has-dialog');
+        dialog.querySelector('button')?.focus();
+        return;
+    }
+
+    const dialog = event.target.closest('[data-poin-dialog]');
+
+    if (dialog && (event.target === dialog || event.target.closest('[data-poin-dialog-close]'))) {
+        closeDialog(dialog);
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    const dialog = document.querySelector('[data-poin-dialog]:not([hidden])');
+
+    if (event.key === 'Escape' && dialog) {
+        closeDialog(dialog);
+    }
+});
 
 function parseTableCode(text) {
     const value = text.trim();

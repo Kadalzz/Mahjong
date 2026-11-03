@@ -18,9 +18,6 @@
 <x-poin.menu-row icon="camera" :href="route('poin.profile.photo')">Ubah Foto Profil</x-poin.menu-row>
 <x-poin.menu-row icon="pencil" :href="route('poin.profile.username')">Ubah Username</x-poin.menu-row>
 <x-poin.menu-row icon="lock" :href="route('poin.profile.password')">Ubah Sandi</x-poin.menu-row>
-<x-poin.menu-row icon="info" href="#">Bantuan</x-poin.menu-row>
+<x-poin.menu-row icon="info" :href="route('poin.help')">Bantuan</x-poin.menu-row>
 <span class="pn-page__spacer"></span>
-<form method="POST" action="{{ route('poin.logout') }}">
-    @csrf
-    <x-poin.button kind="ghost" type="submit">Keluar</x-poin.button>
-</form>
+<x-poin.button kind="ghost" data-poin-dialog-open="pn-logout-dialog">Keluar</x-poin.button>

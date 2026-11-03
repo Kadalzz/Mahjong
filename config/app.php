@@ -20,6 +20,8 @@ return [
 
     'points_domain' => env('POINTS_DOMAIN'),
 
+    'points_staff_whatsapp' => preg_replace('/\D+/', '', (string) env('POINTS_STAFF_WHATSAPP', '')),
+
     
 
     'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),

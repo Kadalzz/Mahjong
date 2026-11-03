@@ -69,6 +69,16 @@ class PageController extends Controller
         ]);
     }
 
+    public function help()
+    {
+        $staff = config('app.points_staff_whatsapp');
+
+        return view('poin.help', [
+            'back'     => Auth::guard('player')->check() ? route('poin.profile') : route('poin.login'),
+            'staffUrl' => $staff ? 'https://wa.me/' . $staff : null,
+        ]);
+    }
+
     private function period(Request $request): string
     {
         return in_array($request->query('periode'), LeaderboardService::PERIODS, true)

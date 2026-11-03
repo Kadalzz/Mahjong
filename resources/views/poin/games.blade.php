@@ -6,6 +6,7 @@
 <main class="pn-page pn-page--gap-3-5">
     <img class="pn-watermark pn-watermark--games" src="{{ asset('images/poin/illustrations/watermark.svg') }}" alt="">
     <x-poin.brand-lockup class="w-full" />
+    <x-poin.profile-link class="pn-games__profile" />
     <x-poin.ornament />
     <h1 class="pn-page__title t-h1 text-center">Pilih Permainan</h1>
     <p class="pn-subtle t-body-lg text-center">Satu meja, empat pemain, satu pemenang.</p>

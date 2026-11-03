@@ -67,10 +67,7 @@
             <x-poin.state-message icon="alert" title="Poin belum tersimpan" desc="Koneksi terputus saat menyimpan. Coba simpan lagi." />
         </div>
         <x-poin.button data-poin-action-retry>Coba Simpan Lagi</x-poin.button>
-        <form method="POST" action="{{ route('poin.round.stop', $game) }}">
-            @csrf
-            <x-poin.button type="submit" kind="ghost">Berhenti</x-poin.button>
-        </form>
+        @include('poin.partials.stop-session')
     </section>
 </main>
 @endsection

@@ -26,11 +26,13 @@
         <x-poin.menu-row icon="camera" for="pn-photo-camera">Ambil Foto</x-poin.menu-row>
         <input id="pn-photo-gallery" class="pn-visually-hidden" type="file" name="foto" accept="image/jpeg,image/png" data-poin-photo-input>
         <x-poin.menu-row icon="image" for="pn-photo-gallery">Pilih dari Galeri</x-poin.menu-row>
-        <x-poin.menu-row icon="trash" type="submit" form="pn-photo-remove">Hapus Foto</x-poin.menu-row>
+        <x-poin.menu-row icon="trash" data-poin-dialog-open="pn-photo-remove-dialog">Hapus Foto</x-poin.menu-row>
         <span class="pn-page__spacer"></span>
         <x-poin.submit-button>Simpan</x-poin.submit-button>
     </form>
-    <form id="pn-photo-remove" method="POST" action="{{ route('poin.profile.photo.remove') }}" hidden>@csrf</form>
     <form id="pn-photo-restore" method="POST" action="{{ route('poin.profile.photo.restore') }}" hidden>@csrf</form>
 </main>
+@push('dialogs')
+    <x-poin.dialog-overlay id="pn-photo-remove-dialog" title="Hapus foto profil?" desc="Foto akan diganti dengan siluet bawaan. Kamu bisa mengunggah foto baru kapan saja." confirm="Ya, hapus foto" :action="route('poin.profile.photo.remove')" />
+@endpush
 @endsection
