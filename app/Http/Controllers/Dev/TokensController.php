@@ -8,7 +8,7 @@ class TokensController extends Controller
 {
     public function __invoke()
     {
-        abort_unless(app()->isLocal(), 404);
+        abort_unless(app()->isLocal() && config('poin.dev_pages'), 404);
 
         return view('dev.tokens', [
             'colors' => [
@@ -45,6 +45,11 @@ class TokensController extends Controller
                 't-kicker'       => 'Label/Kicker · Nunito ExtraBold 10 · 24%',
                 't-pill'         => 'Label/Pill · Nunito ExtraBold 10 · 10%',
                 't-caption'      => 'Caption/Strong · Nunito ExtraBold 10',
+            ],
+            'samples' => [
+                't-display-hero' => '64 Mahjong',
+                't-kicker'       => 'MUSIM 2026 · LEADERBOARD',
+                't-pill'         => 'READY · TUNGGU',
             ],
             'spaces'  => ['0-5', '1', '1-5', '2', '2-5', '3', '3-5', '4', '4-5', '6', '7', '8', '9', '10', '12', '16'],
             'radii'   => ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', 'full'],

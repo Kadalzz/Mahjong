@@ -14,9 +14,15 @@ class PoinDesignTokensTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_tokens_page_opens_in_the_local_environment(): void
+    private function openDevPages(): void
     {
         $this->app->detectEnvironment(fn () => 'local');
+        config(['poin.dev_pages' => true]);
+    }
+
+    public function test_tokens_page_opens_in_the_local_environment_with_dev_pages_enabled(): void
+    {
+        $this->openDevPages();
 
         $this->get('/dev/tokens')
             ->assertOk()
@@ -26,18 +32,36 @@ class PoinDesignTokensTest extends TestCase
             ->assertSee('brand-green-deep');
     }
 
-    public function test_tokens_page_is_hidden_outside_the_local_environment(): void
+    public function test_tokens_page_is_hidden_in_the_local_environment_when_dev_pages_are_disabled(): void
+    {
+        $this->app->detectEnvironment(fn () => 'local');
+        config(['poin.dev_pages' => false]);
+
+        $this->get('/dev/tokens')->assertNotFound();
+    }
+
+    public function test_tokens_page_is_hidden_outside_the_local_environment_even_with_dev_pages_enabled(): void
     {
         foreach (['production', 'testing'] as $environment) {
             $this->app->detectEnvironment(fn () => $environment);
 
-            $this->get('/dev/tokens')->assertNotFound();
+            foreach ([true, false] as $enabled) {
+                config(['poin.dev_pages' => $enabled]);
+
+                $this->get('/dev/tokens')->assertNotFound();
+            }
         }
+    }
+
+    public function test_dev_pages_are_disabled_by_default(): void
+    {
+        $this->assertStringContainsString("env('POINTS_DEV_PAGES', false)", File::get(config_path('poin.php')));
+        $this->assertMatchesRegularExpression('/^POINTS_DEV_PAGES=false\r?$/m', File::get(base_path('.env.example')));
     }
 
     public function test_every_figma_asset_used_by_a_component_exists(): void
     {
-        $this->app->detectEnvironment(fn () => 'local');
+        $this->openDevPages();
 
         $html = $this->get('/dev/tokens')->getContent();
 
@@ -53,14 +77,18 @@ class PoinDesignTokensTest extends TestCase
 
     public function test_poin_blade_files_do_not_hardcode_colors_or_sizes(): void
     {
-        $paths = [resource_path('views/components/poin'), resource_path('views/dev')];
+        $files = [resource_path('views/layouts/poin.blade.php')];
 
-        foreach ($paths as $path) {
-            foreach (File::allFiles($path) as $file) {
-                $content = $file->getContents();
-
-                $this->assertDoesNotMatchRegularExpression('/#[0-9a-fA-F]{3,8}\b|rgba?\(|\d+(px|rem)\b/', $content, $file->getFilename());
+        foreach (['views/components/poin', 'views/dev', 'views/poin'] as $path) {
+            foreach (File::allFiles(resource_path($path)) as $file) {
+                $files[] = $file->getPathname();
             }
+        }
+
+        $this->assertGreaterThan(40, count($files));
+
+        foreach ($files as $file) {
+            $this->assertDoesNotMatchRegularExpression('/#[0-9a-fA-F]{3,8}\b|rgba?\(|\d+(px|rem)\b/', File::get($file), $file);
         }
     }
 

@@ -19,6 +19,7 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_URL" value="http://localhost"/>
         <env name="TRUSTED_PROXIES" value=""/>
         <env name="POINTS_DOMAIN" value="poin.test"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>

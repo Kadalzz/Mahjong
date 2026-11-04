@@ -26,7 +26,7 @@
         @foreach($types as $class => $label)
             <div class="flex flex-col gap-1 border-b border-alpha-ink-14 pb-2">
                 <span class="t-body-sm text-text-mute">{{ $label }}</span>
-                <span class="{{ $class }}">Chicken Hand 1234</span>
+                <span class="{{ $class }}">{{ $samples[$class] ?? 'Chicken Hand — Main Sekarang 1234' }}</span>
             </div>
         @endforeach
     </section>
@@ -82,7 +82,7 @@
             @endforeach
         </div>
         <div class="flex items-center gap-4">
-            @foreach([16, 24, 32, 48] as $size)
+            @foreach([16, 20, 24, 32, 48] as $size)
                 <x-poin.icon name="chevron-right" :size="$size" />
             @endforeach
         </div>
@@ -107,7 +107,7 @@
             <x-poin.button :kind="$kind" state="pressed">Pressed</x-poin.button>
             <x-poin.button :kind="$kind" disabled>Disabled</x-poin.button>
         @endforeach
-        <x-poin.submit-button loading>Memproses…</x-poin.submit-button>
+        <x-poin.submit-button loading>Menyimpan…</x-poin.submit-button>
 
         <h2 class="t-h3">Icon Button</h2>
         <div class="flex gap-4">
@@ -221,7 +221,7 @@
         <x-poin.spinner />
         <x-poin.skeleton />
         <x-poin.state-message title="Tidak ada koneksi" desc="Periksa internetmu, lalu coba lagi." />
-        <x-poin.state-message icon="inbox" title="Belum ada poin musim ini" desc="Mainkan satu ronde di meja venue." />
+        <x-poin.state-message icon="inbox" title="Belum ada poin musim ini" desc="Mainkan satu ronde di meja venue untuk masuk ke leaderboard." />
 
         <h2 class="t-h3">Dialog</h2>
         <x-poin.confirm-dialog title="Judul dialog" desc="Penjelasan singkat apa yang akan terjadi." />

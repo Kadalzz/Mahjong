@@ -4,6 +4,39 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+    font-family: 'Baloo 2';
+    font-style: normal;
+    font-weight: 700 800;
+    font-display: swap;
+    src: url('/fonts/poin/baloo2-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: 'Baloo 2';
+    font-style: normal;
+    font-weight: 700 800;
+    font-display: swap;
+    src: url('/fonts/poin/baloo2-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url('/fonts/poin/nunito-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url('/fonts/poin/nunito-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
     --brand-green: #0e300f;
     --brand-green-deep: #0a2410;
@@ -48,8 +81,8 @@
     --alpha-mute-35: rgba(107, 93, 74, 0.35);
     --alpha-red-light-0: rgba(122, 32, 32, 0);
 
-    --font-family-display: 'Baloo 2', sans-serif;
-    --font-family-body: 'Nunito', sans-serif;
+    --font-family-display: 'Baloo 2', 'Nunito', ui-rounded, system-ui, sans-serif;
+    --font-family-body: 'Nunito', ui-rounded, system-ui, sans-serif;
     --font-size-display: 64px;
     --font-size-h1: 36px;
     --font-size-h2: 30px;
@@ -170,6 +203,7 @@
     --size-win-button: 76px;
     --size-game-button: 84px;
     --size-shine: 10px;
+    --size-shine-end: 20px;
     --size-confirm: 116px;
     --size-confirm-disc: 104px;
     --size-confirm-disc-hover: 110px;
@@ -189,6 +223,7 @@
     --size-dialog-glyph: 30px;
     --size-banner-glyph: 22px;
     --size-lock-glyph: 26px;
+    --size-icon-20: 20px;
     --size-spinner: 48px;
     --size-spinner-button: 24px;
     --size-submit-spinner-x: 64px;
@@ -404,6 +439,7 @@ body {
 .pn-icon--14 { --pn-icon-size: var(--space-3-5); }
 .pn-icon--16 { --pn-icon-size: var(--space-4); }
 .pn-icon--18 { --pn-icon-size: var(--space-4-5); }
+.pn-icon--20 { --pn-icon-size: var(--size-icon-20); }
 .pn-icon--24 { --pn-icon-size: var(--space-6); }
 .pn-icon--26 { --pn-icon-size: var(--size-lock-glyph); }
 .pn-icon--28 { --pn-icon-size: var(--space-7); }
@@ -582,7 +618,7 @@ body {
     position: absolute;
     top: var(--space-1);
     left: var(--space-3-5);
-    right: var(--space-3-5);
+    right: var(--size-shine-end);
     height: var(--size-shine);
     border-radius: var(--radius-full);
     background: var(--alpha-cream-45);
