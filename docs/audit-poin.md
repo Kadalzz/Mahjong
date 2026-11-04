@@ -79,3 +79,13 @@ Commit: "Lock the player while joining a table…".
 | 2.6 | Layar Landing, Pilih Game, MCR, Leaderboard publik dan kondisinya. | — | Lihat Tahap 7. | Lihat Tahap 7 |
 
 Commit: "Pin leaderboard period edges…".
+
+## Tahap 6 — Konfirmasi dan bantuan
+
+| # | Temuan | Tingkat | Bukti | Status |
+|---|---|---|---|---|
+| 6.1 | Dialog Keluar akun mengirim POST ber-CSRF ke `poin.logout`; Hapus foto ke `poin.profile.photo.remove`; Akhiri sesi ke `poin.round.stop`. Menekan "Ya, akhiri sesi" dua kali tetap aman (game selesai sekali, ronde tetap). | — | `components/poin/dialog-overlay.blade.php` (`@csrf`), `test_logout_and_photo_removal_ask_for_confirmation` dan `test_stopping_a_session_asks_for_confirmation_once_per_page` (diperluas dengan URL aksi dan klik ganda). | Sesuai |
+| 6.2 | Bantuan memakai konstanta poin dari `PointCalculator`, tombol staf memakai `POINTS_STAFF_WHATSAPP` dan disembunyikan bila kosong, kembali ke profil bila login. | — | `test_help_page_explains_points_and_forgotten_passwords_to_guests`, `test_help_page_returns_players_to_their_profile_and_links_the_staff`. | Sesuai |
+| 6.3 | Tanpa JavaScript, tombol Berhenti, Keluar dan Hapus Foto tidak melakukan apa pun karena dialog dibuka lewat JS dan tidak ada fallback. | RENDAH | `data-poin-dialog-open` di `partials/stop-session.blade.php`, `profile.blade.php`, `profile-photo.blade.php`. | Ditunda |
+
+Commit: "Check dialog form targets…".

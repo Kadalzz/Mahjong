@@ -92,7 +92,8 @@ class PoinHelpDialogsTest extends TestCase
             ->assertSee('Hapus foto profil?')
             ->assertSee('Foto akan diganti dengan siluet bawaan. Kamu bisa mengunggah foto baru kapan saja.')
             ->assertSee('Ya, hapus foto')
-            ->assertSee('data-poin-dialog-open="pn-photo-remove-dialog"', false);
+            ->assertSee('data-poin-dialog-open="pn-photo-remove-dialog"', false)
+            ->assertSee('action="' . route('poin.profile.photo.remove') . '"', false);
     }
 
     public function test_stopping_a_session_asks_for_confirmation_once_per_page(): void
@@ -116,6 +117,12 @@ class PoinHelpDialogsTest extends TestCase
         $this->assertSame(2, substr_count($html, 'data-poin-dialog-open="pn-stop-dialog"'));
         $this->assertStringContainsString('Poinmu tetap tersimpan di leaderboard. Kamu bisa mulai lagi kapan saja di meja venue.', $html);
         $this->assertStringContainsString('Ya, akhiri sesi', $html);
+        $this->assertStringContainsString('action="' . route('poin.round.stop', $game) . '"', $html);
+
+        $this->post(route('poin.round.stop', $game));
+        $this->post(route('poin.round.stop', $game));
+        $this->assertSame(Game::STATUS_FINISHED, $game->fresh()->status);
+        $this->assertSame(1, $game->rounds()->count());
     }
 
     public function test_password_rules_list_the_capital_letter_and_games_link_the_profile(): void
