@@ -62,6 +62,7 @@ DB_USER="$(env_value DB_USERNAME)"
 DB_PASS="$(env_value DB_PASSWORD)"
 BRIDGE_SECRET="$(env_value ESP32_BRIDGE_SECRET)"
 WS_TOKEN="$(env_value ESP32_WS_TOKEN)"
+POINTS_DOMAIN="$(env_value POINTS_DOMAIN)"
 
 if [ -z "$WS_TOKEN" ]; then
     echo "PERINGATAN: ESP32_WS_TOKEN kosong. Port 81 akan menerima koneksi Master tanpa token."
@@ -119,7 +120,7 @@ as_www php artisan config:cache
 as_www php artisan route:cache
 as_www php artisan view:cache
 
-sed -e "s#__DOMAIN__#${DOMAIN}#g" -e "s#__APP_DIR__#${APP_DIR}#g" -e "s#__PHP_SOCK__#${PHP_SOCK}#g" \
+sed -e "s#__DOMAIN__#${DOMAIN}#g" -e "s#__POINTS_DOMAIN__#${POINTS_DOMAIN}#g" -e "s#__APP_DIR__#${APP_DIR}#g" -e "s#__PHP_SOCK__#${PHP_SOCK}#g" \
     "$APP_DIR/deploy/nginx.conf.template" > /etc/nginx/sites-available/hzmahjong
 ln -sf /etc/nginx/sites-available/hzmahjong /etc/nginx/sites-enabled/hzmahjong
 rm -f /etc/nginx/sites-enabled/default
@@ -132,6 +133,10 @@ sed -i \
     -e 's/^pm.min_spare_servers = .*/pm.min_spare_servers = 2/' \
     -e 's/^pm.max_spare_servers = .*/pm.max_spare_servers = 8/' \
     "$FPM_POOL"
+cat > "/etc/php/${PHP_VER}/fpm/conf.d/99-hzmahjong.ini" <<INI
+upload_max_filesize = 6M
+post_max_size = 8M
+INI
 systemctl enable "php${PHP_VER}-fpm"
 systemctl restart "php${PHP_VER}-fpm"
 systemctl reload nginx
@@ -152,13 +157,26 @@ ufw allow 443/tcp
 ufw allow 81/tcp
 ufw --force enable
 
+CERT_DOMAINS=(-d "$DOMAIN" -d "www.$DOMAIN")
+if [ -n "$POINTS_DOMAIN" ]; then
+    POINTS_IP="$(getent ahostsv4 "$POINTS_DOMAIN" | awk 'NR==1{print $1}' || true)"
+    if [ -n "$POINTS_IP" ] && hostname -I | tr ' ' '\n' | grep -qx "$POINTS_IP"; then
+        CERT_DOMAINS+=(-d "$POINTS_DOMAIN")
+    else
+        echo "PERINGATAN: DNS ${POINTS_DOMAIN} belum mengarah ke server ini (sekarang: ${POINTS_IP:-kosong}). Sertifikat dibuat tanpa subdomain poin."
+    fi
+fi
+
 if [ -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
-    certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --redirect --expand --keep-until-expiring
+    certbot --nginx "${CERT_DOMAINS[@]}" --cert-name "$DOMAIN" --non-interactive --redirect --expand --keep-until-expiring
 elif [ -n "$CERTBOT_EMAIL" ]; then
-    certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos -m "$CERTBOT_EMAIL" --redirect --expand
+    certbot --nginx "${CERT_DOMAINS[@]}" --cert-name "$DOMAIN" --non-interactive --agree-tos -m "$CERTBOT_EMAIL" --redirect --expand
 fi
 
 echo
 echo "Selesai."
 systemctl --no-pager --lines=0 status hzmahjong-queue hzmahjong-bridge | grep -E "●|Active" || true
 echo "Cek: curl -I http://${DOMAIN}"
+if [ -n "$POINTS_DOMAIN" ]; then
+    echo "Cek: curl -I https://${POINTS_DOMAIN}"
+fi
