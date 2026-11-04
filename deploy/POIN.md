@@ -20,12 +20,15 @@ Baris pertama harus `187.127.223.136`.
 
 ## 2. Env server (`/root/hzmahjong.env`)
 
-Pastikan dua baris ini ada:
+Pastikan baris ini ada:
 
 ```
+MAIN_DOMAIN=hzmahjong.tech
 POINTS_DOMAIN=poin.hzmahjong.tech
 POINTS_STAFF_WHATSAPP=08xxxxxxxxxx
 ```
+
+`MAIN_DOMAIN` membatasi booking, dashboard, login staf, dan webhook DOKU/AYO ke `hzmahjong.tech` dan `www.hzmahjong.tech`; host lain (termasuk subdomain poin dan akses lewat IP) mendapat 404. URL webhook yang didaftarkan di DOKU dan AYO harus memakai salah satu dari dua host itu. Kalau baris ini kosong, tidak ada pembatasan.
 
 Nomor WhatsApp boleh diawali `0` atau `62`; spasi dan tanda `-` diabaikan. Kalau kosong, tombol "Hubungi Staf Venue" di halaman Bantuan disembunyikan.
 

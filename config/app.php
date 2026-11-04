@@ -18,6 +18,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'main_domain' => env('MAIN_DOMAIN'),
+
     'points_domain' => env('POINTS_DOMAIN'),
 
     'points_staff_whatsapp' => preg_replace('/^0/', '62', preg_replace('/\D+/', '', (string) env('POINTS_STAFF_WHATSAPP', ''))),
