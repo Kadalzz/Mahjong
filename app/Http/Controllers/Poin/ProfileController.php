@@ -111,6 +111,7 @@ class ProfileController extends Controller
             'nickname.required'   => 'Username wajib diisi.',
             'nickname.max'        => 'Username maksimal ' . Player::NICKNAME_MAX . ' karakter.',
             'nickname.not_regex'  => 'Username tidak boleh mengandung @.',
+            'nickname.regex'      => 'Username tidak boleh berisi karakter tersembunyi.',
             'nickname_key.unique' => 'Username sudah dipakai. Coba yang lain.',
         ]);
 

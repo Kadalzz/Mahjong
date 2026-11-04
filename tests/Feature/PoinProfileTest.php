@@ -94,6 +94,8 @@ class PoinProfileTest extends TestCase
             ->assertStatus(422)->assertJsonFragment(['Username sudah dipakai. Coba yang lain.']);
         $this->postJson(route('poin.profile.username'), ['nickname' => 'ri@na'])->assertStatus(422);
         $this->postJson(route('poin.profile.username'), ['nickname' => str_repeat('a', 16)])->assertStatus(422);
+        $this->postJson(route('poin.profile.username'), ['nickname' => "Bu\u{200B}di"])
+            ->assertStatus(422)->assertJsonFragment(['Username tidak boleh berisi karakter tersembunyi.']);
         $this->postJson(route('poin.profile.username'), ['nickname' => 'RINA'])->assertOk();
 
         $this->assertSame('RINA', $this->player->fresh()->nickname);

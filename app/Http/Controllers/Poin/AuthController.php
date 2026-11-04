@@ -32,6 +32,7 @@ class AuthController extends Controller
             'nickname.required'   => 'Nama pemain wajib diisi.',
             'nickname.max'        => 'Nama pemain maksimal ' . Player::NICKNAME_MAX . ' karakter.',
             'nickname.not_regex'  => 'Nama pemain tidak boleh mengandung @.',
+            'nickname.regex'      => 'Nama pemain tidak boleh berisi karakter tersembunyi.',
             'nickname_key.unique' => 'Nama pemain sudah dipakai. Coba yang lain.',
             'email.required'      => 'Email wajib diisi.',
             'email.email'         => 'Format email tidak valid.',

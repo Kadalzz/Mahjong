@@ -257,4 +257,77 @@ class PlayerAuthTest extends TestCase
 
         $this->assertTrue(Hash::check('Rahasia123', $player->fresh()->password));
     }
+
+    public function test_nickname_with_invisible_characters_is_rejected(): void
+    {
+        $this->makePlayer();
+
+        foreach (["Ri\u{200B}na", "Ri\u{200D}na", "Ri\u{00AD}na", "Rin\u{0007}a", "Ri\u{202E}na"] as $nickname) {
+            $this->postJson(route('poin.register'), $this->registerPayload(['nickname' => $nickname, 'email' => 'lain@example.com']))
+                ->assertStatus(422)
+                ->assertJsonValidationErrors(['nickname' => 'Nama pemain tidak boleh berisi karakter tersembunyi.']);
+        }
+
+        $this->assertSame(1, Player::count());
+
+        $this->postJson(route('poin.register'), $this->registerPayload(['nickname' => 'Rina Wati', 'email' => 'wati@example.com']))->assertOk();
+    }
+
+    public function test_login_error_does_not_reveal_whether_the_account_exists(): void
+    {
+        $this->makePlayer();
+
+        $unknown = $this->postJson(route('poin.login'), ['login' => 'TidakAda', 'password' => 'Rahasia123'])->assertStatus(422)->json('errors');
+        $wrong = $this->postJson(route('poin.login'), ['login' => 'Rina', 'password' => 'Salahsalah1'])->assertStatus(422)->json('errors');
+
+        $this->assertSame($unknown, $wrong);
+    }
+
+    public function test_login_starts_a_new_session_id(): void
+    {
+        $this->makePlayer();
+        $this->get(route('poin.login'));
+        $before = session()->getId();
+
+        $this->post(route('poin.login'), ['login' => 'Rina', 'password' => 'Rahasia123'])->assertRedirect(route('poin.games'));
+
+        $this->assertNotSame($before, session()->getId());
+    }
+
+    public function test_logout_ends_the_session_and_the_old_csrf_token(): void
+    {
+        $this->post(route('poin.login'), ['login' => $this->makePlayer()->email, 'password' => 'Rahasia123']);
+        $sessionId = session()->getId();
+        $token = session()->token();
+
+        $this->post(route('poin.logout'));
+
+        $this->assertNotSame($sessionId, session()->getId());
+        $this->assertNotSame($token, session()->token());
+        $this->assertNull(session(Player::SESSION_FINGERPRINT));
+    }
+
+    public function test_every_points_route_that_changes_data_is_protected(): void
+    {
+        $guestWrites = ['poin.register', 'poin.login'];
+        $checked = 0;
+
+        foreach (app('router')->getRoutes() as $route) {
+            if ($route->getDomain() !== config('app.points_domain') || $route->methods() === ['GET', 'HEAD']) {
+                continue;
+            }
+
+            $middleware = $route->gatherMiddleware();
+            $name = $route->getName() ?? $route->uri();
+            $this->assertContains('web', $middleware, $name);
+
+            if (!in_array($name, $guestWrites, true) && !in_array($route->uri(), ['daftar', 'masuk'], true)) {
+                $this->assertContains(\App\Http\Middleware\AuthenticatePlayer::class, $middleware, $name);
+            }
+
+            $checked++;
+        }
+
+        $this->assertGreaterThan(10, $checked);
+    }
 }

@@ -10,7 +10,7 @@ class Player extends Authenticatable
 
     public const NICKNAME_MAX = 15;
 
-    public const NICKNAME_RULES = ['required', 'string', 'max:' . self::NICKNAME_MAX, 'not_regex:/@/'];
+    public const NICKNAME_RULES = ['required', 'string', 'max:' . self::NICKNAME_MAX, 'not_regex:/@/', 'regex:/^\P{C}+$/u'];
 
     public const AVATAR_DISK = 'public';
 
