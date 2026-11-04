@@ -16,6 +16,10 @@ class Player extends Authenticatable
 
     public const AVATAR_MAX_KB = 5120;
 
+    public const AVATAR_MAX_INPUT_SIDE = 4096;
+
+    public const AVATAR_SIDE = 512;
+
     public const PASSWORD_RULES =['required', 'string', 'min:8', 'max:100', 'regex:/\p{Lu}/u', 'regex:/\p{L}/u', 'regex:/\d/'];
 
     public const PASSWORD_MESSAGE = 'Kata sandi minimal 8 karakter, berisi huruf dan angka, dengan minimal satu huruf besar.';

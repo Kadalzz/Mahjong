@@ -44,6 +44,8 @@ Yang dilakukan untuk sistem poin:
 - Sertifikat `hzmahjong.tech` diperluas dengan `poin.hzmahjong.tech` hanya kalau DNS-nya sudah mengarah ke server. Kalau belum, muncul `PERINGATAN: DNS ...` dan sertifikat lama tetap dipakai; jalankan ulang deploy setelah DNS aktif.
 - Migrasi tabel pemain, game, ronde, dan kolom foto profil.
 - `storage:link` untuk foto profil di `storage/app/public/avatars`.
+- Paket `php-gd` untuk mengolah ulang foto profil di server: sisi terpanjang maksimal 512 px, metadata EXIF (termasuk lokasi GPS) dibuang, dan gambar di atas 4096 px ditolak.
+- Scheduler `poin:close-idle-games` setiap 5 menit menutup game yang tidak ada aktivitas selama `POINTS_IDLE_PLAYING_MINUTES` (bawaan 180) dan lobby yang belum Start selama `POINTS_IDLE_LOBBY_MINUTES` (bawaan 45). Ronde yang sudah selesai tetap dihitung.
 
 ## 4. Cek setelah deploy
 

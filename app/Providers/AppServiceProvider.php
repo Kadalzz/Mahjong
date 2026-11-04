@@ -42,6 +42,8 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(60)->by('poin-login-ip|' . $request->ip()),
         ]);
 
+        RateLimiter::for('poin-photo', fn (Request $request) => Limit::perMinute(10)->by('poin-photo|' . ($request->user('player')?->id ?? $request->ip())));
+
         RateLimiter::for('poin-register', fn (Request $request) => Limit::perMinute(20)->by('poin-register|' . $request->ip()));
 
         RateLimiter::for('booking-check', fn (Request $request) => [

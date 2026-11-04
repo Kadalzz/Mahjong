@@ -35,7 +35,7 @@ if ($pointsDomain) {
             Route::get('/profil', [ProfileController::class, 'show'])->name('profile');
             Route::get('/konten/profil', [ProfileController::class, 'content'])->name('profile.content');
             Route::get('/profil/foto', [ProfileController::class, 'photo'])->name('profile.photo');
-            Route::post('/profil/foto', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+            Route::post('/profil/foto', [ProfileController::class, 'updatePhoto'])->middleware('throttle:poin-photo')->name('profile.photo.update');
             Route::post('/profil/foto/hapus', [ProfileController::class, 'removePhoto'])->name('profile.photo.remove');
             Route::post('/profil/foto/urungkan', [ProfileController::class, 'restorePhoto'])->name('profile.photo.restore');
             Route::get('/profil/username', [ProfileController::class, 'username'])->name('profile.username');

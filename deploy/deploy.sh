@@ -22,7 +22,7 @@ export COMPOSER_ALLOW_SUPERUSER=1
 
 apt-get update
 apt-get install -y nginx mysql-server git unzip curl ufw certbot python3-certbot-nginx \
-    php-fpm php-cli php-mysql php-mbstring php-xml php-curl php-zip php-bcmath php-intl \
+    php-fpm php-cli php-mysql php-mbstring php-xml php-curl php-zip php-bcmath php-intl php-gd \
     composer
 
 if ! command -v node >/dev/null 2>&1; then

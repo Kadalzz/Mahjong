@@ -180,6 +180,89 @@ class PoinProfileTest extends TestCase
         $path = $this->player->fresh()->avatar_path;
         $this->assertMatchesRegularExpression('#^avatars/[A-Za-z0-9]{40}\.png$#', $path);
         $this->assertStringNotContainsString('php', $path);
+        $this->assertStringNotContainsString('<?php', Storage::disk(Player::AVATAR_DISK)->get($path));
+    }
+
+    private function gdImage(int $width, int $height, string $type): string
+    {
+        $image = imagecreatetruecolor($width, $height);
+        imagefill($image, 0, 0, imagecolorallocate($image, 200, 30, 30));
+        ob_start();
+        $type === 'png' ? imagepng($image) : imagejpeg($image, null, 90);
+
+        return ob_get_clean();
+    }
+
+    private function storedSize(): array
+    {
+        $path = $this->player->fresh()->avatar_path;
+        $this->assertNotNull($path);
+
+        return getimagesizefromstring(Storage::disk(Player::AVATAR_DISK)->get($path));
+    }
+
+    public function test_photo_metadata_is_stripped_by_re_encoding(): void
+    {
+        $jpeg = $this->gdImage(40, 30, 'jpeg');
+        $exif = "Exif\0\0GPSLatitude-6.2088 GPSLongitude106.8456 secret";
+        $tagged = substr($jpeg, 0, 2) . "\xFF\xE1" . pack('n', strlen($exif) + 2) . $exif . substr($jpeg, 2);
+        $this->assertStringContainsString('GPSLatitude', $tagged);
+
+        $this->postJson(route('poin.profile.photo.update'), ['foto' => UploadedFile::fake()->createWithContent('gps.jpg', $tagged)])->assertOk();
+
+        $stored = Storage::disk(Player::AVATAR_DISK)->get($this->player->fresh()->avatar_path);
+        $this->assertStringStartsWith("\xFF\xD8", $stored);
+        $this->assertStringNotContainsString('Exif', $stored);
+        $this->assertStringNotContainsString('GPSLatitude', $stored);
+        $this->assertStringNotContainsString('secret', $stored);
+    }
+
+    public function test_photos_are_scaled_down_to_512_pixels_on_the_longest_side(): void
+    {
+        $this->postJson(route('poin.profile.photo.update'), ['foto' => UploadedFile::fake()->createWithContent('lebar.png', $this->gdImage(1200, 800, 'png'))])->assertOk();
+        [$width, $height, $type] = $this->storedSize();
+        $this->assertSame([512, 341, IMAGETYPE_PNG], [$width, $height, $type]);
+
+        $this->postJson(route('poin.profile.photo.update'), ['foto' => UploadedFile::fake()->createWithContent('tinggi.jpg', $this->gdImage(600, 2400, 'jpeg'))])->assertOk();
+        [$width, $height, $type] = $this->storedSize();
+        $this->assertSame([128, 512, IMAGETYPE_JPEG], [$width, $height, $type]);
+
+        $this->postJson(route('poin.profile.photo.update'), ['foto' => UploadedFile::fake()->createWithContent('kecil.jpg', $this->gdImage(100, 80, 'jpeg'))])->assertOk();
+        [$width, $height] = $this->storedSize();
+        $this->assertSame([100, 80], [$width, $height]);
+    }
+
+    public function test_huge_dimensions_are_refused_before_processing(): void
+    {
+        $this->postJson(route('poin.profile.photo.update'), ['foto' => UploadedFile::fake()->createWithContent('raksasa.png', $this->gdImage(4097, 8, 'png'))])
+            ->assertStatus(422)->assertJsonFragment(['Ukuran gambar maksimal 4096 × 4096 piksel.']);
+        $this->postJson(route('poin.profile.photo.update'), ['foto' => UploadedFile::fake()->createWithContent('batas.png', $this->gdImage(4096, 8, 'png'))])
+            ->assertOk();
+    }
+
+    public function test_files_that_are_not_real_images_are_refused(): void
+    {
+        $broken = substr($this->gdImage(64, 64, 'png'), 0, 40) . str_repeat("\0", 200);
+
+        $this->postJson(route('poin.profile.photo.update'), ['foto' => UploadedFile::fake()->createWithContent('rusak.png', $broken)])
+            ->assertStatus(422)->assertJsonFragment(['Format foto harus JPG atau PNG.']);
+        $this->postJson(route('poin.profile.photo.update'), ['foto' => UploadedFile::fake()->createWithContent('teks.png', 'bukan gambar sama sekali')])
+            ->assertStatus(422)->assertJsonFragment(['Format foto harus JPG atau PNG.']);
+
+        $this->assertNull($this->player->fresh()->avatar_path);
+        $this->assertSame([], Storage::disk(Player::AVATAR_DISK)->allFiles());
+    }
+
+    public function test_photo_uploads_are_throttled(): void
+    {
+        foreach (range(1, 10) as $attempt) {
+            $this->postJson(route('poin.profile.photo.update'))->assertOk();
+        }
+
+        $this->postJson(route('poin.profile.photo.update'))->assertStatus(429);
+
+        $this->as(Player::create(['nickname' => 'Budi', 'email' => 'budi@example.com', 'password' => 'Rahasia123']));
+        $this->postJson(route('poin.profile.photo.update'))->assertOk();
     }
 
     public function test_saving_without_a_new_photo_just_returns_to_the_profile(): void

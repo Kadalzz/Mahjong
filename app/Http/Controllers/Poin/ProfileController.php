@@ -8,7 +8,9 @@ use App\Models\PlayerRoundScore;
 use App\Services\Poin\AvatarService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -58,7 +60,7 @@ class ProfileController extends Controller
     public function updatePhoto(Request $request, AvatarService $avatars): JsonResponse|RedirectResponse
     {
         $request->validate([
-            'foto' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:' . Player::AVATAR_MAX_KB, 'dimensions:min_width=1,min_height=1'],
+            'foto' => ['bail', 'nullable', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:' . Player::AVATAR_MAX_KB, 'dimensions:min_width=1,min_height=1', $this->maxSideRule()],
         ], [
             'foto.file'       => 'Foto gagal diunggah. Periksa koneksi lalu coba lagi.',
             'foto.uploaded'   => 'Foto terlalu besar untuk diunggah. Gunakan foto maksimal 5 MB.',
@@ -72,7 +74,9 @@ class ProfileController extends Controller
             return $this->respond($request, route('poin.profile'));
         }
 
-        $avatars->store($this->player(), $request->file('foto'));
+        if (!$avatars->store($this->player(), $request->file('foto'))) {
+            throw ValidationException::withMessages(['foto' => 'Format foto harus JPG atau PNG.']);
+        }
 
         return $this->respond($request, route('poin.profile'), 'foto');
     }
@@ -152,6 +156,17 @@ class ProfileController extends Controller
         $request->session()->put(Player::SESSION_FINGERPRINT, $player->passwordFingerprint());
 
         return $this->respond($request, route('poin.profile'), 'sandi');
+    }
+
+    private function maxSideRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) {
+            $size = $value instanceof UploadedFile ? @getimagesize($value->getRealPath()) : false;
+
+            if ($size && max($size[0], $size[1]) > Player::AVATAR_MAX_INPUT_SIDE) {
+                $fail('Ukuran gambar maksimal ' . Player::AVATAR_MAX_INPUT_SIDE . ' × ' . Player::AVATAR_MAX_INPUT_SIDE . ' piksel.');
+            }
+        };
     }
 
     private function player(): Player
