@@ -92,6 +92,27 @@ class PoinDesignTokensTest extends TestCase
         }
     }
 
+    public function test_points_fonts_are_self_hosted_with_their_licences(): void
+    {
+        $layout = File::get(resource_path('views/layouts/poin.blade.php'));
+        $css = File::get(resource_path('css/poin.css'));
+
+        foreach ([$layout, $css] as $source) {
+            $this->assertStringNotContainsString('fonts.googleapis.com', $source);
+            $this->assertStringNotContainsString('fonts.gstatic.com', $source);
+        }
+
+        foreach (['baloo2-latin', 'baloo2-latin-ext', 'nunito-latin', 'nunito-latin-ext'] as $font) {
+            $this->assertStringContainsString("/fonts/poin/{$font}.woff2", $css);
+            $this->assertFileExists(public_path("fonts/poin/{$font}.woff2"));
+        }
+
+        $this->assertStringContainsString("fonts/poin/baloo2-latin.woff2') }}\" as=\"font\"", $layout);
+        $this->assertSame(4, substr_count($css, 'font-display: swap;'));
+        $this->assertFileExists(public_path('fonts/poin/OFL-Baloo2.txt'));
+        $this->assertFileExists(public_path('fonts/poin/OFL-Nunito.txt'));
+    }
+
     public function test_booking_pages_do_not_load_the_poin_stylesheet(): void
     {
         $this->assertStringNotContainsString('poin.css', File::get(resource_path('views/layouts/app.blade.php')));

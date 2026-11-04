@@ -173,3 +173,17 @@ Catatan pemotretan: layar dengan data contoh (angka poin, nama) berbeda isinya d
 | 66 | Konfirmasi & Bantuan | `198:2229` Bantuan | BEDA (disepakati): pertanyaan keempat "Lupa sandi?". |
 
 Commit: "Warn against enabling the token page on the server…".
+
+## Tahap 0 — Token dan komponen
+
+| # | Temuan | Tingkat | Bukti | Status |
+|---|---|---|---|---|
+| 0.1 | 18 warna primitif, 23 alpha, 20 gaya teks, 16 spacing, 10 radius, 5 stroke, 7 nilai grid, dan 14 shadow (offset, blur, spread, warna) sama dengan Figma Foundations (67:58, 71:202, 72:130). | — | `resources/css/poin.css` blok `:root`; laporan verifikasi Tahap 0 sebelumnya. | Sesuai |
+| 0.2 | Semua komponen page Components (77:95) punya padanan Blade, termasuk List/OptionRow (79:138) di tiga state. | — | `resources/views/components/poin/*`. | Sesuai |
+| 0.3 | Font Baloo 2 dan Nunito di-host sendiri (4 woff2, 135.288 byte, lisensi OFL), preload untuk set latin, `font-display: swap`, tanpa Google Fonts di layout poin. | — | `public/fonts/poin/`, `test_points_fonts_are_self_hosted_with_their_licences` (baru). | Sesuai |
+| 0.4 | `/dev/tokens` hanya aktif bila `isLocal()` dan `POINTS_DEV_PAGES=true`. | — | `TokensController.php:11`, tiga test kondisi di `PoinDesignTokensTest`. | Sesuai |
+| 0.5 | Ukuran ikon 20 px dan lebar shine 14/20 sesuai Figma. | — | `poin.css` `.pn-icon--20`, `--size-shine-end`; commit `3e492ea`. | Sesuai |
+| 0.6 | Frame "States" (156:347) di Figma kosong; status-banner, spinner dan skeleton hanya bisa dicocokkan per layar. | RENDAH | `get_metadata 156:347` tanpa anak. | Pertanyaan |
+| 0.7 | Halaman booking dan dashboard masih memuat Google Fonts (di luar sistem poin). | RENDAH | `resources/views/layouts/app.blade.php:9-10`, `dashboard.blade.php:7-8`, `auth/login.blade.php`, `cover/index.blade.php`. | Pertanyaan |
+
+Commit: "Guard the self-hosted points fonts with a test…".
