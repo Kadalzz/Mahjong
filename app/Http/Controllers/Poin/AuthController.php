@@ -20,8 +20,8 @@ class AuthController extends Controller
 
     public function register(Request $request): JsonResponse|RedirectResponse
     {
-        $nickname = trim((string) $request->input('nickname'));
-        $request->merge(['nickname_key' => Player::nicknameKey($nickname), 'email' => mb_strtolower(trim((string) $request->input('email')))]);
+        $nickname = Player::normalizeNickname((string) $request->input('nickname'));
+        $request->merge(['nickname' => $nickname, 'nickname_key' => Player::nicknameKey($nickname), 'email' => mb_strtolower(trim((string) $request->input('email')))]);
 
         $data = $request->validate([
             'nickname'     => Player::NICKNAME_RULES,

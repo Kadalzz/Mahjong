@@ -273,6 +273,39 @@ class PlayerAuthTest extends TestCase
         $this->postJson(route('poin.register'), $this->registerPayload(['nickname' => 'Rina Wati', 'email' => 'wati@example.com']))->assertOk();
     }
 
+    public function test_nickname_spaces_are_trimmed_and_collapsed(): void
+    {
+        $this->postJson(route('poin.register'), $this->registerPayload(['nickname' => "  Rina \u{00A0}  W. "]))->assertOk();
+
+        $player = Player::sole();
+        $this->assertSame('Rina W.', $player->nickname);
+        $this->assertSame('rina w.', $player->nickname_key);
+
+        $this->post(route('poin.logout'));
+        $this->postJson(route('poin.register'), $this->registerPayload(['nickname' => 'rina    w.', 'email' => 'lain@example.com']))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['nickname_key' => 'Nama pemain sudah dipakai. Coba yang lain.']);
+
+        $this->post(route('poin.login'), ['login' => 'RINA   W.', 'password' => 'Rahasia123'])->assertRedirect(route('poin.games'));
+    }
+
+    public function test_spaces_cannot_push_a_nickname_past_fifteen_characters_once_collapsed(): void
+    {
+        $this->postJson(route('poin.register'), $this->registerPayload(['nickname' => 'Rina          Wati']))->assertOk();
+
+        $this->assertSame('Rina Wati', Player::sole()->nickname);
+    }
+
+    public function test_cyrillic_lookalike_letters_are_left_as_they_are(): void
+    {
+        $this->makePlayer();
+
+        $this->postJson(route('poin.register'), $this->registerPayload(['nickname' => "Rin\u{0430}", 'email' => 'lain@example.com']))->assertOk();
+
+        $this->assertSame(2, Player::count());
+        $this->assertSame("Rin\u{0430}", Player::latest('id')->first()->nickname);
+    }
+
     public function test_login_error_does_not_reveal_whether_the_account_exists(): void
     {
         $this->makePlayer();

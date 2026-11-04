@@ -36,14 +36,20 @@ class Player extends Authenticatable
     protected static function booted(): void
     {
         static::saving(function (Player $player) {
-            $player->nickname_key = self::nicknameKey((string) $player->nickname);
+            $player->nickname = self::normalizeNickname((string) $player->nickname);
+            $player->nickname_key = self::nicknameKey($player->nickname);
             $player->email = mb_strtolower((string) $player->email);
         });
     }
 
     public static function nicknameKey(string $nickname): string
     {
-        return mb_strtolower(trim($nickname));
+        return mb_strtolower(self::normalizeNickname($nickname));
+    }
+
+    public static function normalizeNickname(string $nickname): string
+    {
+        return trim((string) preg_replace('/[\s\p{Z}]+/u', ' ', $nickname));
     }
 
     public static function avatarUrlFor(?string $path): ?string

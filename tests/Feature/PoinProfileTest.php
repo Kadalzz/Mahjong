@@ -82,6 +82,10 @@ class PoinProfileTest extends TestCase
             ->assertOk()->assertJson(['redirect' => route('poin.profile')]);
 
         $this->assertSame('Rina W.', $this->player->fresh()->nickname);
+
+        $this->postJson(route('poin.profile.username'), ['nickname' => "Rina \t   Wati "])->assertOk();
+        $this->assertSame('Rina Wati', $this->player->fresh()->nickname);
+        $this->assertSame('rina wati', $this->player->fresh()->nickname_key);
         $this->get(route('poin.profile'))->assertSee('Username berhasil diubah.');
         $this->get(route('poin.profile'))->assertDontSee('Username berhasil diubah.');
     }

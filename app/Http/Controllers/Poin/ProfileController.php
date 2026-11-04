@@ -105,7 +105,7 @@ class ProfileController extends Controller
     public function updateUsername(Request $request): JsonResponse|RedirectResponse
     {
         $player = $this->player();
-        $nickname = trim((string) $request->input('nickname'));
+        $nickname = Player::normalizeNickname((string) $request->input('nickname'));
         $request->merge(['nickname' => $nickname, 'nickname_key' => Player::nicknameKey($nickname)]);
 
         $request->validate([
