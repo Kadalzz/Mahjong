@@ -35,3 +35,19 @@ Commit: lihat `git log` dengan pesan "Reject hidden characters in player nicknam
 | 4.9 | Layar Menang, Kalah, Sesi Selesai, Leaderboard dan kondisinya. | — | Lihat daftar 66 layar di Tahap 7. | Lihat Tahap 7 |
 
 Commit: "Stop a second undo from deleting the round before…".
+
+## Tahap 5 — Profil
+
+| # | Temuan | Tingkat | Bukti | Status |
+|---|---|---|---|---|
+| 5.1 | Foto disimpan apa adanya tanpa encode ulang di server. Metadata EXIF (termasuk lokasi GPS dari kamera HP) ikut tersimpan dan bisa diunduh siapa pun yang melihat avatar. Normalnya aman karena browser meng-encode ulang lewat canvas (`resources/js/poin.js:113-131`), tapi tidak kalau `createImageBitmap` gagal atau request dikirim langsung. Perbaikan butuh paket `php-gd` (belum terpasang di server, `deploy/deploy.sh:25-27`). | SEDANG | `AvatarService::store` memakai `storeAs` pada file asli. | Pertanyaan |
+| 5.2 | Tidak ada batas dimensi gambar, hanya ukuran file 5 MB. PNG 5 MB bisa berukuran puluhan ribu piksel dan membuat tab browser pemain lain crash saat avatar tampil di lobby atau leaderboard. | SEDANG | `ProfileController::updatePhoto` aturan `dimensions:min_width=1,min_height=1`. | Pertanyaan |
+| 5.3 | Foto yang dihapus tetap tersimpan (untuk Urungkan) dan masih bisa dibuka lewat URL acak 40 karakter sampai pemain mengunggah foto baru. | RENDAH | `AvatarService::remove`. | Pertanyaan |
+| 5.4 | Isi file diperiksa (mimes dari isi, mimetypes, `dimensions` membaca header gambar), nama file `.php` ditolak, nama tersimpan acak dengan ekstensi dari isi, gambar berisi kode tetap disimpan sebagai `.png` statis. | — | `test_only_small_jpg_or_png_files_are_accepted`, `test_a_photo_is_stored_under_a_random_name_and_replaces_the_old_one`, `test_an_image_carrying_code_is_kept_as_a_plain_image_file` (baru). nginx hanya meneruskan `\.php$` ke PHP dan mengirim `X-Content-Type-Options: nosniff`. | Sesuai |
+| 5.5 | Foto lama dihapus saat diganti; foto yang dihapus lalu diganti foto baru ikut dihapus. | — | `test_a_new_photo_after_removal_deletes_the_removed_file`. | Sesuai |
+| 5.6 | Ubah username mengikuti aturan nickname (termasuk karakter tersembunyi dari 1.1). | — | `test_username_must_be_free_and_valid`. | Sesuai |
+| 5.7 | Ubah sandi meminta sandi lama, sesi ini tetap, sesi lain berakhir; throttle 10/menit. | — | `test_password_change_checks_the_old_password_and_the_repeat`, `test_password_change_keeps_this_session_and_ends_the_others`, `routes/poin.php:44`. | Sesuai |
+| 5.8 | Semua aksi profil memakai pemain yang sedang login, tanpa ID dari request, jadi tidak ada jalur mengubah akun lain. | — | `ProfileController::player()`; tidak ada parameter route. | Sesuai |
+| 5.9 | Unggah foto tidak di-throttle. Penyimpanan per pemain tetap terbatas (file lama dihapus). | RENDAH | `routes/poin.php:37`. | Ditunda |
+
+Commit: "Cover image uploads that carry code…".

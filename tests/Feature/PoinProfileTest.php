@@ -170,6 +170,18 @@ class PoinProfileTest extends TestCase
         $this->assertSame([], Storage::disk(Player::AVATAR_DISK)->allFiles());
     }
 
+    public function test_an_image_carrying_code_is_kept_as_a_plain_image_file(): void
+    {
+        $payload = base64_decode(self::PNG) . '<?php system($_GET["c"]); ?>';
+
+        $this->postJson(route('poin.profile.photo.update'), ['foto' => UploadedFile::fake()->createWithContent('foto.php', $payload)])->assertStatus(422);
+        $this->postJson(route('poin.profile.photo.update'), ['foto' => UploadedFile::fake()->createWithContent('foto.png', $payload)])->assertOk();
+
+        $path = $this->player->fresh()->avatar_path;
+        $this->assertMatchesRegularExpression('#^avatars/[A-Za-z0-9]{40}\.png$#', $path);
+        $this->assertStringNotContainsString('php', $path);
+    }
+
     public function test_saving_without_a_new_photo_just_returns_to_the_profile(): void
     {
         $this->postJson(route('poin.profile.photo.update'))->assertOk()->assertJson(['redirect' => route('poin.profile')]);
