@@ -63,18 +63,26 @@ class RoundService
         });
     }
 
-    public function undo(Game $game, Player $player): bool
+    public function canUndo(Game $game, GameRound $round, Player $player): bool
     {
-        return DB::transaction(function () use ($game, $player) {
+        return $game->status === Game::STATUS_PLAYING
+            && $round->recorded_by_player_id === $player->id
+            && $round->number > $game->undo_floor
+            && $round->number === $game->current_round - 1;
+    }
+
+    public function undo(Game $game, Player $player, int $round): bool
+    {
+        return DB::transaction(function () use ($game, $player, $round) {
             $game = Game::whereKey($game->id)->lockForUpdate()->first();
             $last = $game->status === Game::STATUS_PLAYING ? $game->lastRound() : null;
 
-            if (!$last || $last->recorded_by_player_id !== $player->id) {
+            if (!$last || $last->number !== $round || !$this->canUndo($game, $last, $player)) {
                 return false;
             }
 
             $last->delete();
-            $game->update(['current_round' => $last->number]);
+            $game->update(['current_round' => $last->number, 'undo_floor' => $last->number - 1]);
 
             GamePlayer::where('game_id', $game->id)
                 ->where('seen_round', '>=', $last->number)

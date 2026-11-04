@@ -83,7 +83,7 @@ class RoundController extends Controller
             'winner'    => $winner,
             'discarder' => $discarder,
             'mine'      => $standings->firstWhere('player_id', $seat->player_id),
-            'canUndo'   => $round->recorded_by_player_id === $seat->player_id,
+            'canUndo'   => $this->rounds->canUndo($game, $round, $request->user('player')),
         ]);
     }
 
@@ -110,7 +110,8 @@ class RoundController extends Controller
     public function undo(Request $request, Game $game): RedirectResponse
     {
         $seat = $this->seatFor($request, $game);
-        $this->rounds->undo($game, $request->user('player'));
+        $data = $request->validate(['ronde' => ['required', 'integer', 'min:1']]);
+        $this->rounds->undo($game, $request->user('player'), (int) $data['ronde']);
 
         return redirect()->to($this->rounds->urlFor($game->fresh(), $seat->fresh()));
     }

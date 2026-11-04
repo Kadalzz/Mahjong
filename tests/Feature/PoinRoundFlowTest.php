@@ -166,10 +166,10 @@ class PoinRoundFlowTest extends TestCase
     {
         $this->win(1, '2');
 
-        $this->as($this->players[1])->post(route('poin.round.undo', $this->game));
+        $this->as($this->players[1])->post(route('poin.round.undo', $this->game), ['ronde' => 1]);
         $this->assertSame(1, GameRound::count());
 
-        $this->as($this->players[0])->post(route('poin.round.undo', $this->game))->assertRedirect(route('poin.game', $this->game));
+        $this->as($this->players[0])->post(route('poin.round.undo', $this->game), ['ronde' => 1])->assertRedirect(route('poin.game', $this->game));
 
         $this->assertSame(0, GameRound::count());
         $this->assertSame(0, PlayerRoundScore::count());
@@ -187,10 +187,10 @@ class PoinRoundFlowTest extends TestCase
         }
         $this->win(2, 'deck');
 
-        $this->as($this->players[0])->post(route('poin.round.undo', $this->game));
+        $this->as($this->players[0])->post(route('poin.round.undo', $this->game), ['ronde' => 1]);
         $this->assertSame(2, GameRound::count());
 
-        $this->as($this->players[1])->post(route('poin.round.undo', $this->game));
+        $this->as($this->players[1])->post(route('poin.round.undo', $this->game), ['ronde' => 2]);
         $this->assertSame([1], GameRound::pluck('number')->all());
         $this->assertSame([1 => 4, 2 => -2, 3 => -1, 4 => -1], $this->pointsBySeat());
     }
@@ -264,6 +264,54 @@ class PoinRoundFlowTest extends TestCase
             ->assertSee('Scan Meja');
     }
 
+    public function test_undoing_twice_does_not_remove_the_round_before(): void
+    {
+        $this->win(1, '2');
+        foreach ($this->players as $player) {
+            $this->as($player)->post(route('poin.round.continue', $this->game));
+        }
+        $this->win(1, 'deck');
+
+        $this->as($this->players[0])->post(route('poin.round.undo', $this->game), ['ronde' => 2]);
+        $this->as($this->players[0])->post(route('poin.round.undo', $this->game), ['ronde' => 2]);
+
+        $this->assertSame([1], GameRound::pluck('number')->all());
+
+        $this->as($this->players[0])->post(route('poin.round.undo', $this->game), ['ronde' => 1]);
+
+        $this->assertSame([1], GameRound::pluck('number')->all());
+        $this->assertSame([1 => 4, 2 => -2, 3 => -1, 4 => -1], $this->pointsBySeat());
+    }
+
+    public function test_undo_needs_the_round_number_and_the_button_hides_once_used(): void
+    {
+        $this->win(1, '2');
+        foreach ($this->players as $player) {
+            $this->as($player)->post(route('poin.round.continue', $this->game));
+        }
+        $this->win(1, 'deck');
+
+        $this->as($this->players[0])->post(route('poin.round.undo', $this->game))->assertSessionHasErrors('ronde');
+        $this->assertSame(2, GameRound::count());
+
+        $this->get(route('poin.round.result', $this->game))->assertSee('name="ronde" value="2"', false);
+        $this->post(route('poin.round.undo', $this->game), ['ronde' => 2]);
+
+        $this->get(route('poin.round.result', $this->game))->assertOk()->assertDontSee('Batalkan hasil ronde ini');
+    }
+
+    public function test_a_round_recorded_again_after_undo_can_be_undone(): void
+    {
+        $this->win(1, '2');
+        $this->as($this->players[0])->post(route('poin.round.undo', $this->game), ['ronde' => 1]);
+        $this->win(3, 'deck');
+
+        $this->as($this->players[2])->post(route('poin.round.undo', $this->game), ['ronde' => 1]);
+
+        $this->assertSame(0, GameRound::count());
+        $this->assertSame([1 => 0, 2 => 0, 3 => 0, 4 => 0], $this->pointsBySeat());
+    }
+
     public function test_only_seated_players_can_touch_the_round(): void
     {
         $stranger = Player::create(['nickname' => 'Asing', 'email' => 'asing@example.com', 'password' => 'Rahasia123']);
@@ -273,5 +321,11 @@ class PoinRoundFlowTest extends TestCase
         $this->postJson(route('poin.round.store', $this->game), ['ronde' => 1, 'dari' => 'deck'])->assertForbidden();
         $this->post(route('poin.round.stop', $this->game))->assertForbidden();
         $this->get(route('poin.round.summary', $this->game))->assertForbidden();
+        $this->get(route('poin.round.result', $this->game))->assertForbidden();
+        $this->getJson(route('poin.round.result.status', ['game' => $this->game, 'ronde' => 1]))->assertForbidden();
+        $this->getJson(route('poin.round.win.status', ['game' => $this->game, 'ronde' => 1]))->assertForbidden();
+        $this->post(route('poin.round.continue', $this->game))->assertForbidden();
+        $this->post(route('poin.round.undo', $this->game), ['ronde' => 1])->assertForbidden();
+        $this->assertSame(Game::STATUS_PLAYING, $this->game->fresh()->status);
     }
 }

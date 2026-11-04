@@ -15,7 +15,7 @@ class Game extends Model
 
     public const SEATS = 4;
 
-    protected $fillable = ['mahjong_table_id', 'status', 'current_round', 'started_at', 'ended_at'];
+    protected $fillable = ['mahjong_table_id', 'status', 'current_round', 'undo_floor', 'started_at', 'ended_at'];
 
     protected function casts(): array
     {

@@ -9,6 +9,7 @@
             @if($canUndo)
                 <form method="POST" action="{{ route('poin.round.undo', $game) }}">
                     @csrf
+                    <input type="hidden" name="ronde" value="{{ $round->number }}">
                     <x-poin.icon-button type="submit" label="Batalkan hasil ronde ini" />
                 </form>
             @else
