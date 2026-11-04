@@ -53,6 +53,7 @@ class LobbyService
     public function join(MahjongTable $table, Player $player): Game|string
     {
         return DB::transaction(function () use ($table, $player) {
+            Player::whereKey($player->id)->lockForUpdate()->first();
             $table = MahjongTable::whereKey($table->id)->lockForUpdate()->first();
 
             if ($table->status === 'maintenance') {

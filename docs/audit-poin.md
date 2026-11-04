@@ -51,3 +51,18 @@ Commit: "Stop a second undo from deleting the round before…".
 | 5.9 | Unggah foto tidak di-throttle. Penyimpanan per pemain tetap terbatas (file lama dihapus). | RENDAH | `routes/poin.php:37`. | Ditunda |
 
 Commit: "Cover image uploads that carry code…".
+
+## Tahap 3 — Mulai main
+
+| # | Temuan | Tingkat | Bukti | Status |
+|---|---|---|---|---|
+| 3.1 | Dua request gabung yang datang bersamaan dari pemain yang sama ke dua meja berbeda bisa sama-sama lolos, karena transaksi hanya mengunci baris meja. Pemain lalu duduk di dua game aktif. | SEDANG | `LobbyService::join` sebelumnya hanya `MahjongTable::lockForUpdate`. Tidak bisa direproduksi lewat test: SQLite in-memory menjalankan satu koneksi, jadi dua transaksi tidak pernah berjalan bersamaan. Perbaikan: kunci baris pemain lebih dulu, lalu meja (urutan tetap, tanpa deadlock). | Diperbaiki |
+| 3.2 | Game berstatus "playing" yang ditinggal semua pemain tidak pernah berakhir. Meja itu lalu menolak pemain baru ("sedang dipakai") sampai ada yang menekan Berhenti. | SEDANG | `LobbyService::tableStatus` → `playing`; tidak ada job atau scheduler yang menutup game lama (`routes/console.php`). Butuh keputusan batas waktu. | Pertanyaan |
+| 3.3 | Kode meja 8 karakter acak A–Z0–9 (sekitar 2,8 × 10¹² kombinasi), unik per meja, tidak berurutan. | — | `MahjongTable.php:22`, `test_every_table_gets_a_unique_qr_code`, `test_table_codes_are_long_random_and_not_sequential` (baru). | Sesuai |
+| 3.4 | Maksimal 4 pemain: kursi 1–4 dan indeks unik `(game_id, seat)` serta `(game_id, player_id)`. | — | migrasi `2026_11_03_000002:40-41`, `test_fifth_player_is_refused_when_the_table_is_full`. | Sesuai |
+| 3.5 | Start ditolak sebelum keempat pemain Ready. | — | `Game::isReadyToStart`, `test_game_cannot_start_until_all_four_are_ready`. | Sesuai |
+| 3.6 | Non-anggota tidak bisa membuka atau mengubah lobby/game (lobby, status, ready, start, keluar, game, status game). | — | `test_only_seated_players_can_open_a_game` (diperluas). | Sesuai |
+| 3.7 | Polling 3 detik dengan rantai `setTimeout`, berhenti saat halaman ditutup; pemain tanpa polling 90 detik dikeluarkan dari lobby. | — | `resources/js/poin.js:277-337`, `test_inactive_players_lose_their_seat_after_ninety_seconds`. | Sesuai |
+| 3.8 | Scan QR memakai paket `jsqr` (kamera di halaman), kondisi Izin kamera ditolak dan QR tidak dikenali tersedia. | — | `resources/js/poin-qr.js`, layar 158:1299 dan 158:1381 di Tahap 7. | Lihat Tahap 7 |
+
+Commit: "Lock the player while joining a table…".

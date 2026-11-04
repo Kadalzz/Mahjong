@@ -303,6 +303,25 @@ class PoinGameFlowTest extends TestCase
         $this->get(route('poin.lobby.status', $game))->assertForbidden();
         $this->post(route('poin.lobby.start', $game))->assertForbidden();
         $this->get(route('poin.game', $game))->assertForbidden();
+        $this->getJson(route('poin.game.status', $game))->assertForbidden();
+        $this->post(route('poin.lobby.ready', $game), ['ready' => 0])->assertForbidden();
+        $this->post(route('poin.lobby.leave', $game))->assertForbidden();
+
+        $this->assertSame(Game::SEATS, $game->seats()->count());
+        $this->assertSame(Game::STATUS_LOBBY, $game->fresh()->status);
+        $this->assertSame(Game::SEATS, $game->seats()->where('is_ready', true)->count());
+    }
+
+    public function test_table_codes_are_long_random_and_not_sequential(): void
+    {
+        $second = MahjongTable::create(['name' => 'Meja 2', 'capacity' => 4, 'status' => 'available', 'esp32_meja_id' => 2]);
+
+        foreach ([$this->table, $second] as $table) {
+            $this->assertMatchesRegularExpression('/^[A-Z0-9]{8,}$/', $table->qr_code);
+        }
+
+        $this->assertNotSame($this->table->qr_code, $second->qr_code);
+        $this->as($this->player('Tebak'))->get(route('poin.table', 'MEJA0001'))->assertRedirect(route('poin.scan', ['status' => 'unknown']));
     }
 
     public function test_dashboard_lists_table_qr_codes_for_table_managers_only(): void
