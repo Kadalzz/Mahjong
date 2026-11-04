@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('app:expire-stale-bookings')->everyMinute();
 Schedule::command('app:sync-ayo')->everyTwoMinutes()->withoutOverlapping();
+Schedule::command('poin:close-idle-games')->everyFiveMinutes()->withoutOverlapping();

@@ -143,6 +143,25 @@ class LobbyService
         GamePlayer::where('game_id', $game->id)->where('player_id', $player->id)->update(['last_seen_at' => now()]);
     }
 
+    public function closeIdleGames(): array
+    {
+        $closed = [];
+
+        foreach ([Game::STATUS_PLAYING => 'playing', Game::STATUS_LOBBY => 'lobby'] as $status => $key) {
+            $cutoff = now()->subMinutes(max(1, (int) config("poin.idle_minutes.{$key}")));
+
+            $closed[$status] = Game::where('status', $status)
+                ->where('updated_at', '<', $cutoff)
+                ->whereNotExists(fn ($query) => $query->selectRaw('1')
+                    ->from('game_players')
+                    ->whereColumn('game_players.game_id', 'games.id')
+                    ->where('game_players.last_seen_at', '>=', $cutoff))
+                ->update(['status' => Game::STATUS_FINISHED, 'ended_at' => now()]);
+        }
+
+        return $closed;
+    }
+
     private function removeStaleSeats(Game $game): void
     {
         GamePlayer::where('game_id', $game->id)
