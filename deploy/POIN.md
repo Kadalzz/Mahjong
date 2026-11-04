@@ -29,6 +29,8 @@ POINTS_STAFF_WHATSAPP=08xxxxxxxxxx
 
 Nomor WhatsApp boleh diawali `0` atau `62`; spasi dan tanda `-` diabaikan. Kalau kosong, tombol "Hubungi Staf Venue" di halaman Bantuan disembunyikan.
 
+Jangan isi `POINTS_DEV_PAGES=true` di server. Halaman `/dev/tokens` hanya untuk laptop pengembang dan tetap 404 selama `APP_ENV` bukan `local`.
+
 ## 3. Deploy
 
 ```bash

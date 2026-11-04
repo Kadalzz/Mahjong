@@ -89,3 +89,87 @@ Commit: "Pin leaderboard period edges…".
 | 6.3 | Tanpa JavaScript, tombol Berhenti, Keluar dan Hapus Foto tidak melakukan apa pun karena dialog dibuka lewat JS dan tidak ada fallback. | RENDAH | `data-poin-dialog-open` di `partials/stop-session.blade.php`, `profile.blade.php`, `profile-photo.blade.php`. | Ditunda |
 
 Commit: "Check dialog form targets…".
+
+## Tahap 7 — Rilis
+
+| # | Temuan | Tingkat | Bukti | Status |
+|---|---|---|---|---|
+| 7.1 | `server_name` nginx berisi domain utama, `www`, dan `POINTS_DOMAIN` persis, tanpa wildcard; domain utama tetap pertama. | — | `deploy/nginx.conf.template:4`, `deploy/deploy.sh:65,123`. | Sesuai |
+| 7.2 | Sertifikat diperluas ke subdomain poin hanya bila DNS-nya menunjuk ke IP server; kalau tidak, deploy tetap jalan dengan peringatan dan sertifikat lama dipakai. Pemeriksaan memakai `hostname -I`, jadi pada server di balik NAT (IP publik tidak ada di interface) subdomain tidak pernah ikut sertifikat. Server Hostinger saat ini belum diverifikasi. | RENDAH | `deploy/deploy.sh:160-168`. | Ditunda |
+| 7.3 | `.env.example` memuat `POINTS_DOMAIN` dan `POINTS_DEV_PAGES=false`. | — | `.env.example:34-36`, `test_dev_pages_are_disabled_by_default`. | Sesuai |
+| 7.4 | Catatan deploy dan record DNS `poin` → `187.127.223.136` ada; ditambah peringatan agar `POINTS_DEV_PAGES` tidak diisi `true` di server. | RENDAH | `deploy/POIN.md`. | Diperbaiki |
+| 7.5 | Migrasi baru `2026_11_05_000000_add_undo_floor_to_games_table` (dari 4.1) ikut jalan otomatis lewat `php artisan migrate --force` di `deploy.sh`. Hanya menambah kolom dengan nilai bawaan 0. | — | `deploy/deploy.sh:113`. | Sesuai |
+| 7.6 | 66 layar dibandingkan dengan render Figma per section (6 panggilan `get_screenshot`, semua berhasil) terhadap screenshot aplikasi 390 px dari kode terbaru. Hasil: 0 BELUM ADA, 0 BEDA yang tidak disepakati. | — | Tabel di bawah; pasangan Figma/aplikasi di folder scratchpad `r8/cmp_*.png`. | Sesuai |
+
+Catatan pemotretan: layar dengan data contoh (angka poin, nama) berbeda isinya dari Figma karena data uji; tombol merah yang tampak lebih terang pada layar Gagal adalah efek hover desktop (`@media (hover: hover)`), tidak muncul di HP; layar yang dipotret dengan tinggi 896 px tampak bergeser ke bawah dibanding frame 844 px.
+
+| No | Section | Layar | Status |
+|---|---|---|---|
+| 1 | Awal · Landing & Akun | `95:177` Landing page | SESUAI |
+| 2 | Awal · Landing & Akun | `47:84` Daftar | SESUAI |
+| 3 | Awal · Landing & Akun | `95:411` Masuk | BEDA (disepakati): label "EMAIL / NAMA PEMAIN" karena login menerima nickname atau email; tautan "Lupa sandi?" ke Bantuan. |
+| 4 | Awal · Landing & Akun | `16:21` Pilih Game | BEDA (disepakati): ikon profil di kanan atas agar profil bisa dibuka dari Pilih Game. |
+| 5 | Awal · Landing & Akun | `95:290` Coming Soon MCR | SESUAI |
+| 6 | Awal · Landing & Akun | `157:1178` Landing page / Memuat | SESUAI |
+| 7 | Awal · Landing & Akun | `157:1233` Landing page / Offline | SESUAI |
+| 8 | Awal · Landing & Akun | `157:1307` Daftar / Mengirim | SESUAI |
+| 9 | Awal · Landing & Akun | `157:1347` Daftar / Gagal terhubung | SESUAI |
+| 10 | Awal · Landing & Akun | `157:1391` Masuk / Mengirim | BEDA (disepakati): label login dan tautan "Lupa sandi?" seperti 95:411. |
+| 11 | Awal · Landing & Akun | `157:1422` Masuk / Gagal terhubung | BEDA (disepakati): label login dan tautan "Lupa sandi?" seperti 95:411. |
+| 12 | Awal · Landing & Akun | `157:1457` Pilih Game / Memuat | BEDA (disepakati): ikon profil seperti 16:21. |
+| 13 | Awal · Landing & Akun | `157:1512` Pilih Game / Gagal memuat | BEDA (disepakati): ikon profil seperti 16:21. |
+| 14 | Awal · Landing & Akun | `201:2171` Leaderboard publik / Tahun Ini | SESUAI |
+| 15 | Awal · Landing & Akun | `201:2298` Leaderboard publik / Bulan Ini | SESUAI |
+| 16 | Awal · Landing & Akun | `201:2425` Leaderboard publik / Minggu Ini | SESUAI |
+| 17 | Chicken Hand · Mulai Main | `47:117` Scan Meja | SESUAI |
+| 18 | Chicken Hand · Mulai Main | `95:316` Meja Terdeteksi | SESUAI |
+| 19 | Chicken Hand · Mulai Main | `16:53` Lobby (menunggu) | BEDA (disepakati): tombol Ready/Batal Ready di atas Start Game; kursi memakai nickname. |
+| 20 | Chicken Hand · Mulai Main | `16:99` Lobby (siap) | BEDA (disepakati): tombol Batal Ready; kursi memakai nickname. |
+| 21 | Chicken Hand · Mulai Main | `16:148` Game berlangsung | BEDA (disepakati): kartu "Kamu · nickname" menggantikan "Kamu · P1". |
+| 22 | Chicken Hand · Mulai Main | `158:1299` Scan Meja / Izin kamera ditolak | SESUAI |
+| 23 | Chicken Hand · Mulai Main | `158:1381` Scan Meja / QR tidak dikenali | SESUAI |
+| 24 | Chicken Hand · Mulai Main | `158:1465` Meja Terdeteksi / Memuat | SESUAI |
+| 25 | Chicken Hand · Mulai Main | `158:1533` Meja Terdeteksi / Offline | SESUAI |
+| 26 | Chicken Hand · Mulai Main | `158:1597` Lobby / Memuat | SESUAI |
+| 27 | Chicken Hand · Mulai Main | `158:1644` Lobby / Koneksi terputus | BEDA (disepakati): tombol Ready seperti 16:53. |
+| 28 | Chicken Hand · Mulai Main | `158:1714` Game berlangsung / Koneksi terputus | BEDA (disepakati): kartu "Kamu · nickname" seperti 16:148. |
+| 29 | Menang | `95:365` Menang | SESUAI |
+| 30 | Menang | `110:960` Win From | BEDA (disepakati): pilihan dan kicker memakai nickname, bukan P2–P4. |
+| 31 | Menang | `16:244` Poin Menang · dari P2 | BEDA (disepakati): baris dan kicker memakai nickname. |
+| 32 | Menang | `96:709` Poin Menang · dari P3 | BEDA (disepakati): template sama dengan 16:244 (nickname); tidak dipotret terpisah. |
+| 33 | Menang | `96:761` Poin Menang · dari P4 | BEDA (disepakati): template sama dengan 16:244 (nickname); tidak dipotret terpisah. |
+| 34 | Menang | `96:813` Poin Menang · dari Deck | BEDA (disepakati): baris memakai nickname. |
+| 35 | Menang | `160:1486` Poin Menang / Menyimpan | SESUAI |
+| 36 | Menang | `160:1587` Poin Menang / Gagal menyimpan | SESUAI |
+| 37 | Kalah & Selesai | `16:227` Kalah · dari Deck | BEDA (disepakati): chip dan teks memakai nickname. |
+| 38 | Kalah & Selesai | `96:892` Kalah · dari Pemain | BEDA (disepakati): chip dan teks memakai nickname. |
+| 39 | Kalah & Selesai | `95:377` Sesi Selesai | SESUAI |
+| 40 | Kalah & Selesai | `23:73` Leaderboard | SESUAI |
+| 41 | Kalah & Selesai | `160:1645` Kalah / Gagal menyimpan | BEDA (disepakati): chip memakai nickname. |
+| 42 | Kalah & Selesai | `160:1691` Leaderboard / Memuat | SESUAI |
+| 43 | Kalah & Selesai | `160:1823` Leaderboard / Kosong | SESUAI. Versi tamu menampilkan "Masuk untuk ikut bermain"; versi login dengan "Scan Meja" diuji di `test_logged_in_empty_leaderboard_offers_a_table_scan`. |
+| 44 | Kalah & Selesai | `160:1903` Leaderboard / Gagal memuat | SESUAI |
+| 45 | Kalah & Selesai | `193:1788` Leaderboard / Bulan Ini | SESUAI |
+| 46 | Kalah & Selesai | `193:1823` Leaderboard / Minggu Ini | SESUAI |
+| 47 | Profil | `152:1106` Profil | SESUAI |
+| 48 | Profil | `152:1203` Ubah Foto Profil | SESUAI |
+| 49 | Profil | `152:1285` Ubah Username | BEDA (disepakati): petunjuk "Maksimal 15 karakter, tanpa tanda @." sesuai aturan nickname. |
+| 50 | Profil | `152:1334` Ubah Sandi | BEDA (disepakati): baris keempat "Minimal satu huruf besar". |
+| 51 | Profil | `160:1984` Profil / Memuat | SESUAI |
+| 52 | Profil | `160:2088` Profil / Offline | SESUAI |
+| 53 | Profil | `160:2168` Ubah Foto Profil / Gagal mengunggah | SESUAI |
+| 54 | Profil | `160:2217` Ubah Username / Sudah dipakai | BEDA (disepakati): petunjuk aturan nickname seperti 152:1285. |
+| 55 | Profil | `160:2237` Ubah Sandi / Tidak cocok | BEDA (disepakati): baris keempat aturan sandi. |
+| 56 | Profil | `172:1750` Ubah Foto Profil / Berhasil | SESUAI |
+| 57 | Profil | `172:1786` Ubah Username / Berhasil | SESUAI |
+| 58 | Profil | `172:1822` Ubah Sandi / Berhasil | SESUAI |
+| 59 | Profil | `173:1758` Ubah Foto Profil / Menyimpan | SESUAI |
+| 60 | Profil | `173:1807` Ubah Username / Menyimpan | SESUAI |
+| 61 | Profil | `173:1829` Ubah Sandi / Menyimpan | BEDA (disepakati): baris keempat aturan sandi. |
+| 62 | Profil | `198:2104` Ubah Foto Profil / Foto dihapus | SESUAI |
+| 63 | Konfirmasi & Bantuan | `198:2065` Dialog · Akhiri sesi | SESUAI |
+| 64 | Konfirmasi & Bantuan | `198:2078` Dialog · Keluar akun | SESUAI |
+| 65 | Konfirmasi & Bantuan | `198:2091` Dialog · Hapus foto | SESUAI |
+| 66 | Konfirmasi & Bantuan | `198:2229` Bantuan | BEDA (disepakati): pertanyaan keempat "Lupa sandi?". |
+
+Commit: "Warn against enabling the token page on the server…".
