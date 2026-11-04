@@ -159,6 +159,38 @@ class PoinPagesTest extends TestCase
         $this->get(route('poin.leaderboard.content', ['periode' => 'bulan']))->assertSee('Bulan')->assertDontSee('Tahun');
     }
 
+    public function test_leaderboard_periods_cut_exactly_at_midnight_in_jakarta_time(): void
+    {
+        $this->assertSame('Asia/Jakarta', config('app.timezone'));
+
+        foreach ([
+            'SenNol'   => '2026-11-02 00:00:00',
+            'MingAkh'  => '2026-11-01 23:59:59',
+            'NovNol'   => '2026-11-01 00:00:00',
+            'OktAkh'   => '2026-10-31 23:59:59',
+            'JanNol'   => '2026-01-01 00:00:00',
+            'DesLalu'  => '2025-12-31 23:59:59',
+        ] as $name => $at) {
+            $this->score($this->player($name), 5, $at);
+        }
+
+        $service = app(LeaderboardService::class);
+
+        $this->assertEqualsCanonicalizing(['SenNol'], $service->ranking('minggu')->pluck('nickname')->all());
+        $this->assertEqualsCanonicalizing(['SenNol', 'MingAkh', 'NovNol'], $service->ranking('bulan')->pluck('nickname')->all());
+        $this->assertEqualsCanonicalizing(['SenNol', 'MingAkh', 'NovNol', 'OktAkh', 'JanNol'], $service->ranking('tahun')->pluck('nickname')->all());
+        $this->assertEqualsCanonicalizing(['SenNol', 'MingAkh', 'NovNol', 'OktAkh', 'JanNol'], $service->ranking('lain')->pluck('nickname')->all());
+    }
+
+    public function test_public_pages_open_without_login_and_ignore_an_unknown_period(): void
+    {
+        foreach (['poin.home', 'poin.home.content', 'poin.leaderboard', 'poin.leaderboard.content', 'poin.help'] as $route) {
+            $this->get(route($route))->assertOk();
+        }
+
+        $this->get(route('poin.leaderboard', ['periode' => "'; DROP TABLE players; --"]))->assertOk()->assertSee('MUSIM 2026 · URUT POIN', false);
+    }
+
     public function test_leaderboard_never_shows_player_emails(): void
     {
         $player = $this->player('Rina');

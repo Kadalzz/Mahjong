@@ -66,3 +66,16 @@ Commit: "Cover image uploads that carry code…".
 | 3.8 | Scan QR memakai paket `jsqr` (kamera di halaman), kondisi Izin kamera ditolak dan QR tidak dikenali tersedia. | — | `resources/js/poin-qr.js`, layar 158:1299 dan 158:1381 di Tahap 7. | Lihat Tahap 7 |
 
 Commit: "Lock the player while joining a table…".
+
+## Tahap 2 — Landing, pilih game, leaderboard publik
+
+| # | Temuan | Tingkat | Bukti | Status |
+|---|---|---|---|---|
+| 2.1 | Periode memotong tepat di tengah malam WIB: Minggu dimulai Senin 00:00:00, Bulan tanggal 1 00:00:00, Tahun 1 Januari 00:00:00; periode tak dikenal jatuh ke Tahun. | — | `LeaderboardService::periodStart`, `config/app.php:27` (`Asia/Jakarta`), `test_leaderboard_periods_cut_exactly_at_midnight_in_jakarta_time` (baru). | Sesuai |
+| 2.2 | Leaderboard dan beranda hanya menampilkan nickname, tidak pernah email. | — | Query hanya memilih `nickname`, `avatar_path`; `test_leaderboard_never_shows_player_emails`. | Sesuai |
+| 2.3 | Halaman publik (beranda, leaderboard, bantuan) terbuka tanpa login; input periode aneh tidak memengaruhi query. | — | `test_public_pages_open_without_login_and_ignore_an_unknown_period` (baru), `PageController` memakai `in_array(..., PERIODS, true)`. | Sesuai |
+| 2.4 | Urutan poin, lalu jumlah menang, lalu nama; nomor peringkat berurutan (nilai seri tidak berbagi peringkat). | RENDAH | `LeaderboardService::ranking`, `test_public_leaderboard_needs_no_login_and_orders_by_points_then_wins`. Seri berbagi peringkat atau tidak adalah keputusan produk. | Pertanyaan |
+| 2.5 | Label "MUSIM" memakai tahun berjalan, tidak ditulis mati. | — | `PageController.php:50`. | Sesuai |
+| 2.6 | Layar Landing, Pilih Game, MCR, Leaderboard publik dan kondisinya. | — | Lihat Tahap 7. | Lihat Tahap 7 |
+
+Commit: "Pin leaderboard period edges…".
