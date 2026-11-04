@@ -15,8 +15,8 @@ class PlayerController extends Controller
 
         $players = Player::query()
             ->when($search !== '', function ($query) use ($search) {
-                $like = '%' . mb_strtolower($search) . '%';
-                $query->where(fn ($q) => $q->where('nickname_key', 'like', $like)->orWhere('email', 'like', $like));
+                $like = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($search)) . '%';
+                $query->where(fn ($q) => $q->whereRaw("nickname_key LIKE ? ESCAPE '!'", [$like])->orWhereRaw("email LIKE ? ESCAPE '!'", [$like]));
             })
             ->orderBy('nickname_key')
             ->paginate(25)

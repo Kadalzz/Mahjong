@@ -159,11 +159,14 @@ ufw --force enable
 
 CERT_DOMAINS=(-d "$DOMAIN" -d "www.$DOMAIN")
 if [ -n "$POINTS_DOMAIN" ]; then
-    POINTS_IP="$(getent ahostsv4 "$POINTS_DOMAIN" | awk 'NR==1{print $1}' || true)"
-    if [ -n "$POINTS_IP" ] && hostname -I | tr ' ' '\n' | grep -qx "$POINTS_IP"; then
+    POINTS_IP="$( (getent ahostsv4 "$POINTS_DOMAIN" 2>/dev/null || true) | awk 'NR==1{print $1}')"
+    SERVER_IPS="$(hostname -I 2>/dev/null || true)"
+    if [ -z "$SERVER_IPS" ]; then
+        echo "PERINGATAN: IP server tidak terbaca (hostname -I gagal). Sertifikat dibuat tanpa subdomain poin; deploy dilanjutkan."
+    elif [ -n "$POINTS_IP" ] && printf '%s\n' $SERVER_IPS | grep -qx "$POINTS_IP"; then
         CERT_DOMAINS+=(-d "$POINTS_DOMAIN")
     else
-        echo "PERINGATAN: DNS ${POINTS_DOMAIN} belum mengarah ke server ini (sekarang: ${POINTS_IP:-kosong}). Sertifikat dibuat tanpa subdomain poin."
+        echo "PERINGATAN: DNS ${POINTS_DOMAIN} belum mengarah ke server ini (sekarang: ${POINTS_IP:-kosong}, server: ${SERVER_IPS}). Sertifikat dibuat tanpa subdomain poin; deploy dilanjutkan."
     fi
 fi
 
