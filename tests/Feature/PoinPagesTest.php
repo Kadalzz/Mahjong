@@ -134,6 +134,31 @@ class PoinPagesTest extends TestCase
             ->assertSee('Masuk untuk ikut bermain');
     }
 
+    public function test_tied_points_rank_by_more_wins_then_nickname_with_sequential_ranks(): void
+    {
+        $this->score($this->player('zaki'), 6, win: true);
+        $this->score($this->player('Budi'), 6, win: true);
+        $this->score($this->player('andi'), 6, win: true);
+        $fewerWins = $this->player('Aaron');
+        $this->score($fewerWins, 8);
+        $this->score($fewerWins, -2);
+        $moreWins = $this->player('Yuni');
+        $this->score($moreWins, 4, win: true);
+        $this->score($moreWins, 2, win: true);
+        $this->score($this->player('Citra'), 7);
+
+        foreach (range(1, 3) as $attempt) {
+            $ranking = app(LeaderboardService::class)->ranking();
+
+            $this->assertSame(['Citra', 'Yuni', 'andi', 'Budi', 'zaki', 'Aaron'], $ranking->pluck('nickname')->all());
+            $this->assertSame([7, 6, 6, 6, 6, 6], $ranking->pluck('points')->all());
+            $this->assertSame([1, 2, 3, 4, 5, 6], $ranking->pluck('rank')->all());
+        }
+
+        $this->get(route('poin.leaderboard.content'))->assertOk()->assertSeeInOrder(['pn-podium--2', 'Yuni', 'pn-podium--1', 'Citra', 'pn-podium--3', 'andi', 'Budi', 'zaki', 'Aaron'], false);
+        $this->get(route('poin.home.content'))->assertOk()->assertSeeInOrder(['Citra', 'Yuni', 'andi'])->assertDontSee('Budi');
+    }
+
     public function test_leaderboard_periods_only_count_scores_inside_the_period(): void
     {
         $thisWeek = $this->player('Minggu');
