@@ -164,7 +164,7 @@
         </div>
         <div class="cover-eyebrow">Selamat Datang</div>
         <h1 class="split-text" id="splitText" aria-label="Hóng Zhōng Mahjong"></h1>
-        <p class="cover-tagline">Mahjong & Beers — Open 24 Hours</p>
+        <p class="cover-tagline">Mahjong — Open 24 Hours</p>
         <a href="{{ route('booking.index') }}" class="btn-enter">Book Now</a>
     </div>
 </div>

@@ -103,6 +103,8 @@
     font-variant-numeric: tabular-nums;
 }
 .booking-block { z-index: 2; cursor: default; }
+.booking-text { overflow: hidden; text-overflow: ellipsis; }
+.booking-name { font-weight: 900; }
 .free-block {
     z-index: 1;
     background: #ffffff;
@@ -198,7 +200,7 @@ a.free-block:hover { background: #e9f7ea; color: #14592a; }
                         <div class="booking-block block-{{ $item['type'] }}"
                              style="top:{{ $top + 1 }}px;height:{{ ($item['to'] - $item['from']) / 60 * 56 - 2 }}px;min-height:18px"
                              title="{{ $item['title'] }} {{ $item['label'] }}">
-                            {{ $item['closed'] ? '⛔ ' : '' }}{{ $item['label'] }}
+                            <span class="booking-text">{{ $item['closed'] ? '⛔ ' : '' }}@if($item['name'])<span class="booking-name">{{ $item['name'] }}</span> Dipesan @endif{{ $item['label'] }}</span>
                         </div>
                     @endif
                 @endforeach

@@ -39,15 +39,17 @@ class ScheduleController extends Controller
             $openFrom = 1440;
         }
 
+        $showNames = (bool) $request->user()?->isAdmin();
+
         $grid = [];
         foreach ($tables as $table) {
-            $grid[$table->id] = $this->layoutTable($table, $dayStart, $dayEnd, $openFrom, $date);
+            $grid[$table->id] = $this->layoutTable($table, $dayStart, $dayEnd, $openFrom, $date, $showNames);
         }
 
         return view('schedule.index', compact('tables', 'date', 'timeSlots', 'grid', 'openFrom'));
     }
 
-    private function layoutTable(MahjongTable $table, Carbon $dayStart, Carbon $dayEnd, int $openFrom, string $date): array
+    private function layoutTable(MahjongTable $table, Carbon $dayStart, Carbon $dayEnd, int $openFrom, string $date, bool $showNames = false): array
     {
         $cells = array_fill(0, 24, []);
         $busy  = [];
@@ -61,12 +63,14 @@ class ScheduleController extends Controller
             }
 
             $closed = in_array($booking->source, ['block', 'staff'], true);
+            $name   = $showNames && !$closed ? (trim((string) $booking->customer_name) ?: 'Tanpa nama') : null;
             $cells[intdiv($from, 60)][] = [
                 'type'   => $closed ? 'blocked' : $booking->status,
                 'from'   => $from,
                 'to'     => $to,
                 'label'  => $this->clock($booking->startsAt(), $dayStart, $from) . '–' . $this->clock($booking->endsAt(), $dayStart, $to),
-                'title'  => $closed ? 'Tidak Tersedia' : 'Sudah Dipesan',
+                'title'  => $closed ? 'Tidak Tersedia' : ($name ? "{$name} Dipesan" : 'Sudah Dipesan'),
+                'name'   => $name,
                 'closed' => $closed,
             ];
             $busy[] = [$from, $to];
