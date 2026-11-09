@@ -5,9 +5,11 @@ namespace App\Services\Poin;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\GameRound;
+use App\Models\GameRoundConfirmation;
 use App\Models\Player;
 use App\Models\PlayerRoundScore;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class RoundService
@@ -16,7 +18,7 @@ class RoundService
     {
     }
 
-    public function record(Game $game, Player $winner, int $round, ?int $discarderSeat): ?GameRound
+    public function claim(Game $game, Player $winner, int $round, ?int $discarderSeat): ?GameRound
     {
         return DB::transaction(function () use ($game, $winner, $round, $discarderSeat) {
             $game = Game::whereKey($game->id)->lockForUpdate()->with('seats')->first();
@@ -29,15 +31,17 @@ class RoundService
                 return $game->lastRound();
             }
 
+            if ($pending = $game->pendingClaim()) {
+                return $pending;
+            }
+
             $discarder = $discarderSeat === null ? null : $game->seats->firstWhere('seat', $discarderSeat)?->player_id;
 
             if ($discarderSeat !== null && (!$discarder || $discarder === $winner->id)) {
                 return null;
             }
 
-            $points = $this->calculator->calculate($game->seats->pluck('player_id')->all(), $winner->id, $discarder);
-
-            $record = GameRound::create([
+            $claim = GameRound::create([
                 'game_id'               => $game->id,
                 'number'                => $round,
                 'winner_player_id'      => $winner->id,
@@ -45,22 +49,136 @@ class RoundService
                 'recorded_by_player_id' => $winner->id,
             ]);
 
+            foreach ($game->seats->where('player_id', '!=', $winner->id) as $seat) {
+                $claim->confirmations()->create(['player_id' => $seat->player_id]);
+            }
+
+            $game->touch();
+
+            return $claim;
+        });
+    }
+
+    public function settle(Game $game): ?GameRound
+    {
+        $claim = $game->pendingClaim();
+
+        if (!$claim || !$this->isSettled($claim)) {
+            return $claim;
+        }
+
+        return DB::transaction(function () use ($game) {
+            $game = Game::whereKey($game->id)->lockForUpdate()->with('seats')->first();
+            $claim = $game->pendingClaim();
+
+            if (!$claim || !$this->isSettled($claim)) {
+                return $claim;
+            }
+
+            $points = $this->calculator->calculate($game->seats->pluck('player_id')->all(), $claim->winner_player_id, $claim->discarder_player_id);
             $now = now();
 
             foreach ($points as $playerId => $value) {
                 PlayerRoundScore::create([
                     'player_id'     => $playerId,
-                    'game_round_id' => $record->id,
+                    'game_round_id' => $claim->id,
                     'points'        => $value,
-                    'is_winner'     => $playerId === $winner->id,
+                    'is_winner'     => $playerId === $claim->winner_player_id,
                     'played_at'     => $now,
                 ]);
             }
 
-            $game->update(['current_round' => $round + 1]);
+            $claim->update(['confirmed_at' => $now]);
+            $game->update(['current_round' => $claim->number + 1]);
 
-            return $record;
+            return null;
         });
+    }
+
+    public function markSeen(GameRound $claim, Player $player): void
+    {
+        $claim->confirmations()->where('player_id', $player->id)->whereNull('seen_at')->update(['seen_at' => now()]);
+    }
+
+    public function agree(Game $game, Player $player, int $claimId): void
+    {
+        $claim = $game->pendingClaim();
+
+        if ($claim?->id === $claimId) {
+            $claim->confirmations()->where('player_id', $player->id)->whereNull('agreed_at')->update(['agreed_at' => now()]);
+        }
+
+        $this->settle($game);
+    }
+
+    public function reject(Game $game, Player $player, int $claimId): bool
+    {
+        $rejected = DB::transaction(function () use ($game, $player, $claimId) {
+            $game = Game::whereKey($game->id)->lockForUpdate()->first();
+            $claim = $game->pendingClaim();
+
+            if ($claim?->id !== $claimId) {
+                return false;
+            }
+
+            $mine = $claim->confirmations()->where('player_id', $player->id)->first();
+
+            if (!$mine || $mine->isSettled($claim)) {
+                return false;
+            }
+
+            $this->close($claim, $player, 'rejected');
+
+            return true;
+        });
+
+        if (!$rejected) {
+            $this->settle($game->fresh());
+        }
+
+        return $rejected;
+    }
+
+    public function withdraw(Game $game, Player $player, int $claimId): bool
+    {
+        return DB::transaction(function () use ($game, $player, $claimId) {
+            $game = Game::whereKey($game->id)->lockForUpdate()->first();
+            $claim = $game->pendingClaim();
+
+            if ($claim?->id !== $claimId || $claim->winner_player_id !== $player->id) {
+                return false;
+            }
+
+            $this->close($claim, $player, 'withdrawn');
+
+            return true;
+        });
+    }
+
+    public function closedClaim(int $claimId): ?array
+    {
+        return Cache::get("poin:claim:{$claimId}");
+    }
+
+    public function isSettled(GameRound $claim): bool
+    {
+        $claim->loadMissing('confirmations');
+
+        return $claim->confirmations->every(fn (GameRoundConfirmation $confirmation) => $confirmation->isSettled($claim));
+    }
+
+    private function close(GameRound $claim, Player $by, string $reason): void
+    {
+        Cache::put("poin:claim:{$claim->id}", [
+            'reason'    => $reason,
+            'winner_id' => $claim->winner_player_id,
+            'winner'    => $claim->winner->nickname,
+            'by_id'     => $by->id,
+            'by'        => $by->nickname,
+        ], now()->addMinutes(30));
+
+        $claim->delete();
+        Game::whereKey($claim->game_id)->update(['updated_at' => now()]);
     }
 
     public function canUndo(Game $game, GameRound $round, Player $player): bool
@@ -77,7 +195,7 @@ class RoundService
             $game = Game::whereKey($game->id)->lockForUpdate()->first();
             $last = $game->status === Game::STATUS_PLAYING ? $game->lastRound() : null;
 
-            if (!$last || $last->number !== $round || !$this->canUndo($game, $last, $player)) {
+            if (!$last || $last->number !== $round || $game->pendingClaim() || !$this->canUndo($game, $last, $player)) {
                 return false;
             }
 
@@ -101,9 +219,15 @@ class RoundService
 
     public function finish(Game $game): void
     {
-        Game::whereKey($game->id)
-            ->where('status', Game::STATUS_PLAYING)
-            ->update(['status' => Game::STATUS_FINISHED, 'ended_at' => now()]);
+        DB::transaction(function () use ($game) {
+            $finished = Game::whereKey($game->id)
+                ->where('status', Game::STATUS_PLAYING)
+                ->update(['status' => Game::STATUS_FINISHED, 'ended_at' => now()]);
+
+            if ($finished) {
+                GameRound::where('game_id', $game->id)->whereNull('confirmed_at')->delete();
+            }
+        });
     }
 
     public function hasUnseenResult(Game $game, GamePlayer $seat): bool
@@ -115,7 +239,11 @@ class RoundService
     {
         return match ($game->status) {
             Game::STATUS_LOBBY   => route('poin.lobby', $game),
-            Game::STATUS_PLAYING => $seat && $this->hasUnseenResult($game, $seat) ? route('poin.round.result', $game) : route('poin.game', $game),
+            Game::STATUS_PLAYING => match (true) {
+                $game->pendingClaim() !== null                         => route('poin.round.claim', $game),
+                $seat !== null && $this->hasUnseenResult($game, $seat) => route('poin.round.result', $game),
+                default                                                => route('poin.game', $game),
+            },
             default              => $game->started_at && $seat ? route('poin.round.summary', $game) : route('poin.games'),
         };
     }

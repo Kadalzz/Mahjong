@@ -53,6 +53,7 @@ if ($pointsDomain) {
             Route::post('/lobby/{game}/siap', [GameController::class, 'ready'])->name('lobby.ready');
             Route::post('/lobby/{game}/start', [GameController::class, 'start'])->name('lobby.start');
             Route::post('/lobby/{game}/keluar', [GameController::class, 'leave'])->name('lobby.leave');
+            Route::post('/lobby/{game}/kursi', [GameController::class, 'seat'])->name('lobby.seat');
 
             Route::get('/game/{game}', [GameController::class, 'game'])->name('game');
             Route::get('/game/{game}/status', [GameController::class, 'gameStatus'])->name('game.status');
@@ -60,6 +61,11 @@ if ($pointsDomain) {
             Route::get('/game/{game}/menang', [RoundController::class, 'win'])->name('round.win');
             Route::get('/game/{game}/menang/status', [RoundController::class, 'winStatus'])->name('round.win.status');
             Route::post('/game/{game}/ronde', [RoundController::class, 'store'])->name('round.store');
+            Route::get('/game/{game}/konfirmasi', [RoundController::class, 'claim'])->name('round.claim');
+            Route::get('/game/{game}/konfirmasi/status', [RoundController::class, 'claimStatus'])->name('round.claim.status');
+            Route::post('/game/{game}/konfirmasi/setuju', [RoundController::class, 'agree'])->name('round.claim.agree');
+            Route::post('/game/{game}/konfirmasi/tolak', [RoundController::class, 'reject'])->name('round.claim.reject');
+            Route::post('/game/{game}/konfirmasi/batal', [RoundController::class, 'withdraw'])->name('round.claim.withdraw');
             Route::get('/game/{game}/hasil', [RoundController::class, 'result'])->name('round.result');
             Route::get('/game/{game}/hasil/status', [RoundController::class, 'resultStatus'])->name('round.result.status');
             Route::post('/game/{game}/lanjut', [RoundController::class, 'continue'])->name('round.continue');

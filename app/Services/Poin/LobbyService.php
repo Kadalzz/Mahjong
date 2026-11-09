@@ -138,6 +138,25 @@ class LobbyService
         });
     }
 
+    public function moveSeat(Game $game, Player $player, int $seat): bool
+    {
+        return DB::transaction(function () use ($game, $player, $seat) {
+            $game = Game::whereKey($game->id)->lockForUpdate()->first();
+
+            if ($game->status !== Game::STATUS_LOBBY || $seat < 1 || $seat > Game::SEATS) {
+                return false;
+            }
+
+            if (GamePlayer::where('game_id', $game->id)->where('seat', $seat)->exists()) {
+                return false;
+            }
+
+            return (bool) GamePlayer::where('game_id', $game->id)
+                ->where('player_id', $player->id)
+                ->update(['seat' => $seat, 'is_ready' => false, 'last_seen_at' => now()]);
+        });
+    }
+
     public function touch(Game $game, Player $player): void
     {
         GamePlayer::where('game_id', $game->id)->where('player_id', $player->id)->update(['last_seen_at' => now()]);

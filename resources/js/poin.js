@@ -331,7 +331,7 @@ function bindPoll(page) {
             setOffline(true);
         }
 
-        window.setTimeout(tick, POLL_INTERVAL);
+        window.setTimeout(tick, Number(page.dataset.poinInterval) || POLL_INTERVAL);
     };
 
     tick();

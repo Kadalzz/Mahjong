@@ -110,6 +110,7 @@ class PoinHelpDialogsTest extends TestCase
         app(LobbyService::class)->start($game);
         $this->as($players[1])->get(route('poin.round.win', $game))->assertSee('Akhiri sesi bermain?');
         $this->as($players[0])->postJson(route('poin.round.store', $game), ['ronde' => 1, 'dari' => 'deck']);
+        $this->travel(31)->seconds();
 
         $html = $this->get(route('poin.round.result', $game))->assertOk()->getContent();
         $this->assertSame(1, substr_count($html, 'id="pn-stop-dialog"'));

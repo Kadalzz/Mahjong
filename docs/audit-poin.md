@@ -238,3 +238,14 @@ Tautan "Lupa sandi?" di layar Masuk mengarah ke `route('poin.help')`, yaitu `htt
 - Server butuh `MAIN_DOMAIN=hzmahjong.tech` di `/root/hzmahjong.env`. Tanpa baris ini, pembatasan domain tidak aktif.
 - Dua migrasi baru (`undo_floor` dan FK restrict `game_rounds`) jalan otomatis lewat `migrate --force`. Migrasi FK belum pernah dicoba di MySQL; di test hanya SQLite.
 - Nickname lama yang sudah tersimpan dengan spasi ganda tidak diubah; perapian berlaku saat disimpan berikutnya.
+
+## Permintaan client 9 November 2026
+
+| No | Permintaan | Hasil | Keputusan client |
+|---|---|---|---|
+| C1 | Pemain kalah konfirmasi kemenangan sebelum ronde berikutnya | Klaim menang menunggu konfirmasi ketiga pemain kalah. Poin baru tercatat setelah semua setuju. Satu penolakan membatalkan klaim dan pemenang mengisi ulang. Pemain yang sudah membuka layar konfirmasi dianggap setuju setelah 15 detik; pemain yang belum membukanya (HP mati, layar lain) dianggap setuju 30 detik setelah klaim dibuat. Pemenang bisa membatalkan klaimnya. Berhenti sesi membuang klaim yang belum selesai. | Ketiga pemain kalah; ditolak = isi ulang; 15 detik tanpa respons = setuju (awalnya 5, diubah menjadi 15) |
+| C2 | Pilih tempat duduk, kursi diberi nama angin | Kursi 1–4 = East, South, West, North (hanya penanda, tidak berputar). Di lobby, kursi kosong bisa diketuk untuk pindah; status Ready batal saat pindah. Peta posisi di layar game dan layar meja memakai huruf E/S/W/N. | Nama angin dalam bahasa Inggris; penanda tempat duduk |
+
+Layar baru yang tidak ada di Figma: Konfirmasi Kemenangan (pemain kalah: Setuju/Tolak dengan hitung mundur) dan Menunggu Konfirmasi (pemenang: status tiap pemain, Batalkan Klaim). Keduanya memakai komponen dan token yang sudah ada. Kursi lobby menampilkan nama angin di atas avatar; kursi kosong bertanda PILIH.
+
+Batas waktu bisa diubah lewat `POINTS_CONFIRM_SECONDS` dan `POINTS_CONFIRM_UNSEEN_SECONDS`.

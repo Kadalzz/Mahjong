@@ -2,7 +2,7 @@
 <div class="flex justify-center"><x-poin.badge type="outline">RONDE {{ $game->current_round }}</x-poin.badge></div>
 <div class="pn-positions">
     <p class="t-kicker">POSISI PEMAIN</p>
-    <x-poin.table-positions :you="$seat->seat_label" class="pn-table-map--game" />
+    <x-poin.table-positions :you="$seat->seat" class="pn-table-map--game" />
 </div>
 <span class="pn-page__spacer"></span>
 <div class="pn-player-card">

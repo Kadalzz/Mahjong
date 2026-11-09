@@ -799,6 +799,10 @@ body {
 }
 .pn-seat--you { border: var(--stroke-emphasis) solid var(--accent-gold); }
 .pn-seat__name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pn-seat__wind { color: var(--text-mute); }
+.pn-seat-pick { display: block; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.pn-seat-pick:disabled { cursor: default; }
+.pn-seat-pick .pn-seat { border: var(--stroke-thin) dashed var(--accent-gold); }
 
 .pn-player-row {
     display: flex;

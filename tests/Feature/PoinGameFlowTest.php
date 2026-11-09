@@ -232,6 +232,55 @@ class PoinGameFlowTest extends TestCase
             ->assertJson(['redirect' => route('poin.game', $game)]);
     }
 
+    public function test_lobby_seats_are_named_after_the_winds_and_empty_ones_can_be_picked(): void
+    {
+        $first = $this->player('Satu');
+        $this->as($first)->post(route('poin.table.join', $this->table->qr_code));
+        $game = Game::sole();
+
+        $html = $this->get(route('poin.lobby.status', $game))->json('html');
+
+        foreach (['East', 'South', 'West', 'North', 'Pindah ke kursi West', 'PILIH', 'Ketuk kursi kosong'] as $text) {
+            $this->assertStringContainsString($text, $html);
+        }
+        $this->assertStringNotContainsString('Pindah ke kursi East', $html);
+    }
+
+    public function test_a_player_moves_to_an_empty_seat_and_loses_ready(): void
+    {
+        $first = $this->player('Satu');
+        $this->as($first)->post(route('poin.table.join', $this->table->qr_code));
+        $game = Game::sole();
+        $this->post(route('poin.lobby.ready', $game), ['ready' => 1]);
+
+        $this->post(route('poin.lobby.seat', $game), ['kursi' => 3])->assertRedirect(route('poin.lobby', $game));
+
+        $seat = $game->seats()->sole();
+        $this->assertSame(3, $seat->seat);
+        $this->assertFalse($seat->is_ready);
+
+        $second = $this->player('Dua');
+        $this->as($second)->post(route('poin.table.join', $this->table->qr_code));
+        $this->assertSame(1, $game->seats()->where('player_id', $second->id)->value('seat'));
+
+        $this->post(route('poin.lobby.seat', $game), ['kursi' => 3]);
+        $this->assertSame(1, $game->seats()->where('player_id', $second->id)->value('seat'));
+
+        $this->post(route('poin.lobby.seat', $game), ['kursi' => 5])->assertSessionHasErrors('kursi');
+    }
+
+    public function test_seats_cannot_change_after_the_game_starts(): void
+    {
+        $game = $this->fullLobby();
+        app(LobbyService::class)->start($game);
+        $player = $game->seats->first()->player;
+        $game->seats()->where('seat', 4)->delete();
+
+        $this->as($player)->post(route('poin.lobby.seat', $game), ['kursi' => 4]);
+
+        $this->assertSame(1, $game->seats()->where('player_id', $player->id)->value('seat'));
+    }
+
     public function test_game_page_shows_position_and_win_button(): void
     {
         $game = $this->fullLobby();
@@ -241,6 +290,8 @@ class PoinGameFlowTest extends TestCase
         $this->as($seat->player)->get(route('poin.game', $game))->assertOk()->assertSee('Meja 1');
 
         $html = $this->get(route('poin.game.status', $game))->json('html');
+
+        $this->assertStringContainsString('is-you" title="South"', $html);
 
         foreach (['RONDE 1', 'POSISI PEMAIN', 'Kamu · ' . $seat->player->nickname,'SAYA MENANG', 'Tekan tombol saat kamu menang', 'Tombol aktif lagi setelah tersambung.'] as $text) {
             $this->assertStringContainsString($text, $html);

@@ -42,6 +42,18 @@ class Game extends Model
         return GameRound::where('game_id', $this->id)->where('number', $this->current_round - 1)->first();
     }
 
+    public function pendingClaim(): ?GameRound
+    {
+        if ($this->status !== self::STATUS_PLAYING) {
+            return null;
+        }
+
+        return GameRound::where('game_id', $this->id)
+            ->where('number', $this->current_round)
+            ->whereNull('confirmed_at')
+            ->first();
+    }
+
     public function scopeOpen(Builder $query): Builder
     {
         return $query->whereIn('status', [self::STATUS_LOBBY, self::STATUS_PLAYING]);

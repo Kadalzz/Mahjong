@@ -49,12 +49,30 @@ class PoinRoundFlowTest extends TestCase
         return $this->actingAs($player, 'player');
     }
 
-    private function win(int $seat, string $from, ?int $round = null)
+    private function claim(int $seat, string $from, ?int $round = null)
     {
         return $this->as($this->players[$seat - 1])->postJson(route('poin.round.store', $this->game), [
             'ronde' => $round ?? $this->game->fresh()->current_round,
             'dari'  => $from,
         ]);
+    }
+
+    private function win(int $seat, string $from, ?int $round = null)
+    {
+        $response = $this->claim($seat, $from, $round);
+        $claim = $this->game->fresh()->pendingClaim();
+
+        if (!$claim) {
+            return $response;
+        }
+
+        foreach ($this->players as $index => $player) {
+            if ($index !== $seat - 1) {
+                $this->as($player)->post(route('poin.round.claim.agree', $this->game), ['klaim' => $claim->id]);
+            }
+        }
+
+        return $this->as($this->players[$seat - 1])->getJson(route('poin.round.claim.status', ['game' => $this->game, 'klaim' => $claim->id]));
     }
 
     private function pointsBySeat(): array

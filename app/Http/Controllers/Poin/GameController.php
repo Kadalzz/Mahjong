@@ -54,7 +54,7 @@ class GameController extends Controller
             'table'   => $table,
             'status'  => $status,
             'count'   => $seats->count(),
-            'youSeat' => 'P' . ($mine?->seat ?? $free ?? 1),
+            'youSeat' => $mine?->seat ?? $free ?? 1,
         ]);
     }
 
@@ -131,26 +131,59 @@ class GameController extends Controller
     public function game(Request $request, Game $game)
     {
         $seat = $this->seatFor($request, $game);
+        $url = $this->rounds->urlFor($game, $seat);
 
-        if ($game->status !== Game::STATUS_PLAYING || $this->rounds->hasUnseenResult($game, $seat)) {
-            return redirect()->to($this->rounds->urlFor($game, $seat));
+        if ($url !== route('poin.game', $game)) {
+            return redirect()->to($url);
         }
 
-        return view('poin.game', ['game' => $game->load('table')]);
+        return view('poin.game', [
+            'game'   => $game->load('table'),
+            'notice' => $this->closedClaimNotice($request, $seat),
+        ]);
     }
 
     public function gameStatus(Request $request, Game $game): JsonResponse
     {
         $seat = $this->seatFor($request, $game);
+        $url = $this->rounds->urlFor($game, $seat);
 
-        if ($game->status !== Game::STATUS_PLAYING || $this->rounds->hasUnseenResult($game, $seat)) {
-            return response()->json(['redirect' => $this->rounds->urlFor($game, $seat)]);
+        if ($url !== route('poin.game', $game)) {
+            return response()->json(['redirect' => $url]);
         }
 
         $this->lobby->touch($game, $request->user('player'));
         $points = $this->rounds->standings($game)->firstWhere('player_id', $seat->player_id)->points;
 
         return response()->json(['html' => view('poin.partials.game', compact('game', 'seat', 'points'))->render()]);
+    }
+
+    public function seat(Request $request, Game $game): RedirectResponse
+    {
+        $seat = $this->seatFor($request, $game);
+        $data = $request->validate(['kursi' => ['required', 'integer', 'between:1,' . Game::SEATS]]);
+        $this->lobby->moveSeat($game, $request->user('player'), (int) $data['kursi']);
+
+        return redirect()->to($this->rounds->urlFor($game->fresh(), $seat->fresh()));
+    }
+
+    private function closedClaimNotice(Request $request, GamePlayer $seat): ?string
+    {
+        $closed = $request->query('klaim') ? $this->rounds->closedClaim((int) $request->query('klaim')) : null;
+
+        if (!$closed) {
+            return null;
+        }
+
+        $mine = $closed['winner_id'] === $seat->player_id;
+
+        return match (true) {
+            $closed['reason'] === 'withdrawn' && $mine => 'Klaim menangmu dibatalkan.',
+            $closed['reason'] === 'withdrawn'          => "{$closed['winner']} membatalkan klaim menang.",
+            $closed['by_id'] === $seat->player_id      => "Kamu menolak klaim menang {$closed['winner']}.",
+            $mine                                      => "Klaim menangmu ditolak oleh {$closed['by']}.",
+            default                                    => "Klaim menang {$closed['winner']} ditolak oleh {$closed['by']}.",
+        };
     }
 
     private function findTable(string $code): ?MahjongTable
@@ -162,6 +195,11 @@ class GameController extends Controller
     {
         $seat = $game->seats()->where('player_id', $request->user('player')->id)->first();
         abort_unless($seat, 403);
+
+        if ($game->status === Game::STATUS_PLAYING) {
+            $this->rounds->settle($game);
+            $game->refresh();
+        }
 
         return $seat;
     }

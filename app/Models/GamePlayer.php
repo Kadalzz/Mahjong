@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GamePlayer extends Model
 {
+    public const WINDS = [1 => 'East', 2 => 'South', 3 => 'West', 4 => 'North'];
+
     protected $fillable = ['game_id', 'player_id', 'seat', 'is_ready', 'seen_round', 'last_seen_at', 'left_at'];
 
     protected function casts(): array
@@ -26,6 +28,11 @@ class GamePlayer extends Model
 
     public function getSeatLabelAttribute(): string
     {
-        return 'P' . $this->seat;
+        return self::windFor($this->seat);
+    }
+
+    public static function windFor(int $seat): string
+    {
+        return self::WINDS[$seat] ?? 'P' . $seat;
     }
 }
