@@ -5,7 +5,7 @@
 @endphp
 <x-poin.notice class="pn-online-only" />
 <x-poin.lobby-table :game="$game" :player="$player" />
-<p class="pn-online-only pn-subtle t-body-sm text-center">Ketuk kursi kosong untuk pindah sesuai tempat dudukmu.</p>
+<p class="pn-online-only pn-subtle t-body-sm text-center">Ketuk kursi kosong untuk pindah, atau kursi pemain lain untuk bertukar tempat.</p>
 <span class="pn-page__spacer"></span>
 <p class="pn-online-only {{ $ready ? 'pn-lobby-hint--ready' : 'pn-subtle' }} t-body text-center">
     {{ $ready ? 'Semua pemain siap (4/4)' : "Menunggu semua pemain Ready ({$readyCount}/4)" }}

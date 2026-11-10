@@ -15,7 +15,15 @@
             $seat = $seats->get($number);
             $wind = \App\Models\GamePlayer::windFor($number);
         @endphp
-        @if($seat)
+        @if($seat && $seat->player_id !== $player->id)
+            <form method="POST" action="{{ route('poin.lobby.seat', $game) }}" class="pn-lobby-table__seat pn-lobby-table__seat--p{{ $number }}">
+                @csrf
+                <input type="hidden" name="kursi" value="{{ $number }}">
+                <button type="submit" class="pn-seat-pick pn-seat-pick--taken" aria-label="Tukar kursi dengan {{ $seat->player->nickname }} ({{ $wind }})" data-poin-needs-connection>
+                    <x-poin.player-seat :wind="$wind" :name="$seat->player->nickname" :src="$seat->player->avatarUrl()" :status="$seat->is_ready ? 'ready' : 'waiting'" />
+                </button>
+            </form>
+        @elseif($seat)
             <x-poin.player-seat :wind="$wind" :name="$seat->player->nickname" :you="$seat->player_id === $player->id" :src="$seat->player->avatarUrl()" :status="$seat->is_ready ? 'ready' : 'waiting'" class="pn-lobby-table__seat pn-lobby-table__seat--p{{ $number }}" />
         @else
             <form method="POST" action="{{ route('poin.lobby.seat', $game) }}" class="pn-lobby-table__seat pn-lobby-table__seat--p{{ $number }}">

@@ -263,10 +263,34 @@ class PoinGameFlowTest extends TestCase
         $this->as($second)->post(route('poin.table.join', $this->table->qr_code));
         $this->assertSame(1, $game->seats()->where('player_id', $second->id)->value('seat'));
 
-        $this->post(route('poin.lobby.seat', $game), ['kursi' => 3]);
-        $this->assertSame(1, $game->seats()->where('player_id', $second->id)->value('seat'));
-
         $this->post(route('poin.lobby.seat', $game), ['kursi' => 5])->assertSessionHasErrors('kursi');
+    }
+
+    public function test_tapping_another_players_seat_swaps_places_and_clears_both_ready(): void
+    {
+        $game = $this->fullLobby();
+        [$east, $south, $west, $north] = $game->seats->sortBy('seat')->map->player->values()->all();
+        foreach ([$east, $west] as $player) {
+            $this->as($player)->post(route('poin.lobby.ready', $game), ['ready' => 1]);
+        }
+
+        $html = $this->as($east)->get(route('poin.lobby.status', $game))->json('html');
+        $this->assertStringContainsString('Tukar kursi dengan ' . $west->nickname . ' (West)', $html);
+        $this->assertStringNotContainsString('Tukar kursi dengan ' . $east->nickname, $html);
+
+        $this->post(route('poin.lobby.seat', $game), ['kursi' => 3])->assertRedirect(route('poin.lobby', $game));
+
+        $seats = $game->seats()->get()->keyBy('player_id');
+        $this->assertSame(3, $seats[$east->id]->seat);
+        $this->assertSame(1, $seats[$west->id]->seat);
+        $this->assertSame(2, $seats[$south->id]->seat);
+        $this->assertSame(4, $seats[$north->id]->seat);
+        $this->assertFalse($seats[$east->id]->is_ready);
+        $this->assertFalse($seats[$west->id]->is_ready);
+        $this->assertTrue($seats[$south->id]->is_ready);
+
+        $this->post(route('poin.lobby.seat', $game), ['kursi' => 3]);
+        $this->assertSame(3, $game->seats()->where('player_id', $east->id)->value('seat'));
     }
 
     public function test_seats_cannot_change_after_the_game_starts(): void

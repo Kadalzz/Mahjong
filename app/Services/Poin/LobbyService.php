@@ -147,13 +147,21 @@ class LobbyService
                 return false;
             }
 
-            if (GamePlayer::where('game_id', $game->id)->where('seat', $seat)->exists()) {
+            $mine = GamePlayer::where('game_id', $game->id)->where('player_id', $player->id)->first();
+
+            if (!$mine || (int) $mine->seat === $seat) {
                 return false;
             }
 
-            return (bool) GamePlayer::where('game_id', $game->id)
-                ->where('player_id', $player->id)
-                ->update(['seat' => $seat, 'is_ready' => false, 'last_seen_at' => now()]);
+            $other = GamePlayer::where('game_id', $game->id)->where('seat', $seat)->first();
+            $from = $mine->seat;
+
+            if ($other) {
+                $mine->update(['seat' => 0]);
+                $other->update(['seat' => $from, 'is_ready' => false]);
+            }
+
+            return $mine->update(['seat' => $seat, 'is_ready' => false, 'last_seen_at' => now()]);
         });
     }
 

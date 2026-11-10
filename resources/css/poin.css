@@ -802,7 +802,7 @@ body {
 .pn-seat__wind { color: var(--text-mute); }
 .pn-seat-pick { display: block; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 .pn-seat-pick:disabled { cursor: default; }
-.pn-seat-pick .pn-seat { border: var(--stroke-thin) dashed var(--accent-gold); }
+.pn-seat-pick:not(.pn-seat-pick--taken) .pn-seat { border: var(--stroke-thin) dashed var(--accent-gold); }
 
 .pn-player-row {
     display: flex;
