@@ -252,6 +252,9 @@
         <a href="{{ route('dashboard.players.index') }}" class="sidebar-link {{ request()->routeIs('dashboard.players.*') ? 'active' : '' }}">
             <i class="bi bi-controller"></i> Pemain
         </a>
+        <a href="{{ route('dashboard.vouchers.index') }}" class="sidebar-link {{ request()->routeIs('dashboard.vouchers.*') ? 'active' : '' }}">
+            <i class="bi bi-ticket-perforated-fill"></i> Voucher
+        </a>
         <a href="{{ route('dashboard.activity') }}" class="sidebar-link {{ request()->routeIs('dashboard.activity') ? 'active' : '' }}">
             <i class="bi bi-clock-history"></i> Aktivitas
         </a>

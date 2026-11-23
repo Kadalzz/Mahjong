@@ -175,6 +175,12 @@
                         </span>
                     </span>
                 </div>
+                @if($order->voucher_code)
+                <div class="info-row">
+                    <span class="info-label">Voucher {{ $order->voucher_code }}</span>
+                    <span class="info-value">−Rp {{ number_format($order->discount_amount, 0, ',', '.') }} (sudah dipotong)</span>
+                </div>
+                @endif
                 <div class="info-row total-row">
                     <span class="info-label">Total Bayar</span>
                     <span class="info-value">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>

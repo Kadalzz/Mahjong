@@ -56,6 +56,11 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(150)->by('store-ip|' . $request->ip()),
         ]);
 
+        RateLimiter::for('booking-voucher', fn (Request $request) => [
+            Limit::perMinute(10)->by('voucher|' . $visitor($request)),
+            Limit::perMinute(60)->by('voucher-ip|' . $request->ip()),
+        ]);
+
         RateLimiter::for('booking-status', fn (Request $request) => [
             Limit::perMinute(40)->by('status|' . $request->route('code') . '|' . $visitor($request)),
             Limit::perMinute(1800)->by('status-ip|' . $request->ip()),

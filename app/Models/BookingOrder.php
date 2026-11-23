@@ -22,6 +22,8 @@ class BookingOrder extends Model
         'customer_phone',
         'booking_date',
         'total_price',
+        'voucher_code',
+        'discount_amount',
         'status',
         'refund_status',
         'payment_order_id',
@@ -31,7 +33,8 @@ class BookingOrder extends Model
 
     protected $casts = [
         'booking_date' => 'date',
-        'total_price'  => 'decimal:2',
+        'total_price'     => 'decimal:2',
+        'discount_amount' => 'decimal:2',
     ];
 
     public function bookings(): HasMany

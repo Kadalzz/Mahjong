@@ -111,6 +111,12 @@
                     <span class="invoice-label">Status</span>
                     <span class="invoice-value">{{ $order->status_label }}</span>
                 </div>
+                @if($order->voucher_code)
+                <div class="invoice-row">
+                    <span class="invoice-label">Voucher {{ $order->voucher_code }}</span>
+                    <span class="invoice-value">−Rp {{ number_format($order->discount_amount, 0, ',', '.') }} (sudah dipotong)</span>
+                </div>
+                @endif
                 <div class="invoice-row invoice-total">
                     <span class="invoice-label">Total Dibayar</span>
                     <span class="invoice-value">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>

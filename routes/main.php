@@ -13,6 +13,7 @@ use App\Http\Controllers\Dashboard\PricingController;
 use App\Http\Controllers\Dashboard\RevenueController;
 use App\Http\Controllers\Dashboard\TableController;
 use App\Http\Controllers\Dashboard\TableQrController;
+use App\Http\Controllers\Dashboard\VoucherController;
 use App\Http\Controllers\CoverController;
 use App\Http\Controllers\Dev\TokensController;
 use App\Http\Controllers\ScheduleController;
@@ -27,6 +28,9 @@ Route::get('/booking/table/{table}', [BookingController::class, 'create'])->name
 Route::post('/booking/table/{table}/availability', [BookingController::class, 'checkAvailability'])
     ->middleware('throttle:booking-check')
     ->name('booking.check');
+Route::post('/booking/voucher', [BookingController::class, 'voucher'])
+    ->middleware('throttle:booking-voucher')
+    ->name('booking.voucher');
 Route::post('/booking', [BookingController::class, 'store'])
     ->middleware('throttle:booking-store')
     ->name('booking.store');
@@ -101,6 +105,9 @@ Route::prefix('dashboard')->name('dashboard.')->middleware(['auth', 'active'])->
         Route::put('/accounts/{user}', [AccountController::class, 'update'])->name('accounts.update');
         Route::post('/accounts/{user}/toggle', [AccountController::class, 'toggle'])->name('accounts.toggle');
         Route::get('/activity', [ActivityController::class, 'index'])->name('activity');
+        Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers.index');
+        Route::post('/vouchers', [VoucherController::class, 'store'])->name('vouchers.store');
+        Route::delete('/vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
         Route::get('/players', [PlayerController::class, 'index'])->name('players.index');
         Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])->name('players.edit');
         Route::put('/players/{player}', [PlayerController::class, 'update'])->name('players.update');

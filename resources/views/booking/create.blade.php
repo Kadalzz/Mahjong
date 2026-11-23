@@ -179,6 +179,15 @@
 
                 <div class="form-card">
                     <h5 class="mb-3"><span class="step-badge">3</span>Pembayaran</h5>
+                    <label class="form-label" for="voucher_input">Kode Voucher (opsional)</label>
+                    <div class="d-flex gap-2 mb-1">
+                        <input type="text" id="voucher_input" class="form-control @error('voucher_code') is-invalid @enderror"
+                            placeholder="HZ-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="30"
+                            value="{{ old('voucher_code') }}">
+                        <button type="button" id="voucherBtn" class="btn btn-play-now text-nowrap">Pakai</button>
+                    </div>
+                    <input type="hidden" name="voucher_code" id="voucher_code" value="">
+                    <p id="voucherMsg" class="mb-3" style="font-size:0.8rem;font-weight:700;{{ $errors->has('voucher_code') ? 'color:#9b2c2c' : '' }}">{{ $errors->first('voucher_code') }}</p>
                     <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3" style="background:rgba(58,20,20,0.06)">
                         <i class="bi bi-shield-lock-fill" style="font-size:1.5rem;color:var(--red)"></i>
                         <div style="font-size:0.85rem;color:var(--ink-mute)">
@@ -202,6 +211,10 @@
                         <span id="s-date">—</span>
                     </div>
                     <div id="s-lines" style="font-size:0.85rem"></div>
+                    <div id="s-voucher" class="d-none justify-content-between mb-2 gap-2" style="font-size:0.85rem">
+                        <span>Voucher <span id="s-voucher-code"></span></span>
+                        <span class="fw-bold text-nowrap" id="s-voucher-amount"></span>
+                    </div>
                     <hr style="border-color:rgba(244,241,221,0.25)">
                     <div class="d-flex justify-content-between align-items-center">
                         <span style="opacity:0.75">Total</span>
@@ -236,6 +249,15 @@ function escapeHtml(text) {
 }
 
 const maxAmount = {{ $maxAmount }};
+let voucher = null;
+let lastLines = [];
+
+function voucherDiscount(subtotal) {
+    if (!voucher) return 0;
+    let discount = voucher.type === 'percent' ? Math.floor(subtotal * voucher.value / 100) : voucher.value;
+    if (voucher.type === 'percent' && voucher.max) discount = Math.min(discount, voucher.max);
+    return Math.max(0, Math.min(discount, subtotal));
+}
 const dateInput = document.getElementById('booking_date');
 const submitBtn = document.getElementById('submitBtn');
 const submitHint = document.getElementById('submitHint');
@@ -252,8 +274,22 @@ function renderSummary(lines) {
             <span class="fw-bold text-nowrap">${formatRupiah(l.price)}</span>
         </div>`).join('');
 
-    const total = lines.reduce((sum, l) => sum + l.price, 0);
+    lastLines = lines;
+    const subtotal = lines.reduce((sum, l) => sum + l.price, 0);
+    const discount = voucherDiscount(subtotal);
+    const total = subtotal - discount;
     document.getElementById('s-total').textContent = formatRupiah(total);
+
+    const voucherRow = document.getElementById('s-voucher');
+    voucherRow.classList.toggle('d-none', !voucher);
+    voucherRow.classList.toggle('d-flex', !!voucher);
+    if (voucher) {
+        document.getElementById('s-voucher-code').textContent = voucher.code;
+        document.getElementById('s-voucher-amount').textContent = '−' + formatRupiah(discount);
+    }
+    submitBtn.innerHTML = voucher && total === 0 && subtotal > 0
+        ? '<i class="bi bi-check2-circle me-2"></i>Pesan dengan Voucher'
+        : '<i class="bi bi-lock-fill me-2"></i>Lanjut ke Pembayaran';
 
     const bad = lines.filter(l => l.state === 'bad').length;
     const incomplete = lines.filter(l => l.state === 'incomplete').length;
@@ -289,6 +325,80 @@ window.initBookingLines({
 document.getElementById('playNowBtn').addEventListener('click', () => {
     document.getElementById('customer_name').focus();
 });
+
+const voucherInput = document.getElementById('voucher_input');
+const voucherBtn = document.getElementById('voucherBtn');
+const voucherMsg = document.getElementById('voucherMsg');
+const voucherField = document.getElementById('voucher_code');
+
+function setVoucherMessage(text, ok) {
+    voucherMsg.textContent = text;
+    voucherMsg.style.color = ok ? '#1f7a34' : '#9b2c2c';
+}
+
+function clearVoucher() {
+    voucher = null;
+    voucherField.value = '';
+    voucherBtn.textContent = 'Pakai';
+    voucherInput.readOnly = false;
+    renderSummary(lastLines);
+}
+
+async function applyVoucher() {
+    const code = voucherInput.value.trim();
+    if (!code) {
+        setVoucherMessage('Masukkan kode voucher dulu.', false);
+        return;
+    }
+    voucherBtn.disabled = true;
+    try {
+        const res = await fetch(@json(route('booking.voucher')), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}' },
+            body: JSON.stringify({ code, subtotal: lastLines.reduce((sum, l) => sum + l.price, 0) }),
+        });
+        if (res.status === 429) {
+            setVoucherMessage('Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.', false);
+            return;
+        }
+        const data = await res.json();
+        if (!data.valid) {
+            setVoucherMessage(data.message || 'Kode voucher tidak bisa dipakai.', false);
+            return;
+        }
+        voucher = { code: data.code, type: data.type, value: data.value, max: data.max };
+        voucherField.value = data.code;
+        voucherInput.value = data.code;
+        voucherInput.readOnly = true;
+        voucherBtn.textContent = 'Hapus';
+        setVoucherMessage(data.message, true);
+        renderSummary(lastLines);
+    } catch (e) {
+        setVoucherMessage('Voucher belum bisa dicek. Periksa koneksi lalu coba lagi.', false);
+    } finally {
+        voucherBtn.disabled = false;
+    }
+}
+
+voucherBtn.addEventListener('click', () => {
+    if (voucher) {
+        clearVoucher();
+        setVoucherMessage('', true);
+    } else {
+        applyVoucher();
+    }
+});
+
+voucherInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!voucher) applyVoucher();
+    }
+});
+
+if (voucherInput.value.trim() && !voucherMsg.textContent.trim()) {
+    applyVoucher();
+}
 
 document.getElementById('customer_phone').addEventListener('input', function () {
     this.value = this.value.replace(/\D/g, '').slice(0, 13);

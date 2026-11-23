@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\BookingOrder;
 use App\Models\MahjongTable;
 use App\Models\Transaction;
+use App\Models\Voucher;
 use App\Services\Ayo\AyoSyncService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -64,6 +65,35 @@ class BookingOrderService
                 return $errors;
             }
 
+            $voucher = null;
+            $code = $source === 'customer' ? Voucher::normalize($details['voucher_code'] ?? null) : '';
+
+            if ($code !== '') {
+                $voucher = Voucher::where('code', $code)->lockForUpdate()->first();
+
+                if (!$voucher) {
+                    return ['voucher' => 'Kode voucher tidak ditemukan.'];
+                }
+
+                if ($voucher->booking_order_id && $voucher->used_at === null && $voucher->order?->isPaymentExpired()) {
+                    $this->cancelUnpaid($voucher->order);
+                    $voucher->refresh();
+                }
+
+                if ($problem = $voucher->problem()) {
+                    return ['voucher' => $problem];
+                }
+            }
+
+            $prices = [];
+            foreach (array_values($lines) as $position => $line) {
+                $table = $tables[(int) $line['table_id']];
+                $prices[$position] = in_array($source, ['customer', 'cash'], true) ? $table->getCurrentPricePerHour() * (int) $line['duration_hours'] : 0;
+            }
+
+            $discount = $voucher?->discountFor(array_sum($prices)) ?? 0;
+            $shares = $this->splitDiscount($prices, $discount);
+
             $status = $source === 'customer' ? 'pending_payment' : 'active';
 
             $order = BookingOrder::create([
@@ -74,13 +104,17 @@ class BookingOrderService
                 'booking_date'   => $details['booking_date'],
                 'status'         => $status,
                 'notes'          => $details['notes'] ?? null,
+                'voucher_code'   => $voucher?->code,
+                'discount_amount' => $discount,
             ]);
+
+            $voucher?->update(['booking_order_id' => $order->id]);
 
             $total = 0;
             foreach (array_values($lines) as $position => $line) {
                 $table = $tables[(int) $line['table_id']];
                 $hours = (int) $line['duration_hours'];
-                $price = in_array($source, ['customer', 'cash'], true) ? $table->getCurrentPricePerHour() * $hours : 0;
+                $price = $prices[$position] - $shares[$position];
 
                 $booking = Booking::create([
                     'booking_order_id' => $order->id,
@@ -197,10 +231,16 @@ class BookingOrderService
                 Log::warning("DOKU payment received for {$booking->booking_code} but the slot is no longer available; manual refund needed.");
             }
 
+            $paid = $order->bookings()->whereIn('status', ['active', 'done'])->exists();
+
             $order->update(array_filter([
-                'status'        => $order->bookings()->whereIn('status', ['active', 'done'])->exists() ? 'active' : 'cancelled',
+                'status'        => $paid ? 'active' : 'cancelled',
                 'refund_status' => $needsRefund ? 'pending_refund' : null,
             ]));
+
+            $paid
+                ? Voucher::where('booking_order_id', $order->id)->whereNull('used_at')->update(['used_at' => now()])
+                : $this->releaseVoucher($order);
 
             return $activated;
         });
@@ -217,6 +257,28 @@ class BookingOrderService
         foreach ($order->bookings()->where('status', 'pending_payment')->get() as $booking) {
             $booking->update(['status' => 'cancelled']);
         }
+
+        $this->releaseVoucher($order);
+    }
+
+    private function releaseVoucher(BookingOrder $order): void
+    {
+        Voucher::where('booking_order_id', $order->id)->whereNull('used_at')->update(['booking_order_id' => null]);
+    }
+
+    private function splitDiscount(array $prices, int $discount): array
+    {
+        $total = array_sum($prices);
+        $shares = array_map(fn ($price) => $total > 0 ? intdiv($price * $discount, $total) : 0, $prices);
+        $left = $discount - array_sum($shares);
+
+        foreach ($prices as $position => $price) {
+            $extra = min($left, $price - $shares[$position]);
+            $shares[$position] += $extra;
+            $left -= $extra;
+        }
+
+        return $shares;
     }
 
     private function discard(BookingOrder $order): void
@@ -227,6 +289,7 @@ class BookingOrderService
         }
 
         $order->update(['status' => 'cancelled']);
+        $this->releaseVoucher($order);
     }
 
     public function syncOrderStatus(BookingOrder $order): void

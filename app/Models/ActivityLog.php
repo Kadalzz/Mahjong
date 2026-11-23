@@ -14,6 +14,8 @@ class ActivityLog extends Model
         'account_create' => 'Akun dibuat',
         'account_update' => 'Akun diubah',
         'account_toggle' => 'Status akun diubah',
+        'voucher_create' => 'Voucher dibuat',
+        'voucher_delete' => 'Voucher dihapus',
     ];
 
     protected $fillable = [

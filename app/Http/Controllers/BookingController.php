@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\BookingOrder;
 use App\Models\MahjongTable;
+use App\Models\Voucher;
 use App\Services\BookingOrderService;
 use App\Services\DokuService;
 use Carbon\Carbon;
@@ -98,6 +99,7 @@ class BookingController extends Controller
             'lines.*.table_id'       => 'required|integer|distinct|exists:mahjong_tables,id',
             'lines.*.start_time'     => 'required|date_format:H:i',
             'lines.*.duration_hours' => 'required|integer|min:1|max:' . Booking::MAX_DURATION_HOURS,
+            'voucher_code'           => 'nullable|string|max:30',
         ], [
             'lines.*.table_id.distinct' => 'Meja yang sama dipilih lebih dari sekali.',
         ]);
@@ -105,6 +107,17 @@ class BookingController extends Controller
         $prices = MahjongTable::with('pricing')->findMany(collect($data['lines'])->pluck('table_id'))->keyBy('id');
         $total  = collect($data['lines'])->sum(fn ($line) => $prices[(int) $line['table_id']]->getCurrentPricePerHour() * (int) $line['duration_hours']);
         $limit  = (int) config('doku.max_amount');
+
+        if (filled($data['voucher_code'] ?? null)) {
+            $voucher = Voucher::findByCode($data['voucher_code']);
+            $problem = $voucher ? $voucher->problem() : 'Kode voucher tidak ditemukan.';
+
+            if ($problem && !($voucher?->order?->isPaymentExpired())) {
+                return back()->withInput()->withErrors(['voucher_code' => $problem]);
+            }
+
+            $total -= $voucher->discountFor($total);
+        }
 
         if ($limit > 0 && $total > $limit) {
             return back()->withInput()->withErrors([
@@ -114,6 +127,10 @@ class BookingController extends Controller
 
         $result = $this->orders->create($data, $data['lines'], 'customer');
 
+        if (is_array($result) && isset($result['voucher'])) {
+            return back()->withInput()->withErrors(['voucher_code' => $result['voucher']]);
+        }
+
         if (is_array($result)) {
             return back()->withInput()->withErrors(
                 collect($result)->mapWithKeys(fn ($message, $index) => ["lines.{$index}.start_time" => $message])->all()
@@ -122,6 +139,13 @@ class BookingController extends Controller
         }
 
         $order   = $result;
+
+        if ((int) $order->total_price === 0) {
+            $this->orders->markPaid($order, ['channel' => ['id' => 'VOUCHER']]);
+
+            return redirect()->route('booking.confirm', $order->code);
+        }
+
         $invoice = $this->doku->createInvoice($order, $order->code . '-' . time());
 
         if (!$invoice) {
@@ -137,6 +161,33 @@ class BookingController extends Controller
         ]);
 
         return redirect()->route('booking.confirm', $order->code);
+    }
+
+    public function voucher(Request $request)
+    {
+        $data = $request->validate([
+            'code'     => 'required|string|max:30',
+            'subtotal' => 'required|integer|min:0',
+        ]);
+
+        $voucher = Voucher::findByCode($data['code']);
+        $problem = $voucher ? $voucher->problem() : 'Kode voucher tidak ditemukan.';
+
+        if ($problem && !($voucher?->order?->isPaymentExpired())) {
+            return response()->json(['valid' => false, 'message' => $problem]);
+        }
+
+        $discount = $voucher->discountFor((int) $data['subtotal']);
+
+        return response()->json([
+            'valid'    => true,
+            'code'     => $voucher->code,
+            'type'     => $voucher->discount_type,
+            'value'    => $voucher->discount_value,
+            'max'      => $voucher->max_discount,
+            'discount' => $discount,
+            'message'  => 'Voucher ' . $voucher->code . ' dipakai: potongan ' . $voucher->discount_label . '.',
+        ]);
     }
 
     public function confirm(string $code)
