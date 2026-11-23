@@ -190,6 +190,8 @@
             .sidebar.show { transform: translateX(0); }
             .main-content { margin-left: 0; }
         }
+    .pagination { --bs-pagination-color: var(--ink); --bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(58,20,20,0.15); --bs-pagination-hover-color: var(--cream); --bs-pagination-hover-bg: var(--red-light); --bs-pagination-hover-border-color: var(--red-light); --bs-pagination-focus-color: var(--ink); --bs-pagination-focus-box-shadow: 0 0 0 3px rgba(85,20,20,0.2); --bs-pagination-active-color: var(--cream); --bs-pagination-active-bg: var(--red); --bs-pagination-active-border-color: var(--red); --bs-pagination-disabled-color: var(--ink-mute); --bs-pagination-disabled-bg: transparent; --bs-pagination-disabled-border-color: rgba(58,20,20,0.1); flex-wrap: wrap; margin-bottom: 0; }
+    nav[role="navigation"] .small, nav[role="navigation"] p { color: var(--ink-mute); }
     </style>
     @yield('head')
 </head>
